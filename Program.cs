@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 
@@ -9,12 +10,30 @@ builder.Services.AddDbContext<RestauranteContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 
-// Add services to the container.
+// Autenticación mediante cookies
+builder.Services.AddAuthentication(
+    CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+
+        // Duración de la sesión
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+
+        // Renueva la sesión mientras el usuario esté activo
+        options.SlidingExpiration = true;
+    });
+
+// Autorización
+builder.Services.AddAuthorization();
+
+// MVC
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configuración del pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -22,15 +41,19 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseRouting();
 
+// Autenticación antes de autorización
+app.UseAuthentication();
 app.UseAuthorization();
 
+// Archivos estáticos
 app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
+    pattern: "{controller=Account}/{action=Login}/{id?}")
     .WithStaticAssets();
 
 app.Run();
