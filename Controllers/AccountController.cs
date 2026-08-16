@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using WebApplication1.Models;
 
@@ -85,6 +86,7 @@ namespace WebApplication1.Controllers
                 return View();
             }
 
+            // Login correcto
             usuarioDb.IntentosFallidos = 0;
             usuarioDb.UltimoAcceso = DateTime.Now;
 
@@ -135,6 +137,162 @@ namespace WebApplication1.Controllers
                 principal
             );
 
+            // Si debe cambiar la contraseña, no puede entrar al Home.
+            if (usuarioDb.DebeCambiarPassword)
+            {
+                return RedirectToAction(
+                    "CambiarPassword",
+                    "Account"
+                );
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        // GET: /Account/CambiarPassword
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> CambiarPassword()
+        {
+            var idUsuarioClaim = User.FindFirstValue(
+                ClaimTypes.NameIdentifier
+            );
+
+            if (!int.TryParse(idUsuarioClaim, out int idUsuario))
+            {
+                await CerrarSesionAsync();
+
+                return RedirectToAction("Login", "Account");
+            }
+
+            var usuarioDb = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.IdUsuario == idUsuario);
+
+            if (usuarioDb == null || !usuarioDb.Estado)
+            {
+                await CerrarSesionAsync();
+
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Si ya no está obligado a cambiar contraseña,
+            // no necesita permanecer en esta pantalla.
+            if (!usuarioDb.DebeCambiarPassword)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View(new CambiarPasswordViewModel());
+        }
+
+        // POST: /Account/CambiarPassword
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarPassword(
+            CambiarPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var idUsuarioClaim = User.FindFirstValue(
+                ClaimTypes.NameIdentifier
+            );
+
+            if (!int.TryParse(idUsuarioClaim, out int idUsuario))
+            {
+                await CerrarSesionAsync();
+
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Volvemos a consultar el usuario directamente desde la BD.
+            var usuarioDb = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.IdUsuario == idUsuario);
+
+            if (usuarioDb == null || !usuarioDb.Estado)
+            {
+                await CerrarSesionAsync();
+
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Si ya no está obligado a cambiar contraseña,
+            // no procesamos nuevamente el formulario.
+            if (!usuarioDb.DebeCambiarPassword)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Verificar contraseña actual con BCrypt.
+            bool passwordActualCorrecta;
+
+            try
+            {
+                passwordActualCorrecta = BCrypt.Net.BCrypt.Verify(
+                    model.PasswordActual,
+                    usuarioDb.PasswordHash
+                );
+            }
+            catch
+            {
+                passwordActualCorrecta = false;
+            }
+
+            if (!passwordActualCorrecta)
+            {
+                ModelState.AddModelError(
+                    nameof(model.PasswordActual),
+                    "La contraseña actual es incorrecta."
+                );
+
+                return View(model);
+            }
+
+            // Evitar reutilizar exactamente la misma contraseña.
+            bool nuevaPasswordEsLaMisma;
+
+            try
+            {
+                nuevaPasswordEsLaMisma = BCrypt.Net.BCrypt.Verify(
+                    model.NuevaPassword,
+                    usuarioDb.PasswordHash
+                );
+            }
+            catch
+            {
+                nuevaPasswordEsLaMisma = false;
+            }
+
+            if (nuevaPasswordEsLaMisma)
+            {
+                ModelState.AddModelError(
+                    nameof(model.NuevaPassword),
+                    "La nueva contraseña debe ser diferente de la contraseña actual."
+                );
+
+                return View(model);
+            }
+
+            // Generar nuevo hash BCrypt.
+            usuarioDb.PasswordHash =
+                BCrypt.Net.BCrypt.HashPassword(
+                    model.NuevaPassword
+                );
+
+            // Marcar que ya no necesita cambiar la contraseña.
+            usuarioDb.DebeCambiarPassword = false;
+
+            // Registrar fecha y hora del cambio.
+            usuarioDb.FechaCambioPassword = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Mensaje"] =
+                "Contraseña actualizada correctamente.";
+
             return RedirectToAction("Index", "Home");
         }
 
@@ -143,9 +301,7 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme
-            );
+            await CerrarSesionAsync();
 
             Response.Headers["Cache-Control"] =
                 "no-cache, no-store, must-revalidate";
@@ -164,6 +320,50 @@ namespace WebApplication1.Controllers
             return View();
         }
 
-        
+        private async Task CerrarSesionAsync()
+        {
+            await HttpContext.SignOutAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme
+            );
+
+            Response.Headers["Cache-Control"] =
+                "no-cache, no-store, must-revalidate";
+
+            Response.Headers["Pragma"] = "no-cache";
+            Response.Headers["Expires"] = "0";
+        }
+    }
+
+    public class CambiarPasswordViewModel
+    {
+        [Required(
+            ErrorMessage = "Debe ingresar su contraseña actual."
+        )]
+        [DataType(DataType.Password)]
+        [Display(Name = "Contraseña actual")]
+        public string PasswordActual { get; set; } = string.Empty;
+
+        [Required(
+            ErrorMessage = "Debe ingresar una nueva contraseña."
+        )]
+        [StringLength(
+            100,
+            MinimumLength = 8,
+            ErrorMessage = "La nueva contraseña debe tener entre 8 y 100 caracteres."
+        )]
+        [DataType(DataType.Password)]
+        [Display(Name = "Nueva contraseña")]
+        public string NuevaPassword { get; set; } = string.Empty;
+
+        [Required(
+            ErrorMessage = "Debe confirmar la nueva contraseña."
+        )]
+        [DataType(DataType.Password)]
+        [Compare(
+            nameof(NuevaPassword),
+            ErrorMessage = "Las contraseñas nuevas no coinciden."
+        )]
+        [Display(Name = "Confirmar nueva contraseña")]
+        public string ConfirmarPassword { get; set; } = string.Empty;
     }
 }
