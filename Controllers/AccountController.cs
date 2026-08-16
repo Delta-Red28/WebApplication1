@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using WebApplication1.Models;
 
@@ -332,38 +331,5 @@ namespace WebApplication1.Controllers
             Response.Headers["Pragma"] = "no-cache";
             Response.Headers["Expires"] = "0";
         }
-    }
-
-    public class CambiarPasswordViewModel
-    {
-        [Required(
-            ErrorMessage = "Debe ingresar su contraseña actual."
-        )]
-        [DataType(DataType.Password)]
-        [Display(Name = "Contraseña actual")]
-        public string PasswordActual { get; set; } = string.Empty;
-
-        [Required(
-            ErrorMessage = "Debe ingresar una nueva contraseña."
-        )]
-        [StringLength(
-            100,
-            MinimumLength = 8,
-            ErrorMessage = "La nueva contraseña debe tener entre 8 y 100 caracteres."
-        )]
-        [DataType(DataType.Password)]
-        [Display(Name = "Nueva contraseña")]
-        public string NuevaPassword { get; set; } = string.Empty;
-
-        [Required(
-            ErrorMessage = "Debe confirmar la nueva contraseña."
-        )]
-        [DataType(DataType.Password)]
-        [Compare(
-            nameof(NuevaPassword),
-            ErrorMessage = "Las contraseñas nuevas no coinciden."
-        )]
-        [Display(Name = "Confirmar nueva contraseña")]
-        public string ConfirmarPassword { get; set; } = string.Empty;
     }
 }
