@@ -1,0 +1,837 @@
+﻿@model WebApplication1.Models.Usuario
+
+@{
+    ViewData["Title"] = "Editar usuario";
+
+    var roles = ViewBag.Roles as List<WebApplication1.Models.Rol>;
+
+    var idUsuarioActual =
+        ViewBag.IdUsuarioActual?.ToString();
+
+    bool esUsuarioActual =
+        idUsuarioActual == Model.IdUsuario.ToString();
+
+    // Obtener el nombre del rol actual
+    var rolActual = roles?
+        .FirstOrDefault(r => r.IdRol == Model.IdRol);
+
+    string nombreRolActual =
+        rolActual?.Nombre ?? "Sin rol";
+}
+
+<div class="container-fluid px-4 py-3">
+
+    <!-- =========================================================
+         ENCABEZADO
+         ========================================================= -->
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+
+        <div class="d-flex align-items-center gap-3">
+
+            <div class="rounded-3 d-flex align-items-center justify-content-center shadow-sm"
+                 style="
+                width: 58px;
+                height: 58px;
+                background: #e8f0fe;
+                color: #0d6efd;
+                font-size: 1.4rem;
+                ">
+
+                <i class="bi bi-person-gear"></i>
+
+            </div>
+
+            <div>
+
+                <h2 class="fw-bold mb-1">
+                    Editar usuario
+                </h2>
+
+                <p class="text-muted mb-0">
+                    Modifique la información, permisos y estado de la cuenta.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <a asp-action="Index"
+           class="btn btn-light border px-4">
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Volver
+
+        </a>
+
+    </div>
+
+
+    <!-- =========================================================
+         MENSAJES
+         ========================================================= -->
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm"
+             role="alert">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["Mensaje"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         FORMULARIO
+         ========================================================= -->
+
+    <form asp-action="Edit"
+          asp-route-id="@Model.IdUsuario"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               asp-for="IdUsuario" />
+
+
+        <!-- =====================================================
+             VALIDACIONES
+             ===================================================== -->
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger border-0 shadow-sm"
+             role="alert">
+        </div>
+
+
+        <div class="row g-4">
+
+
+            <!-- =================================================
+                 INFORMACIÓN PERSONAL
+                 ================================================= -->
+
+            <div class="col-lg-7">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+                                 style="
+                                width: 42px;
+                                height: 42px;
+                                background: #e8f0fe;
+                                color: #0d6efd;
+                                ">
+
+                                <i class="bi bi-person-fill"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h5 class="fw-bold mb-0">
+                                    Información personal
+                                </h5>
+
+                                <small class="text-muted">
+                                    Datos básicos del usuario
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body px-4 pb-4">
+
+                        <div class="row g-3">
+
+
+                            <!-- NOMBRES -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="Nombres"
+                                       class="form-label fw-semibold">
+
+                                    Nombres
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-person text-muted"></i>
+                                    </span>
+
+                                    <input asp-for="Nombres"
+                                           class="form-control"
+                                           autocomplete="off" />
+
+                                </div>
+
+                                <span asp-validation-for="Nombres"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+
+                            <!-- APELLIDOS -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="Apellidos"
+                                       class="form-label fw-semibold">
+
+                                    Apellidos
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-person text-muted"></i>
+                                    </span>
+
+                                    <input asp-for="Apellidos"
+                                           class="form-control"
+                                           autocomplete="off" />
+
+                                </div>
+
+                                <span asp-validation-for="Apellidos"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+
+                            <!-- CORREO -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="Correo"
+                                       class="form-label fw-semibold">
+
+                                    Correo electrónico
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-envelope text-muted"></i>
+                                    </span>
+
+                                    <input asp-for="Correo"
+                                           type="email"
+                                           class="form-control"
+                                           autocomplete="off" />
+
+                                </div>
+
+                                <span asp-validation-for="Correo"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+
+                            <!-- TELÉFONO -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="Telefono"
+                                       class="form-label fw-semibold">
+
+                                    Teléfono
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-telephone text-muted"></i>
+                                    </span>
+
+                                    <input asp-for="Telefono"
+                                           class="form-control"
+                                           autocomplete="off" />
+
+                                </div>
+
+                                <span asp-validation-for="Telefono"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+
+                            <!-- USUARIO -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="Usuario1"
+                                       class="form-label fw-semibold">
+
+                                    Nombre de usuario
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-person-badge text-muted"></i>
+                                    </span>
+
+                                    <input asp-for="Usuario1"
+                                           class="form-control"
+                                           autocomplete="off" />
+
+                                </div>
+
+                                <span asp-validation-for="Usuario1"
+                                      class="text-danger small">
+                                </span>
+
+                                <small class="text-muted">
+                                    Nombre utilizado para iniciar sesión.
+                                </small>
+
+                            </div>
+
+
+                            <!-- ESTADO -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="Estado"
+                                       class="form-label fw-semibold">
+
+                                    Estado de la cuenta
+
+                                </label>
+
+                                <div class="border rounded-3 p-3">
+
+                                    <div class="form-check form-switch">
+
+                                        <input asp-for="Estado"
+                                               class="form-check-input"
+                                               type="checkbox" />
+
+                                        <label asp-for="Estado"
+                                               class="form-check-label">
+
+                                            Usuario activo
+
+                                        </label>
+
+                                    </div>
+
+                                    @if (esUsuarioActual)
+                                    {
+                                        <small class="text-warning d-block mt-2">
+
+                                            <i class="bi bi-exclamation-triangle me-1"></i>
+
+                                            No puede desactivar su propio usuario.
+
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted d-block mt-2">
+
+                                            <i class="bi bi-info-circle me-1"></i>
+
+                                            Un usuario inactivo no podrá iniciar sesión.
+
+                                        </small>
+                                    }
+
+                                </div>
+
+                                <span asp-validation-for="Estado"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     INFORMACIÓN DE LA CUENTA
+                     ================================================= -->
+
+                <div class="card border-0 shadow-sm mt-4">
+
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+                                 style="
+                                width: 42px;
+                                height: 42px;
+                                background: #f8f9fa;
+                                color: #6c757d;
+                                ">
+
+                                <i class="bi bi-clock-history"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h5 class="fw-bold mb-0">
+                                    Información de la cuenta
+                                </h5>
+
+                                <small class="text-muted">
+                                    Historial de actividad del usuario
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body px-4 pb-4">
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+
+                                <div class="p-3 rounded-3 bg-light">
+
+                                    <small class="text-muted d-block mb-1">
+
+                                        <i class="bi bi-calendar3 me-1"></i>
+
+                                        Fecha de registro
+
+                                    </small>
+
+                                    <strong>
+                                        @Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <div class="p-3 rounded-3 bg-light">
+
+                                    <small class="text-muted d-block mb-1">
+
+                                        <i class="bi bi-box-arrow-in-right me-1"></i>
+
+                                        Último acceso
+
+                                    </small>
+
+                                    <strong>
+                                        @(Model.UltimoAcceso?.ToString("dd/MM/yyyy HH:mm") ?? "Nunca")
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 PANEL DE CONFIGURACIÓN
+                 ================================================= -->
+
+            <div class="col-lg-5">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+                                 style="
+                                width: 42px;
+                                height: 42px;
+                                background: #eef2ff;
+                                color: #4f46e5;
+                                ">
+
+                                <i class="bi bi-shield-lock-fill"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h5 class="fw-bold mb-0">
+                                    Acceso y permisos
+                                </h5>
+
+                                <small class="text-muted">
+                                    Configure el nivel de acceso
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body px-4 pb-4">
+
+
+                        <!-- =================================================
+                             RESUMEN DEL USUARIO
+                             ================================================= -->
+
+                        <div class="text-center py-3">
+
+                            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                                 style="
+                                width: 80px;
+                                height: 80px;
+                                background: #e8f0fe;
+                                color: #0d6efd;
+                                ">
+
+                                <i class="bi bi-person-fill fs-2"></i>
+
+                            </div>
+
+                            <h5 class="fw-bold mb-1">
+
+                                @Model.Nombres @Model.Apellidos
+
+                            </h5>
+
+                            <p class="text-muted mb-0">
+
+                                <i class="bi bi-person-badge me-1"></i>
+
+                                @Model.Usuario1
+
+                            </p>
+
+                        </div>
+
+
+                        <hr />
+
+
+                        <!-- =================================================
+                             ROL
+                             ================================================= -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="IdRol"
+                                   class="form-label fw-semibold">
+
+                                <i class="bi bi-shield-check me-1"></i>
+
+                                Rol del usuario
+
+                            </label>
+
+                            <select asp-for="IdRol"
+                                    class="form-select">
+
+                                <option value="">
+                                    -- Seleccione un rol --
+                                </option>
+
+                                @if (roles != null)
+                                {
+                                    foreach (var rol in roles)
+                                    {
+                                        <option value="@rol.IdRol">
+                                            @rol.Nombre
+                                        </option>
+                                    }
+                                }
+
+                            </select>
+
+                            <span asp-validation-for="IdRol"
+                                  class="text-danger small">
+                            </span>
+
+
+                            @if (esUsuarioActual)
+                            {
+                                <div class="alert alert-warning border-0 mt-3 mb-0">
+
+                                    <i class="bi bi-shield-exclamation me-2"></i>
+
+                                    <strong>Restricción:</strong>
+
+                                    no puede cambiar su propio rol de Administrador.
+
+                                </div>
+                            }
+                            else
+                            {
+                                <small class="text-muted d-block mt-2">
+
+                                    <i class="bi bi-info-circle me-1"></i>
+
+                                    El rol determina los permisos y funciones
+                                    disponibles para el usuario.
+
+                                </small>
+                            }
+
+                        </div>
+
+
+                        <!-- =================================================
+                             ROL ACTUAL
+                             ================================================= -->
+
+                        <div class="p-3 rounded-3 mt-4"
+                             style="background: #f8f9fa;">
+
+                            <div class="d-flex align-items-center gap-3">
+
+                                <div class="rounded-3 d-flex align-items-center justify-content-center"
+                                     style="
+                                    width: 40px;
+                                    height: 40px;
+                                    background: #f3eefe;
+                                    color: #6f42c1;
+                                    ">
+
+                                    <i class="bi bi-shield-fill-check"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted d-block">
+                                        Rol actual
+                                    </small>
+
+                                    <strong>
+                                        @nombreRolActual
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             INFORMACIÓN DE SEGURIDAD
+                             ================================================= -->
+
+                        <div class="alert alert-light border mt-4 mb-0">
+
+                            <div class="d-flex align-items-start gap-3">
+
+                                <i class="bi bi-info-circle text-primary fs-5"></i>
+
+                                <div>
+
+                                    <div class="fw-semibold mb-1">
+                                        Permisos del sistema
+                                    </div>
+
+                                    <small class="text-muted">
+
+                                        Los permisos se asignan automáticamente
+                                        según el rol seleccionado.
+
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     AVISO DE SEGURIDAD
+                     ================================================= -->
+
+                <div class="card border-0 shadow-sm mt-4">
+
+                    <div class="card-body">
+
+                        <div class="d-flex align-items-start gap-3">
+
+                            <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="
+                                width: 42px;
+                                height: 42px;
+                                background: #fff4e5;
+                                color: #fd7e14;
+                                ">
+
+                                <i class="bi bi-shield-check"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h6 class="fw-bold mb-1">
+                                    Seguridad
+                                </h6>
+
+                                <p class="text-muted small mb-0">
+
+                                    Revise cuidadosamente el rol y el estado
+                                    antes de guardar los cambios.
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 ACCIONES
+                 ================================================= -->
+
+            <div class="col-12">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body px-4 py-3">
+
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+
+
+                            <!-- VER DETALLES -->
+
+                            <div>
+
+                                <a asp-action="Details"
+                                   asp-route-id="@Model.IdUsuario"
+                                   class="btn btn-outline-info px-4">
+
+                                    <i class="bi bi-eye me-1"></i>
+
+                                    Ver detalles
+
+                                </a>
+
+                            </div>
+
+
+                            <!-- ACCIONES -->
+
+                            <div class="d-flex gap-2">
+
+                                <a asp-action="Index"
+                                   class="btn btn-light border px-4">
+
+                                    <i class="bi bi-x-lg me-1"></i>
+
+                                    Cancelar
+
+                                </a>
+
+
+                                <button type="submit"
+                                        class="btn btn-primary px-4">
+
+                                    <i class="bi bi-save me-1"></i>
+
+                                    Guardar cambios
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

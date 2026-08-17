@@ -1,0 +1,687 @@
+﻿@model WebApplication1.Models.Cliente
+
+@{
+    ViewData["Title"] = "Editar cliente";
+
+    string iniciales = "";
+
+    if (!string.IsNullOrWhiteSpace(Model.Nombres))
+    {
+        iniciales += Model.Nombres.Substring(0, 1).ToUpper();
+    }
+
+    if (!string.IsNullOrWhiteSpace(Model.Apellidos))
+    {
+        iniciales += Model.Apellidos.Substring(0, 1).ToUpper();
+    }
+}
+
+<div class="container-fluid px-4 py-3">
+
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+
+        <div class="d-flex align-items-center gap-3">
+
+            <!-- AVATAR -->
+            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                 style="
+                width: 58px;
+                height: 58px;
+                background: #e8f0fe;
+                color: #0d6efd;
+                font-size: 1.25rem;
+                ">
+
+                @iniciales
+
+            </div>
+
+            <div>
+
+                <h2 class="fw-bold mb-1">
+                    Editar cliente
+                </h2>
+
+                <p class="text-muted mb-0">
+
+                    Modificando información de
+                    <strong>
+                        @Model.Nombres @Model.Apellidos
+                    </strong>
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <a asp-action="Index"
+           class="btn btn-light border px-4">
+
+            <i class="bi bi-arrow-left me-1"></i>
+            Volver
+
+        </a>
+
+    </div>
+
+
+    <!-- FORMULARIO -->
+    <form asp-action="Edit"
+          asp-route-id="@Model.IdCliente"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               asp-for="IdCliente" />
+
+
+        <!-- VALIDACIONES -->
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger border-0 shadow-sm"
+             role="alert">
+        </div>
+
+
+        <div class="row g-4">
+
+
+            <!-- DATOS PERSONALES -->
+            <div class="col-lg-7">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+                                 style="
+                                width: 42px;
+                                height: 42px;
+                                background: #e8f0fe;
+                                color: #0d6efd;
+                                ">
+
+                                <i class="bi bi-person-fill"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h5 class="fw-bold mb-0">
+                                    Datos personales
+                                </h5>
+
+                                <small class="text-muted">
+                                    Información básica del cliente
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body px-4 pb-4">
+
+                        <div class="row g-3">
+
+                            <!-- NOMBRES -->
+                            <div class="col-md-6">
+
+                                <label asp-for="Nombres"
+                                       class="form-label fw-semibold">
+
+                                    Nombres
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-person text-muted"></i>
+                                    </span>
+
+                                    <input asp-for="Nombres"
+                                           class="form-control" />
+
+                                </div>
+
+                                <span asp-validation-for="Nombres"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+
+                            <!-- APELLIDOS -->
+                            <div class="col-md-6">
+
+                                <label asp-for="Apellidos"
+                                       class="form-label fw-semibold">
+
+                                    Apellidos
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-person text-muted"></i>
+                                    </span>
+
+                                    <input asp-for="Apellidos"
+                                           class="form-control" />
+
+                                </div>
+
+                                <span asp-validation-for="Apellidos"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+
+                            <!-- CÉDULA -->
+                            <div class="col-md-6">
+
+                                <label asp-for="Cedula"
+                                       class="form-label fw-semibold">
+
+                                    Cédula
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-card-text text-muted"></i>
+                                    </span>
+
+                                    <input asp-for="Cedula"
+                                           class="form-control" />
+
+                                </div>
+
+                                <span asp-validation-for="Cedula"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+
+                            <!-- FECHA NACIMIENTO -->
+                            <div class="col-md-6">
+
+                                <label asp-for="FechaNacimiento"
+                                       class="form-label fw-semibold">
+
+                                    Fecha de nacimiento
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-calendar3 text-muted"></i>
+                                    </span>
+
+                                    <input asp-for="FechaNacimiento"
+                                           type="date"
+                                           class="form-control" />
+
+                                </div>
+
+                                <span asp-validation-for="FechaNacimiento"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+
+                            <!-- SEXO -->
+                            <div class="col-md-6">
+
+                                <label asp-for="Sexo"
+                                       class="form-label fw-semibold">
+
+                                    Sexo
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-gender-ambiguous text-muted"></i>
+                                    </span>
+
+                                    <select asp-for="Sexo"
+                                            class="form-select">
+
+                                        <option value="">
+                                            Seleccione una opción
+                                        </option>
+
+                                        <option value="M">
+                                            Masculino
+                                        </option>
+
+                                        <option value="F">
+                                            Femenino
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <span asp-validation-for="Sexo"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- RESUMEN DEL CLIENTE -->
+            <div class="col-lg-5">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+                                 style="
+                                width: 42px;
+                                height: 42px;
+                                background: #eef2ff;
+                                color: #4f46e5;
+                                ">
+
+                                <i class="bi bi-person-vcard-fill"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h5 class="fw-bold mb-0">
+                                    Cliente
+                                </h5>
+
+                                <small class="text-muted">
+                                    Información del registro
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body px-4">
+
+                        <div class="text-center py-3">
+
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold mx-auto mb-3"
+                                 style="
+                                width: 75px;
+                                height: 75px;
+                                background: #e8f0fe;
+                                color: #0d6efd;
+                                font-size: 1.5rem;
+                                ">
+
+                                @iniciales
+
+                            </div>
+
+                            <h5 class="fw-bold mb-1">
+                                @Model.Nombres @Model.Apellidos
+                            </h5>
+
+                            <span class="text-muted">
+                                Cliente #@Model.IdCliente
+                            </span>
+
+                        </div>
+
+
+                        <hr />
+
+
+                        <div class="d-flex justify-content-between py-2">
+
+                            <span class="text-muted">
+                                Estado
+                            </span>
+
+                            @if (Model.Estado)
+                            {
+                                <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
+
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Activo
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2">
+
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    Inactivo
+
+                                </span>
+                            }
+
+                        </div>
+
+
+                        <div class="d-flex justify-content-between py-2">
+
+                            <span class="text-muted">
+                                Registrado
+                            </span>
+
+                            <span class="fw-semibold">
+
+                                @Model.FechaRegistro.ToString("dd/MM/yyyy")
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="alert alert-info border-0 mt-3 mb-0">
+
+                            <i class="bi bi-info-circle me-2"></i>
+
+                            El estado del cliente se administra desde
+                            las opciones de activar y desactivar.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- INFORMACIÓN DE CONTACTO -->
+            <div class="col-12">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+                                 style="
+                                width: 42px;
+                                height: 42px;
+                                background: #e8f7ee;
+                                color: #198754;
+                                ">
+
+                                <i class="bi bi-telephone-fill"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h5 class="fw-bold mb-0">
+                                    Información de contacto
+                                </h5>
+
+                                <small class="text-muted">
+                                    Medios de contacto y ubicación del cliente
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body px-4 pb-4">
+
+                        <div class="row g-3">
+
+                            <!-- TELÉFONO -->
+                            <div class="col-md-4">
+
+                                <label asp-for="Telefono"
+                                       class="form-label fw-semibold">
+
+                                    Teléfono
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-telephone text-muted"></i>
+                                    </span>
+
+                                    <input asp-for="Telefono"
+                                           class="form-control" />
+
+                                </div>
+
+                                <span asp-validation-for="Telefono"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+
+                            <!-- CORREO -->
+                            <div class="col-md-4">
+
+                                <label asp-for="Correo"
+                                       class="form-label fw-semibold">
+
+                                    Correo electrónico
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-envelope text-muted"></i>
+                                    </span>
+
+                                    <input asp-for="Correo"
+                                           type="email"
+                                           class="form-control" />
+
+                                </div>
+
+                                <span asp-validation-for="Correo"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+
+                            <!-- DIRECCIÓN -->
+                            <div class="col-md-4">
+
+                                <label asp-for="Direccion"
+                                       class="form-label fw-semibold">
+
+                                    Dirección
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-geo-alt text-muted"></i>
+                                    </span>
+
+                                    <textarea asp-for="Direccion"
+                                              class="form-control"
+                                              rows="1"></textarea>
+
+                                </div>
+
+                                <span asp-validation-for="Direccion"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- OBSERVACIONES -->
+            <div class="col-12">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+                                 style="
+                                width: 42px;
+                                height: 42px;
+                                background: #fff4e5;
+                                color: #fd7e14;
+                                ">
+
+                                <i class="bi bi-chat-left-text-fill"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h5 class="fw-bold mb-0">
+                                    Observaciones
+                                </h5>
+
+                                <small class="text-muted">
+                                    Notas adicionales sobre el cliente
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body px-4 pb-4">
+
+                        <label asp-for="Observaciones"
+                               class="form-label fw-semibold">
+
+                            Comentarios
+
+                        </label>
+
+                        <textarea asp-for="Observaciones"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Escriba aquí cualquier observación relevante..."></textarea>
+
+                        <span asp-validation-for="Observaciones"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- BOTONES -->
+            <div class="col-12">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body px-4 py-3">
+
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+
+                            <div>
+
+                                <small class="text-muted">
+
+                                    <i class="bi bi-info-circle me-1"></i>
+
+                                    Verifique la información antes de guardar los cambios.
+
+                                </small>
+
+                            </div>
+
+
+                            <div class="d-flex gap-2">
+
+                                <a asp-action="Index"
+                                   class="btn btn-light border px-4">
+
+                                    Cancelar
+
+                                </a>
+
+                                <button type="submit"
+                                        class="btn btn-primary px-4">
+
+                                    <i class="bi bi-check-lg me-1"></i>
+
+                                    Guardar cambios
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

@@ -29,6 +29,9 @@
         iniciales =
             partesNombre[0].Substring(0, 1).ToUpper();
     }
+
+    var controladorActual =
+        ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
 }
 
 <!DOCTYPE html>
@@ -59,10 +62,14 @@
 
 <body>
 
+    <!-- ========================================================= -->
     <!-- SIDEBAR -->
+    <!-- ========================================================= -->
+
     <aside class="sidebar" id="sidebar">
 
         <!-- LOGO -->
+
         <div class="sidebar-brand">
 
             <i class="bi bi-shop"></i>
@@ -73,6 +80,7 @@
 
 
         <!-- USUARIO -->
+
         <div class="sidebar-user">
 
             <div class="sidebar-user-name">
@@ -86,7 +94,10 @@
         </div>
 
 
+        <!-- ===================================================== -->
         <!-- MENÚ PRINCIPAL -->
+        <!-- ===================================================== -->
+
         <div class="sidebar-section">
             Menú principal
         </div>
@@ -97,7 +108,7 @@
 
                 <a asp-controller="Home"
                    asp-action="Index"
-                   class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")">
+                   class="@(controladorActual == "Home" ? "active" : "")">
 
                     <i class="bi bi-speedometer2"></i>
 
@@ -110,166 +121,451 @@
         </ul>
 
 
+        <!-- ===================================================== -->
         <!-- MÓDULOS -->
+        <!-- ===================================================== -->
+
         <div class="sidebar-section">
             Módulos
         </div>
 
         <ul class="sidebar-menu">
 
+
+            <!-- ================================================= -->
+            <!-- ADMINISTRADOR -->
+            <!-- ================================================= -->
             @if (User.IsInRole("Administrador"))
             {
+
+                <!-- USUARIOS -->
+
                 <li>
-                    <a href="#">
+
+                    <a asp-controller="Usuarios"
+                       asp-action="Index"
+                       class="@(controladorActual == "Usuarios" ? "active" : "")">
+
                         <i class="bi bi-people"></i>
+
                         <span>Usuarios</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- CLIENTES -->
+
                 <li>
-                    <a href="#">
+
+                    <a asp-controller="Clientes"
+                       asp-action="Index"
+                       class="@(controladorActual == "Clientes" ? "active" : "")">
+
                         <i class="bi bi-person-vcard"></i>
+
                         <span>Clientes</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- PRODUCTOS -->
+
                 <li>
-                    <a href="#">
+
+                    <a asp-controller="Productos"
+                       asp-action="Index"
+                       class="@(controladorActual == "Productos" ? "active" : "")">
+
                         <i class="bi bi-box-seam"></i>
+
                         <span>Productos</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- PEDIDOS -->
+
                 <li>
+
                     <a href="#">
+
                         <i class="bi bi-receipt"></i>
+
                         <span>Pedidos</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- RESERVACIONES -->
+
                 <li>
+
                     <a href="#">
+
                         <i class="bi bi-calendar-check"></i>
+
                         <span>Reservaciones</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- CATEGORÍAS DE PRODUCTOS -->
+
                 <li>
-                    <a href="#">
+
+                    <a asp-controller="Categorias"
+                       asp-action="Index"
+                       class="@(controladorActual == "Categorias" ? "active" : "")">
+
+                        <i class="bi bi-tags"></i>
+
+                        <span>Categorías</span>
+
+                    </a>
+
+                </li>
+
+
+                <!-- CATEGORÍAS DE INSUMOS -->
+
+                <li>
+
+                    <a asp-controller="CategoriaInsumos"
+                       asp-action="Index"
+                       class="@(controladorActual == "CategoriaInsumos" ? "active" : "")">
+
                         <i class="bi bi-boxes"></i>
-                        <span>Inventario</span>
+
+                        <span>Categorías de insumos</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- COMPRAS -->
+
                 <li>
+
                     <a href="#">
+
                         <i class="bi bi-cart"></i>
+
                         <span>Compras</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- CAJA -->
+
                 <li>
+
                     <a href="#">
+
                         <i class="bi bi-cash-stack"></i>
+
                         <span>Caja</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- FACTURACIÓN -->
+
                 <li>
+
                     <a href="#">
+
                         <i class="bi bi-file-earmark-text"></i>
+
                         <span>Facturación</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- REPORTES -->
+
                 <li>
+
                     <a href="#">
+
                         <i class="bi bi-bar-chart"></i>
+
                         <span>Reportes</span>
+
                     </a>
+
                 </li>
+
             }
 
+
+            <!-- ================================================= -->
+            <!-- GERENTE -->
+            <!-- ================================================= -->
             @if (User.IsInRole("Gerente"))
             {
+
+                <!-- CLIENTES -->
+
                 <li>
-                    <a href="#">
+
+                    <a asp-controller="Clientes"
+                       asp-action="Index"
+                       class="@(controladorActual == "Clientes" ? "active" : "")">
+
                         <i class="bi bi-person-vcard"></i>
+
                         <span>Clientes</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- PRODUCTOS -->
+
                 <li>
-                    <a href="#">
+
+                    <a asp-controller="Productos"
+                       asp-action="Index"
+                       class="@(controladorActual == "Productos" ? "active" : "")">
+
                         <i class="bi bi-box-seam"></i>
+
                         <span>Productos</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- PEDIDOS -->
+
                 <li>
+
                     <a href="#">
+
                         <i class="bi bi-receipt"></i>
+
                         <span>Pedidos</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- CATEGORÍAS DE PRODUCTOS -->
+
                 <li>
-                    <a href="#">
-                        <i class="bi bi-bar-chart"></i>
-                        <span>Reportes</span>
+
+                    <a asp-controller="Categorias"
+                       asp-action="Index"
+                       class="@(controladorActual == "Categorias" ? "active" : "")">
+
+                        <i class="bi bi-tags"></i>
+
+                        <span>Categorías</span>
+
                     </a>
+
                 </li>
+
+
+                <!-- CATEGORÍAS DE INSUMOS -->
+
+                <li>
+
+                    <a asp-controller="CategoriaInsumos"
+                       asp-action="Index"
+                       class="@(controladorActual == "CategoriaInsumos" ? "active" : "")">
+
+                        <i class="bi bi-boxes"></i>
+
+                        <span>Categorías de insumos</span>
+
+                    </a>
+
+                </li>
+
+
+                <!-- REPORTES -->
+
+                <li>
+
+                    <a href="#">
+
+                        <i class="bi bi-bar-chart"></i>
+
+                        <span>Reportes</span>
+
+                    </a>
+
+                </li>
+
             }
 
+
+            <!-- ================================================= -->
+            <!-- CAJERO -->
+            <!-- ================================================= -->
             @if (User.IsInRole("Cajero"))
             {
+
+                <!-- CLIENTES -->
+
                 <li>
+
+                    <a asp-controller="Clientes"
+                       asp-action="Index"
+                       class="@(controladorActual == "Clientes" ? "active" : "")">
+
+                        <i class="bi bi-person-vcard"></i>
+
+                        <span>Clientes</span>
+
+                    </a>
+
+                </li>
+
+
+                <!-- PEDIDOS -->
+
+                <li>
+
                     <a href="#">
+
                         <i class="bi bi-receipt"></i>
+
                         <span>Pedidos</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- CAJA -->
+
                 <li>
+
                     <a href="#">
+
                         <i class="bi bi-cash-stack"></i>
+
                         <span>Caja</span>
+
                     </a>
+
                 </li>
 
+
+                <!-- FACTURACIÓN -->
+
                 <li>
+
                     <a href="#">
+
                         <i class="bi bi-file-earmark-text"></i>
+
                         <span>Facturación</span>
+
                     </a>
+
                 </li>
+
             }
 
+
+            <!-- ================================================= -->
+            <!-- MESERO -->
+            <!-- ================================================= -->
             @if (User.IsInRole("Mesero"))
             {
-                <li>
-                    <a href="#">
-                        <i class="bi bi-receipt"></i>
-                        <span>Pedidos</span>
-                    </a>
-                </li>
+
+                <!-- CLIENTES -->
 
                 <li>
-                    <a href="#">
-                        <i class="bi bi-calendar-check"></i>
-                        <span>Reservaciones</span>
+
+                    <a asp-controller="Clientes"
+                       asp-action="Index"
+                       class="@(controladorActual == "Clientes" ? "active" : "")">
+
+                        <i class="bi bi-person-vcard"></i>
+
+                        <span>Clientes</span>
+
                     </a>
+
                 </li>
+
+
+                <!-- PEDIDOS -->
+
+                <li>
+
+                    <a href="#">
+
+                        <i class="bi bi-receipt"></i>
+
+                        <span>Pedidos</span>
+
+                    </a>
+
+                </li>
+
+
+                <!-- RESERVACIONES -->
+
+                <li>
+
+                    <a href="#">
+
+                        <i class="bi bi-calendar-check"></i>
+
+                        <span>Reservaciones</span>
+
+                    </a>
+
+                </li>
+
             }
 
+
+            <!-- ================================================= -->
+            <!-- COCINA -->
+            <!-- ================================================= -->
             @if (User.IsInRole("Cocina"))
             {
+
+                <!-- PEDIDOS -->
+
                 <li>
+
                     <a href="#">
+
                         <i class="bi bi-receipt"></i>
+
                         <span>Pedidos</span>
+
                     </a>
+
                 </li>
+
             }
 
         </ul>
@@ -277,11 +573,17 @@
     </aside>
 
 
+    <!-- ========================================================= -->
     <!-- CONTENIDO PRINCIPAL -->
+    <!-- ========================================================= -->
+
     <div class="main-wrapper">
 
 
+        <!-- ===================================================== -->
         <!-- BARRA SUPERIOR -->
+        <!-- ===================================================== -->
+
         <header class="topbar">
 
             <div class="topbar-left">
@@ -295,13 +597,18 @@
                 </button>
 
                 <div class="topbar-title">
+
                     @ViewData["Title"]
+
                 </div>
 
             </div>
 
 
+            <!-- ================================================= -->
             <!-- USUARIO -->
+            <!-- ================================================= -->
+
             <div class="dropdown">
 
                 <button class="user-button dropdown-toggle"
@@ -310,17 +617,23 @@
                         aria-expanded="false">
 
                     <div class="user-avatar">
+
                         @iniciales
+
                     </div>
 
                     <div class="user-info">
 
                         <div class="user-name">
+
                             @nombreCompleto
+
                         </div>
 
                         <div class="user-role">
+
                             @rolActual
+
                         </div>
 
                     </div>
@@ -339,7 +652,9 @@
                             <br />
 
                             <small class="text-muted">
+
                                 @rolActual
+
                             </small>
 
                         </h6>
@@ -370,15 +685,22 @@
 
                     <li>
 
-                        <a class="dropdown-item text-danger"
-                           asp-controller="Account"
-                           asp-action="Logout">
+                        <form asp-controller="Account"
+                              asp-action="Logout"
+                              method="post">
 
-                            <i class="bi bi-box-arrow-right me-2"></i>
+                            @Html.AntiForgeryToken()
 
-                            Cerrar sesión
+                            <button type="submit"
+                                    class="dropdown-item text-danger">
 
-                        </a>
+                                <i class="bi bi-box-arrow-right me-2"></i>
+
+                                Cerrar sesión
+
+                            </button>
+
+                        </form>
 
                     </li>
 
@@ -389,7 +711,10 @@
         </header>
 
 
+        <!-- ===================================================== -->
         <!-- CONTENIDO DE LA VISTA -->
+        <!-- ===================================================== -->
+
         <main class="content">
 
             @RenderBody()
@@ -399,20 +724,27 @@
     </div>
 
 
+    <!-- ========================================================= -->
     <!-- BOOTSTRAP -->
+    <!-- ========================================================= -->
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 
-    <!-- MENU MOVIL -->
+    <!-- ========================================================= -->
+    <!-- MENÚ MÓVIL -->
+    <!-- ========================================================= -->
+
     <script>
 
-            function toggleSidebar() {
+                    function toggleSidebar() {
 
-                const sidebar = document.getElementById("sidebar");
+                        const sidebar =
+                            document.getElementById("sidebar");
 
-                sidebar.classList.toggle("show");
+            sidebar.classList.toggle("show");
 
-            }
+                    }
 
     </script>
 

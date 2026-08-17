@@ -1,0 +1,841 @@
+﻿@model IEnumerable<WebApplication1.Models.Usuario>
+
+@{
+    ViewData["Title"] = "Usuarios";
+
+    int idUsuarioActual = 0;
+
+    if (ViewBag.IdUsuarioActual != null)
+    {
+        int.TryParse(
+            ViewBag.IdUsuarioActual.ToString(),
+            out idUsuarioActual
+        );
+    }
+
+    var usuarios = Model?.ToList()
+        ?? new List<WebApplication1.Models.Usuario>();
+
+    var totalUsuarios = usuarios.Count;
+    var usuariosActivos = usuarios.Count(u => u.Estado);
+    var usuariosInactivos = usuarios.Count(u => !u.Estado);
+}
+
+
+<div class="container-fluid px-4 py-3">
+
+
+    <!-- ===================================================== -->
+    <!-- ENCABEZADO -->
+    <!-- ===================================================== -->
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+
+        <div class="d-flex align-items-center gap-3">
+
+            <!-- ICONO -->
+
+            <div class="rounded-3 d-flex align-items-center justify-content-center shadow-sm"
+                 style="
+                    width: 58px;
+                    height: 58px;
+                    background: #e8f0fe;
+                    color: #0d6efd;
+                    font-size: 1.4rem;
+                 ">
+
+                <i class="bi bi-people-fill"></i>
+
+            </div>
+
+
+            <!-- TEXTO -->
+
+            <div>
+
+                <h2 class="fw-bold mb-1">
+                    Usuarios del sistema
+                </h2>
+
+                <p class="text-muted mb-0">
+                    Gestiona los trabajadores y usuarios con acceso al sistema.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- NUEVO USUARIO -->
+
+        <a asp-action="Create"
+           class="btn btn-primary px-4 py-2 shadow-sm">
+
+            <i class="bi bi-person-plus-fill me-1"></i>
+
+            Nuevo usuario
+
+        </a>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- TARJETAS DE RESUMEN -->
+    <!-- ===================================================== -->
+
+    <div class="row g-3 mb-4">
+
+
+        <!-- TOTAL -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-muted">
+                                Total de usuarios
+                            </small>
+
+                            <h3 class="fw-bold mb-0 mt-1">
+                                @totalUsuarios
+                            </h3>
+
+                            <small class="text-muted">
+                                Usuarios registrados
+                            </small>
+
+                        </div>
+
+
+                        <div class="rounded-3 d-flex align-items-center justify-content-center"
+                             style="
+                                width: 52px;
+                                height: 52px;
+                                background: #eef2ff;
+                                color: #4f46e5;
+                             ">
+
+                            <i class="bi bi-people-fill fs-5"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIVOS -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-muted">
+                                Usuarios activos
+                            </small>
+
+                            <h3 class="fw-bold mb-0 mt-1 text-success">
+                                @usuariosActivos
+                            </h3>
+
+                            <small class="text-success">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Con acceso habilitado
+                            </small>
+
+                        </div>
+
+
+                        <div class="rounded-3 d-flex align-items-center justify-content-center"
+                             style="
+                                width: 52px;
+                                height: 52px;
+                                background: #e8f7ee;
+                                color: #198754;
+                             ">
+
+                            <i class="bi bi-person-check-fill fs-5"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- INACTIVOS -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-muted">
+                                Usuarios inactivos
+                            </small>
+
+                            <h3 class="fw-bold mb-0 mt-1 text-danger">
+                                @usuariosInactivos
+                            </h3>
+
+                            <small class="text-danger">
+                                <i class="bi bi-person-x me-1"></i>
+                                Acceso deshabilitado
+                            </small>
+
+                        </div>
+
+
+                        <div class="rounded-3 d-flex align-items-center justify-content-center"
+                             style="
+                                width: 52px;
+                                height: 52px;
+                                background: #fff0f0;
+                                color: #dc3545;
+                             ">
+
+                            <i class="bi bi-person-x-fill fs-5"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- MENSAJES -->
+    <!-- ===================================================== -->
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm"
+             role="alert">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            <strong>Operación realizada:</strong>
+
+            @TempData["Mensaje"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            <strong>Atención:</strong>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+
+    <!-- ===================================================== -->
+    <!-- LISTADO DE USUARIOS -->
+    <!-- ===================================================== -->
+
+    <div class="card border-0 shadow-sm">
+
+
+        <!-- CABECERA -->
+
+        <div class="card-header bg-white border-0 px-4 pt-4 pb-3">
+
+            <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+
+
+                <!-- TITULO -->
+
+                <div>
+
+                    <div class="d-flex align-items-center gap-2">
+
+                        <i class="bi bi-person-lines-fill text-primary fs-5"></i>
+
+                        <h5 class="fw-bold mb-0">
+                            Personal registrado
+                        </h5>
+
+                    </div>
+
+                    <small class="text-muted">
+                        Consulta, administra y controla los usuarios del sistema.
+                    </small>
+
+                </div>
+
+
+                <!-- BUSCADOR -->
+
+                <form asp-action="Index"
+                      method="get"
+                      class="d-flex gap-2"
+                      style="min-width: 320px;">
+
+                    <div class="input-group">
+
+                        <span class="input-group-text bg-light border-end-0">
+
+                            <i class="bi bi-search text-muted"></i>
+
+                        </span>
+
+                        <input type="text"
+                               name="buscar"
+                               value="@ViewBag.Buscar"
+                               class="form-control bg-light border-start-0"
+                               placeholder="Buscar usuario..." />
+
+                    </div>
+
+
+                    <button type="submit"
+                            class="btn btn-primary px-3">
+
+                        <i class="bi bi-search"></i>
+
+                    </button>
+
+
+                    <a asp-action="Index"
+                       class="btn btn-light border"
+                       title="Limpiar búsqueda">
+
+                        <i class="bi bi-arrow-clockwise"></i>
+
+                    </a>
+
+                </form>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- SEPARADOR -->
+
+        <div class="border-top"></div>
+
+
+
+        <!-- TABLA -->
+
+        <div class="card-body p-0">
+
+
+            @if (!usuarios.Any())
+            {
+                <!-- SIN RESULTADOS -->
+
+                <div class="text-center py-5 px-3">
+
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                         style="
+                            width: 82px;
+                            height: 82px;
+                            background: #f8f9fa;
+                         ">
+
+                        <i class="bi bi-person-x fs-1 text-muted"></i>
+
+                    </div>
+
+
+                    <h5 class="fw-bold mt-4">
+                        No se encontraron usuarios
+                    </h5>
+
+
+                    <p class="text-muted mb-3">
+                        No existen usuarios que coincidan con los criterios de búsqueda.
+                    </p>
+
+
+                    <a asp-action="Create"
+                       class="btn btn-primary">
+
+                        <i class="bi bi-person-plus-fill me-1"></i>
+
+                        Crear usuario
+
+                    </a>
+
+                </div>
+            }
+            else
+            {
+
+                <div class="table-responsive">
+
+
+                    <table class="table table-hover align-middle mb-0">
+
+
+                        <!-- CABECERA TABLA -->
+
+                        <thead style="background: #f8f9fa;">
+
+                            <tr>
+
+                                <th class="border-0 px-4 py-3">
+                                    Usuario
+                                </th>
+
+                                <th class="border-0 py-3">
+                                    Contacto
+                                </th>
+
+                                <th class="border-0 py-3">
+                                    Rol
+                                </th>
+
+                                <th class="border-0 py-3">
+                                    Estado
+                                </th>
+
+                                <th class="border-0 py-3">
+                                    Último acceso
+                                </th>
+
+                                <th class="border-0 py-3 text-center">
+                                    Acciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+
+                        <!-- CUERPO -->
+
+                        <tbody>
+
+
+                            @foreach (var usuario in usuarios)
+                            {
+
+                                bool esUsuarioActual =
+                                    usuario.IdUsuario == idUsuarioActual;
+
+
+                                string iniciales = "";
+
+
+                                if (!string.IsNullOrWhiteSpace(usuario.Nombres))
+                                {
+                                    iniciales +=
+                                        usuario.Nombres.Substring(0, 1).ToUpper();
+                                }
+
+
+                                if (!string.IsNullOrWhiteSpace(usuario.Apellidos))
+                                {
+                                    iniciales +=
+                                        usuario.Apellidos.Substring(0, 1).ToUpper();
+                                }
+
+
+                                if (string.IsNullOrWhiteSpace(iniciales))
+                                {
+                                    iniciales = "?";
+                                }
+
+
+
+                                <tr>
+
+
+                                    <!-- ================================= -->
+                                    <!-- USUARIO -->
+                                    <!-- ================================= -->
+
+                                    <td class="px-4 py-3">
+
+                                        <div class="d-flex align-items-center">
+
+
+                                            <!-- AVATAR -->
+
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold flex-shrink-0"
+                                                 style="
+                                                    width: 44px;
+                                                    height: 44px;
+                                                    background: #e8f0fe;
+                                                    color: #0d6efd;
+                                                 ">
+
+                                                @iniciales
+
+                                            </div>
+
+
+                                            <!-- INFORMACIÓN -->
+
+                                            <div>
+
+                                                <div class="fw-semibold">
+
+                                                    @usuario.Nombres
+                                                    @usuario.Apellidos
+
+
+                                                    @if (esUsuarioActual)
+                                                    {
+                                                        <span class="badge rounded-pill bg-primary-subtle text-primary ms-1">
+
+                                                            <i class="bi bi-person-check me-1"></i>
+
+                                                            Tú
+
+                                                        </span>
+                                                    }
+
+                                                </div>
+
+
+                                                <small class="text-muted">
+
+                                                    <i class="bi bi-person-badge me-1"></i>
+
+                                                    @usuario.Usuario1
+
+                                                </small>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+
+
+                                    <!-- ================================= -->
+                                    <!-- CONTACTO -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        <div class="small mb-1">
+
+                                            <i class="bi bi-envelope text-muted me-1"></i>
+
+
+                                            @if (!string.IsNullOrWhiteSpace(usuario.Correo))
+                                            {
+                                                @usuario.Correo
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">
+                                                    Sin correo
+                                                </span>
+                                            }
+
+                                        </div>
+
+
+                                        <div class="small text-muted">
+
+                                            <i class="bi bi-telephone me-1"></i>
+
+
+                                            @if (!string.IsNullOrWhiteSpace(usuario.Telefono))
+                                            {
+                                                @usuario.Telefono
+                                            }
+                                            else
+                                            {
+                                                <span>
+                                                    Sin teléfono
+                                                </span>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+
+
+                                    <!-- ================================= -->
+                                    <!-- ROL -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        @if (usuario.IdRolNavigation != null)
+                                        {
+                                            <span class="badge rounded-pill bg-info-subtle text-info-emphasis px-3 py-2">
+
+                                                <i class="bi bi-shield-check me-1"></i>
+
+                                                @usuario.IdRolNavigation.Nombre
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">
+
+                                                <i class="bi bi-dash-circle me-1"></i>
+
+                                                Sin rol
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+
+                                    <!-- ================================= -->
+                                    <!-- ESTADO -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        @if (usuario.Estado)
+                                        {
+                                            <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
+
+                                                <i class="bi bi-circle-fill me-1"
+                                                   style="font-size: 6px; vertical-align: middle;">
+                                                </i>
+
+                                                Activo
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2">
+
+                                                <i class="bi bi-circle-fill me-1"
+                                                   style="font-size: 6px; vertical-align: middle;">
+                                                </i>
+
+                                                Inactivo
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+
+                                    <!-- ================================= -->
+                                    <!-- ÚLTIMO ACCESO -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        @if (usuario.UltimoAcceso.HasValue)
+                                        {
+                                            <div class="fw-medium">
+
+                                                @usuario.UltimoAcceso.Value.ToString("dd/MM/yyyy")
+
+                                            </div>
+
+                                            <small class="text-muted">
+
+                                                <i class="bi bi-clock me-1"></i>
+
+                                                @usuario.UltimoAcceso.Value.ToString("HH:mm")
+
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">
+
+                                                <i class="bi bi-clock-history me-1"></i>
+
+                                                Nunca ha ingresado
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+
+                                    <!-- ================================= -->
+                                    <!-- ACCIONES -->
+                                    <!-- ================================= -->
+
+                                    <td class="text-center">
+
+                                        <div class="btn-group"
+                                             role="group">
+
+
+                                            <!-- VER -->
+
+                                            <a asp-action="Details"
+                                               asp-route-id="@usuario.IdUsuario"
+                                               class="btn btn-sm btn-light border"
+                                               title="Ver perfil">
+
+                                                <i class="bi bi-eye text-info"></i>
+
+                                            </a>
+
+
+
+                                            <!-- EDITAR -->
+
+                                            <a asp-action="Edit"
+                                               asp-route-id="@usuario.IdUsuario"
+                                               class="btn btn-sm btn-light border"
+                                               title="Editar usuario">
+
+                                                <i class="bi bi-pencil text-primary"></i>
+
+                                            </a>
+
+
+
+                                            <!-- DESACTIVAR -->
+
+                                            @if (usuario.Estado)
+                                            {
+                                                @if (!esUsuarioActual)
+                                                {
+
+                                                    <form asp-action="Desactivar"
+                                                          asp-route-id="@usuario.IdUsuario"
+                                                          method="post"
+                                                          class="d-inline"
+                                                          onsubmit="return confirm('¿Está seguro de desactivar este usuario?');">
+
+                                                        @Html.AntiForgeryToken()
+
+
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-light border"
+                                                                title="Desactivar usuario">
+
+                                                            <i class="bi bi-person-x text-danger"></i>
+
+                                                        </button>
+
+                                                    </form>
+
+                                                }
+                                                else
+                                                {
+
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-light border"
+                                                            title="No puede desactivarse a sí mismo"
+                                                            disabled>
+
+                                                        <i class="bi bi-person-x text-secondary"></i>
+
+                                                    </button>
+
+                                                }
+
+                                            }
+                                            else
+                                            {
+
+                                                <!-- ACTIVAR -->
+
+                                                <form asp-action="Activar"
+                                                      asp-route-id="@usuario.IdUsuario"
+                                                      method="post"
+                                                      class="d-inline"
+                                                      onsubmit="return confirm('¿Desea activar este usuario?');">
+
+                                                    @Html.AntiForgeryToken()
+
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-light border"
+                                                            title="Activar usuario">
+
+                                                        <i class="bi bi-person-check text-success"></i>
+
+                                                    </button>
+
+                                                </form>
+
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            }
+
+        </div>
+
+    </div>
+
+
+</div>

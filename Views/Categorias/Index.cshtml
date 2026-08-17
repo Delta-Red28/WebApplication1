@@ -1,0 +1,506 @@
+﻿@model IEnumerable<WebApplication1.Models.Categorium>
+
+@{
+    ViewData["Title"] = "Categorías";
+
+    var totalCategorias = Model?.Count() ?? 0;
+    var categoriasActivas = Model?.Count(c => c.Estado) ?? 0;
+    var categoriasInactivas = totalCategorias - categoriasActivas;
+}
+
+<div class="container-fluid">
+
+    <!-- ENCABEZADO -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-tags-fill text-primary me-2"></i>
+                Categorías
+            </h2>
+
+            <p class="text-muted mb-0">
+                Organiza los productos y platos de tu restaurante
+            </p>
+
+        </div>
+
+        <a asp-controller="Categorias"
+           asp-action="Create"
+           class="btn btn-primary px-3">
+
+            <i class="bi bi-plus-lg me-1"></i>
+            Nueva categoría
+
+        </a>
+
+    </div>
+
+
+    <!-- MENSAJES -->
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm"
+             role="alert">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["Mensaje"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- RESUMEN -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body d-flex align-items-center">
+
+                    <div class="rounded-circle
+                        bg-primary
+                        bg-opacity-10
+                        text-primary
+                        p-3
+                        me-3">
+
+                        <i class="bi bi-tags-fill fs-4"></i>
+
+                    </div>
+
+                    <div>
+
+                        <div class="text-muted small">
+                            Total de categorías
+                        </div>
+
+                        <div class="fs-4 fw-bold">
+                            @totalCategorias
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIVAS -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body d-flex align-items-center">
+
+                    <div class="rounded-circle
+                        bg-success
+                        bg-opacity-10
+                        text-success
+                        p-3
+                        me-3">
+
+                        <i class="bi bi-check-circle-fill fs-4"></i>
+
+                    </div>
+
+                    <div>
+
+                        <div class="text-muted small">
+                            Categorías activas
+                        </div>
+
+                        <div class="fs-4 fw-bold text-success">
+                            @categoriasActivas
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- INACTIVAS -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body d-flex align-items-center">
+
+                    <div class="rounded-circle
+                        bg-secondary
+                        bg-opacity-10
+                        text-secondary
+                        p-3
+                        me-3">
+
+                        <i class="bi bi-dash-circle-fill fs-4"></i>
+
+                    </div>
+
+                    <div>
+
+                        <div class="text-muted small">
+                            Categorías inactivas
+                        </div>
+
+                        <div class="fs-4 fw-bold text-secondary">
+                            @categoriasInactivas
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- CATEGORÍAS -->
+
+    <div class="card border-0 shadow-sm">
+
+        <!-- CABECERA -->
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="fw-bold mb-1">
+                        Categorías del restaurante
+                    </h5>
+
+                    <small class="text-muted">
+                        Administra las categorías utilizadas para organizar
+                        tus productos.
+                    </small>
+
+                </div>
+
+                <span class="badge bg-primary-subtle text-primary">
+
+                    @totalCategorias
+                    @(totalCategorias == 1 ? "categoría" : "categorías")
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- CONTENIDO -->
+
+        <div class="card-body pt-0">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="row g-3">
+
+                    @foreach (var categoria in Model)
+                    {
+                        <div class="col-xl-4 col-lg-6">
+
+                            <div class="card border h-100 category-card
+                                @(categoria.Estado ? "" : "inactive-card")">
+
+                                <!-- CUERPO -->
+
+                                <div class="card-body">
+
+                                    <div class="d-flex
+                                        justify-content-between
+                                        align-items-start">
+
+                                        <!-- ICONO -->
+
+                                        <div class="rounded-3
+                                            @(categoria.Estado
+                                                ? "bg-primary text-primary"
+                                                : "bg-secondary text-secondary")
+                                            bg-opacity-10
+                                            p-3">
+
+                                            <i class="bi bi-egg-fried fs-3"></i>
+
+                                        </div>
+
+
+                                        <!-- ESTADO -->
+                                        @if (categoria.Estado)
+                                        {
+                                            <span class="badge rounded-pill
+                                                bg-success-subtle
+                                                text-success">
+
+                                                <i class="bi bi-check-circle me-1"></i>
+                                                Activa
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill
+                                                bg-secondary-subtle
+                                                text-secondary">
+
+                                                <i class="bi bi-pause-circle me-1"></i>
+                                                Inactiva
+
+                                            </span>
+                                        }
+
+                                    </div>
+
+
+                                    <!-- NOMBRE -->
+
+                                    <div class="mt-3">
+
+                                        <h5 class="fw-bold mb-1">
+
+                                            @categoria.Nombre
+
+                                        </h5>
+
+                                        <small class="text-muted">
+
+                                            Categoría #@categoria.IdCategoria
+
+                                        </small>
+
+                                    </div>
+
+
+                                    <!-- DESCRIPCIÓN -->
+                                    @if (!string.IsNullOrWhiteSpace(categoria.Descripcion))
+                                    {
+                                        <p class="text-muted small mt-3 mb-0">
+
+                                            @categoria.Descripcion
+
+                                        </p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted small fst-italic mt-3 mb-0">
+
+                                            Sin descripción.
+
+                                        </p>
+                                    }
+
+                                </div>
+
+
+                                <!-- ACCIONES -->
+
+                                <div class="card-footer
+                                    bg-white
+                                    border-0
+                                    pt-0
+                                    pb-3">
+
+                                    <div class="d-flex gap-2">
+
+                                        <!-- VER -->
+
+                                        <a asp-controller="Categorias"
+                                           asp-action="Details"
+                                           asp-route-id="@categoria.IdCategoria"
+                                           class="btn btn-sm btn-outline-secondary flex-fill">
+
+                                            <i class="bi bi-eye me-1"></i>
+                                            Ver
+
+                                        </a>
+
+
+                                        <!-- EDITAR -->
+
+                                        <a asp-controller="Categorias"
+                                           asp-action="Edit"
+                                           asp-route-id="@categoria.IdCategoria"
+                                           class="btn btn-sm btn-outline-primary flex-fill">
+
+                                            <i class="bi bi-pencil me-1"></i>
+                                            Editar
+
+                                        </a>
+
+
+                                        <!-- DESACTIVAR / ACTIVAR -->
+                                        @if (categoria.Estado)
+                                        {
+                                            <form asp-controller="Categorias"
+                                                  asp-action="Desactivar"
+                                                  asp-route-id="@categoria.IdCategoria"
+                                                  method="post"
+                                                  class="flex-fill">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-danger w-100"
+                                                        title="Desactivar categoría"
+                                                        onclick="return confirm('¿Deseas desactivar la categoría @categoria.Nombre?');">
+
+                                                    <i class="bi bi-pause-circle me-1"></i>
+                                                    Desactivar
+
+                                                </button>
+
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form asp-controller="Categorias"
+                                                  asp-action="Activar"
+                                                  asp-route-id="@categoria.IdCategoria"
+                                                  method="post"
+                                                  class="flex-fill">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-success w-100"
+                                                        title="Activar categoría">
+
+                                                    <i class="bi bi-check-circle me-1"></i>
+                                                    Activar
+
+                                                </button>
+
+                                            </form>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <!-- SIN CATEGORÍAS -->
+
+                <div class="text-center py-5">
+
+                    <div class="rounded-circle
+                        bg-primary
+                        bg-opacity-10
+                        text-primary
+                        d-inline-flex
+                        align-items-center
+                        justify-content-center
+                        p-4
+                        mb-3">
+
+                        <i class="bi bi-tags-fill fs-1"></i>
+
+                    </div>
+
+                    <h5 class="fw-bold">
+                        Aún no hay categorías
+                    </h5>
+
+                    <p class="text-muted mb-4">
+
+                        Crea categorías como
+                        <strong>Entradas</strong>,
+                        <strong>Platos fuertes</strong>,
+                        <strong>Bebidas</strong> o
+                        <strong>Postres</strong>
+                        para organizar tu menú.
+
+                    </p>
+
+                    <a asp-controller="Categorias"
+                       asp-action="Create"
+                       class="btn btn-primary">
+
+                        <i class="bi bi-plus-lg me-1"></i>
+
+                        Crear primera categoría
+
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ESTILOS -->
+
+<style>
+
+    .category-card {
+        transition: all 0.2s ease;
+    }
+
+        .category-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 .35rem 1rem rgba(0, 0, 0, .08);
+        }
+
+    .inactive-card {
+        opacity: 0.82;
+    }
+
+        .inactive-card:hover {
+            opacity: 1;
+        }
+
+</style>

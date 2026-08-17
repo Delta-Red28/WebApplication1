@@ -17,63 +17,112 @@ namespace WebApplication1.Controllers
             _context = context;
         }
 
-        // GET: /Account/Login
-        [AllowAnonymous]
+
+        // LOGIN - GET
+       
+
         [HttpGet]
-        public IActionResult Login()
+        [AllowAnonymous]
+        public IActionResult Login(string? returnUrl = null)
         {
-            if (User.Identity?.IsAuthenticated == true)
-            {
-                return RedirectToAction("Index", "Home");
-            }
+            ViewBag.ReturnUrl = returnUrl;
 
             return View();
         }
 
-        // POST: /Account/Login
-        [AllowAnonymous]
+
+        // LOGIN - POST
+
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(string usuario, string password)
+        public async Task<IActionResult> Login(
+            string usuario,
+            string password,
+            string? returnUrl = null)
         {
-            if (string.IsNullOrWhiteSpace(usuario) ||
-                string.IsNullOrWhiteSpace(password))
+            ViewBag.ReturnUrl = returnUrl;
+
+            // VALIDACIONES BÁSICAS
+
+            if (string.IsNullOrWhiteSpace(usuario))
             {
-                ViewBag.Error = "Debe ingresar usuario y contraseña.";
+                ModelState.AddModelError(
+                    "usuario",
+                    "Debe ingresar su usuario."
+                );
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                ModelState.AddModelError(
+                    "password",
+                    "Debe ingresar su contraseña."
+                );
+            }
+
+            if (!ModelState.IsValid)
+            {
                 return View();
             }
+
 
             usuario = usuario.Trim();
 
+
+            // BUSCAR USUARIO
+
             var usuarioDb = await _context.Usuarios
                 .Include(u => u.IdRolNavigation)
-                .FirstOrDefaultAsync(u => u.Usuario1 == usuario);
+                .FirstOrDefaultAsync(u =>
+                    u.Usuario1 == usuario);
+
+
+            // USUARIO NO EXISTE
 
             if (usuarioDb == null)
             {
-                ViewBag.Error = "El usuario o la contraseña son incorrectos.";
+                ModelState.AddModelError(
+                    "",
+                    "Usuario o contraseña incorrectos."
+                );
+
                 return View();
             }
+
+
+            // USUARIO INACTIVO
 
             if (!usuarioDb.Estado)
             {
-                ViewBag.Error = "El usuario se encuentra inactivo.";
+                ModelState.AddModelError(
+                    "",
+                    "El usuario se encuentra inactivo."
+                );
+
                 return View();
             }
 
-            bool passwordCorrecta;
+
+            // VALIDAR CONTRASEÑA
+
+            bool passwordCorrecta = false;
 
             try
             {
-                passwordCorrecta = BCrypt.Net.BCrypt.Verify(
-                    password,
-                    usuarioDb.PasswordHash
-                );
+                passwordCorrecta =
+                    BCrypt.Net.BCrypt.Verify(
+                        password,
+                        usuarioDb.PasswordHash
+                    );
             }
             catch
             {
                 passwordCorrecta = false;
             }
+
+
+            // CONTRASEÑA INCORRECTA
 
             if (!passwordCorrecta)
             {
@@ -81,15 +130,31 @@ namespace WebApplication1.Controllers
 
                 await _context.SaveChangesAsync();
 
-                ViewBag.Error = "El usuario o la contraseña son incorrectos.";
+                ModelState.AddModelError(
+                    "",
+                    "Usuario o contraseña incorrectos."
+                );
+
                 return View();
             }
 
-            // Login correcto
+
+            // LOGIN CORRECTO
+
             usuarioDb.IntentosFallidos = 0;
             usuarioDb.UltimoAcceso = DateTime.Now;
 
             await _context.SaveChangesAsync();
+
+
+            // OBTENER ROL
+
+            string nombreRol =
+                usuarioDb.IdRolNavigation?.Nombre
+                ?? "";
+
+
+            // CREAR CLAIMS
 
             var claims = new List<Claim>
             {
@@ -104,13 +169,8 @@ namespace WebApplication1.Controllers
                 ),
 
                 new Claim(
-                    ClaimTypes.GivenName,
-                    usuarioDb.Nombres
-                ),
-
-                new Claim(
-                    ClaimTypes.Surname,
-                    usuarioDb.Apellidos
+                    "NombreCompleto",
+                    $"{usuarioDb.Nombres} {usuarioDb.Apellidos}"
                 ),
 
                 new Claim(
@@ -120,23 +180,35 @@ namespace WebApplication1.Controllers
 
                 new Claim(
                     ClaimTypes.Role,
-                    usuarioDb.IdRolNavigation.Nombre
+                    nombreRol
                 )
             };
+
 
             var identity = new ClaimsIdentity(
                 claims,
                 CookieAuthenticationDefaults.AuthenticationScheme
             );
 
+
             var principal = new ClaimsPrincipal(identity);
+
+
+            // CREAR SESIÓN
 
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
-                principal
+                principal,
+                new AuthenticationProperties
+                {
+                    IsPersistent = false,
+                    AllowRefresh = true
+                }
             );
 
-            // Si debe cambiar la contraseña, no puede entrar al Home.
+
+            // CAMBIO OBLIGATORIO DE CONTRASEÑA
+
             if (usuarioDb.DebeCambiarPassword)
             {
                 return RedirectToAction(
@@ -145,191 +217,207 @@ namespace WebApplication1.Controllers
                 );
             }
 
-            return RedirectToAction("Index", "Home");
-        }
 
-        // GET: /Account/CambiarPassword
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> CambiarPassword()
-        {
-            var idUsuarioClaim = User.FindFirstValue(
-                ClaimTypes.NameIdentifier
+            // RETURN URL
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) &&
+                Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+
+            // INICIO DEL SISTEMA
+
+            return RedirectToAction(
+                "Index",
+                "Home"
             );
-
-            if (!int.TryParse(idUsuarioClaim, out int idUsuario))
-            {
-                await CerrarSesionAsync();
-
-                return RedirectToAction("Login", "Account");
-            }
-
-            var usuarioDb = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.IdUsuario == idUsuario);
-
-            if (usuarioDb == null || !usuarioDb.Estado)
-            {
-                await CerrarSesionAsync();
-
-                return RedirectToAction("Login", "Account");
-            }
-
-            // Si ya no está obligado a cambiar contraseña,
-            // no necesita permanecer en esta pantalla.
-            if (!usuarioDb.DebeCambiarPassword)
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
-            return View(new CambiarPasswordViewModel());
         }
 
-        // POST: /Account/CambiarPassword
-        [Authorize]
+
+        // LOGOUT
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CambiarPassword(
-            CambiarPasswordViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            var idUsuarioClaim = User.FindFirstValue(
-                ClaimTypes.NameIdentifier
-            );
-
-            if (!int.TryParse(idUsuarioClaim, out int idUsuario))
-            {
-                await CerrarSesionAsync();
-
-                return RedirectToAction("Login", "Account");
-            }
-
-            // Volvemos a consultar el usuario directamente desde la BD.
-            var usuarioDb = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.IdUsuario == idUsuario);
-
-            if (usuarioDb == null || !usuarioDb.Estado)
-            {
-                await CerrarSesionAsync();
-
-                return RedirectToAction("Login", "Account");
-            }
-
-            // Si ya no está obligado a cambiar contraseña,
-            // no procesamos nuevamente el formulario.
-            if (!usuarioDb.DebeCambiarPassword)
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
-            // Verificar contraseña actual con BCrypt.
-            bool passwordActualCorrecta;
-
-            try
-            {
-                passwordActualCorrecta = BCrypt.Net.BCrypt.Verify(
-                    model.PasswordActual,
-                    usuarioDb.PasswordHash
-                );
-            }
-            catch
-            {
-                passwordActualCorrecta = false;
-            }
-
-            if (!passwordActualCorrecta)
-            {
-                ModelState.AddModelError(
-                    nameof(model.PasswordActual),
-                    "La contraseña actual es incorrecta."
-                );
-
-                return View(model);
-            }
-
-            // Evitar reutilizar exactamente la misma contraseña.
-            bool nuevaPasswordEsLaMisma;
-
-            try
-            {
-                nuevaPasswordEsLaMisma = BCrypt.Net.BCrypt.Verify(
-                    model.NuevaPassword,
-                    usuarioDb.PasswordHash
-                );
-            }
-            catch
-            {
-                nuevaPasswordEsLaMisma = false;
-            }
-
-            if (nuevaPasswordEsLaMisma)
-            {
-                ModelState.AddModelError(
-                    nameof(model.NuevaPassword),
-                    "La nueva contraseña debe ser diferente de la contraseña actual."
-                );
-
-                return View(model);
-            }
-
-            // Generar nuevo hash BCrypt.
-            usuarioDb.PasswordHash =
-                BCrypt.Net.BCrypt.HashPassword(
-                    model.NuevaPassword
-                );
-
-            // Marcar que ya no necesita cambiar la contraseña.
-            usuarioDb.DebeCambiarPassword = false;
-
-            // Registrar fecha y hora del cambio.
-            usuarioDb.FechaCambioPassword = DateTime.Now;
-
-            await _context.SaveChangesAsync();
-
-            TempData["Mensaje"] =
-                "Contraseña actualizada correctamente.";
-
-            return RedirectToAction("Index", "Home");
-        }
-
-        // GET: /Account/Logout
-        [Authorize]
-        [HttpGet]
         public async Task<IActionResult> Logout()
-        {
-            await CerrarSesionAsync();
-
-            Response.Headers["Cache-Control"] =
-                "no-cache, no-store, must-revalidate";
-
-            Response.Headers["Pragma"] = "no-cache";
-            Response.Headers["Expires"] = "0";
-
-            return RedirectToAction("Login", "Account");
-        }
-
-        // GET: /Account/AccessDenied
-        [AllowAnonymous]
-        [HttpGet]
-        public IActionResult AccessDenied()
-        {
-            return View();
-        }
-
-        private async Task CerrarSesionAsync()
         {
             await HttpContext.SignOutAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme
             );
 
-            Response.Headers["Cache-Control"] =
-                "no-cache, no-store, must-revalidate";
+            return RedirectToAction(nameof(Login));
+        }
 
-            Response.Headers["Pragma"] = "no-cache";
-            Response.Headers["Expires"] = "0";
+
+        // ACCESS DENIED
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+
+        // CAMBIAR PASSWORD - GET
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult CambiarPassword()
+        {
+            return View();
+        }
+
+
+        // CAMBIAR PASSWORD - POST
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarPassword(
+            string passwordActual,
+            string nuevaPassword,
+            string confirmarPassword)
+        {
+            // VALIDACIONES
+
+            if (string.IsNullOrWhiteSpace(passwordActual))
+            {
+                ModelState.AddModelError(
+                    "passwordActual",
+                    "Debe ingresar su contraseña actual."
+                );
+            }
+
+            if (string.IsNullOrWhiteSpace(nuevaPassword))
+            {
+                ModelState.AddModelError(
+                    "nuevaPassword",
+                    "Debe ingresar una nueva contraseña."
+                );
+            }
+
+            if (string.IsNullOrWhiteSpace(confirmarPassword))
+            {
+                ModelState.AddModelError(
+                    "confirmarPassword",
+                    "Debe confirmar la nueva contraseña."
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(nuevaPassword) &&
+                !string.IsNullOrWhiteSpace(confirmarPassword) &&
+                nuevaPassword != confirmarPassword)
+            {
+                ModelState.AddModelError(
+                    "confirmarPassword",
+                    "Las contraseñas no coinciden."
+                );
+            }
+
+
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
+
+
+            
+            // OBTENER ID DEL USUARIO LOGUEADO
+
+            var claimId =
+                User.FindFirstValue(
+                    ClaimTypes.NameIdentifier
+                );
+
+
+            if (!int.TryParse(claimId, out int idUsuario))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+
+            // BUSCAR USUARIO
+
+            var usuarioDb = await _context.Usuarios
+                .FirstOrDefaultAsync(u =>
+                    u.IdUsuario == idUsuario);
+
+
+            if (usuarioDb == null)
+            {
+                return NotFound();
+            }
+
+
+            // VALIDAR PASSWORD ACTUAL
+
+            bool passwordCorrecta = false;
+
+            try
+            {
+                passwordCorrecta =
+                    BCrypt.Net.BCrypt.Verify(
+                        passwordActual,
+                        usuarioDb.PasswordHash
+                    );
+            }
+            catch
+            {
+                passwordCorrecta = false;
+            }
+
+
+            if (!passwordCorrecta)
+            {
+                ModelState.AddModelError(
+                    "passwordActual",
+                    "La contraseña actual es incorrecta."
+                );
+
+                return View();
+            }
+
+
+            // EVITAR MISMA CONTRASEÑA
+
+            if (BCrypt.Net.BCrypt.Verify(
+                    nuevaPassword,
+                    usuarioDb.PasswordHash))
+            {
+                ModelState.AddModelError(
+                    "nuevaPassword",
+                    "La nueva contraseña debe ser diferente."
+                );
+
+                return View();
+            }
+
+
+            // GUARDAR NUEVA CONTRASEÑA
+
+            usuarioDb.PasswordHash =
+                BCrypt.Net.BCrypt.HashPassword(
+                    nuevaPassword
+                );
+
+            usuarioDb.DebeCambiarPassword = false;
+            usuarioDb.FechaCambioPassword = DateTime.Now;
+            usuarioDb.IntentosFallidos = 0;
+
+
+            await _context.SaveChangesAsync();
+
+
+            TempData["Mensaje"] =
+                "Contraseña actualizada correctamente.";
+
+
+            return RedirectToAction(
+                "Index",
+                "Home"
+            );
         }
     }
 }

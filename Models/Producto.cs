@@ -48,15 +48,16 @@ public partial class Producto
     public bool ControlaInventario { get; set; }
 
     [InverseProperty("IdProductoNavigation")]
-    public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
+    public virtual ICollection<DetallePedido> DetallePedidos { get; set; }
+        = new List<DetallePedido>();
 
     [ForeignKey("IdCategoria")]
     [InverseProperty("Productos")]
-    public virtual Categorium IdCategoriaNavigation { get; set; } = null!;
+    public virtual Categorium? IdCategoriaNavigation { get; set; }
 
     [ForeignKey("IdEstadoProducto")]
     [InverseProperty("Productos")]
-    public virtual EstadoProducto IdEstadoProductoNavigation { get; set; } = null!;
+    public virtual EstadoProducto? IdEstadoProductoNavigation { get; set; }
 
     [InverseProperty("IdProductoNavigation")]
     public virtual Recetum? Recetum { get; set; }

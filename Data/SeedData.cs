@@ -115,8 +115,7 @@ namespace WebApplication1.Data
                         FechaRegistro = DateTime.Now,
                         IntentosFallidos = 0,
 
-                        // Las cuentas creadas inicialmente
-                        // deben cambiar su contraseña.
+                        // Las cuentas creadas inicialmente deben de cambiar su contraseña.
                         DebeCambiarPassword = true,
 
                         FechaCambioPassword = null
@@ -127,10 +126,8 @@ namespace WebApplication1.Data
                 else
                 {
                     // No reemplazamos la contraseña existente.
-                    //
                     // Si el usuario todavía nunca ha realizado
                     // un cambio de contraseña, lo obligamos a hacerlo.
-                    //
                     // Si ya realizó el cambio, FechaCambioPassword
                     // tendrá un valor y no volvemos a marcarlo.
 
