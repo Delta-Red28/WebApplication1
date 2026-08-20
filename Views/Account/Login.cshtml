@@ -1,6 +1,23 @@
 ﻿@{
     Layout = null;
     ViewData["Title"] = "Iniciar Sesión";
+
+    // ============================================================
+    // OBTENER ERROR GENERAL DEL MODELSTATE
+    // El controlador utiliza AddModelError("", "mensaje")
+    // ============================================================
+
+    var errorGeneral = "";
+
+    if (ViewData.ModelState.ContainsKey(""))
+    {
+        var erroresGenerales = ViewData.ModelState[""];
+
+        if (erroresGenerales != null && erroresGenerales.Errors.Count > 0)
+        {
+            errorGeneral = erroresGenerales.Errors[0].ErrorMessage;
+        }
+    }
 }
 
 <!DOCTYPE html>
@@ -16,13 +33,17 @@
     <title>Iniciar Sesión - Restaurante</title>
 
 
-    <!-- Bootstrap -->
+    <!-- =====================================================
+         BOOTSTRAP
+    ====================================================== -->
 
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
 
 
-    <!-- Bootstrap Icons -->
+    <!-- =====================================================
+         BOOTSTRAP ICONS
+    ====================================================== -->
 
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -30,325 +51,524 @@
 
     <style>
 
-            * {
-                box-sizing: border-box;
+        * {
+            box-sizing: border-box;
+        }
+
+
+        /* =====================================================
+           FONDO
+        ====================================================== */
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-family: "Segoe UI", sans-serif;
+
+            background:
+                linear-gradient(
+                    rgba(47, 18, 13, 0.88),
+                    rgba(47, 18, 13, 0.92)
+                ),
+                url("https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1920&q=80");
+
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+
+            padding: 20px;
+        }
+
+
+        /* =====================================================
+           CONTENEDOR
+        ====================================================== */
+
+        .login-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+        }
+
+
+        /* =====================================================
+           TARJETA
+        ====================================================== */
+
+        .login-card {
+            border: none;
+            border-radius: 26px;
+            overflow: hidden;
+
+            background: #fffaf3;
+
+            box-shadow:
+                0 25px 60px rgba(0, 0, 0, 0.35);
+        }
+
+
+        /* =====================================================
+           ENCABEZADO
+        ====================================================== */
+
+        .login-header {
+            position: relative;
+
+            text-align: center;
+
+            padding: 48px 30px 38px;
+
+            background: #671f1b;
+
+            color: white;
+        }
+
+
+        .login-header::after {
+            content: "";
+
+            position: absolute;
+
+            bottom: -12px;
+            left: 0;
+
+            width: 100%;
+            height: 25px;
+
+            background: #671f1b;
+
+            clip-path: polygon(
+                0 0,
+                5% 40%,
+                10% 0,
+                15% 40%,
+                20% 0,
+                25% 40%,
+                30% 0,
+                35% 40%,
+                40% 0,
+                45% 40%,
+                50% 0,
+                55% 40%,
+                60% 0,
+                65% 40%,
+                70% 0,
+                75% 40%,
+                80% 0,
+                85% 40%,
+                90% 0,
+                95% 40%,
+                100% 0
+            );
+        }
+
+
+        /* =====================================================
+           ICONO
+        ====================================================== */
+
+        .restaurant-icon {
+            width: 85px;
+            height: 85px;
+
+            margin: 0 auto 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #d9a441;
+            color: #671f1b;
+
+            font-size: 38px;
+
+            box-shadow:
+                0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+
+
+        /* =====================================================
+           TITULO
+        ====================================================== */
+
+        .login-header h2 {
+            margin: 0;
+
+            font-family: Georgia, serif;
+
+            font-size: 34px;
+            font-weight: 700;
+
+            letter-spacing: 0.5px;
+        }
+
+
+        .login-header p {
+            margin-top: 8px;
+            margin-bottom: 0;
+
+            color: #f4dca6;
+
+            font-size: 15px;
+
+            letter-spacing: 1.5px;
+
+            text-transform: uppercase;
+        }
+
+
+        /* =====================================================
+           CUERPO
+        ====================================================== */
+
+        .login-body {
+            padding: 48px 42px 38px;
+        }
+
+
+        /* =====================================================
+           DECORACION
+        ====================================================== */
+
+        .food-decoration {
+            text-align: center;
+
+            color: #d9a441;
+
+            font-size: 18px;
+
+            letter-spacing: 8px;
+
+            margin-bottom: 12px;
+        }
+
+
+        /* =====================================================
+           BIENVENIDA
+        ====================================================== */
+
+        .welcome-text {
+            text-align: center;
+
+            margin-bottom: 30px;
+        }
+
+
+        .welcome-text h5 {
+            color: #3e2723;
+
+            font-size: 20px;
+
+            font-weight: 700;
+
+            margin-bottom: 7px;
+        }
+
+
+        .welcome-text p {
+            color: #8a7770;
+
+            font-size: 15px;
+
+            margin-bottom: 0;
+        }
+
+
+        /* =====================================================
+           ERROR GENERAL
+        ====================================================== */
+
+        .login-error {
+            display: flex;
+            align-items: flex-start;
+
+            gap: 10px;
+
+            margin-bottom: 25px;
+
+            padding: 14px 16px;
+
+            border-radius: 12px;
+
+            background: #f8dfdc;
+
+            border: 1px solid #e5b7b2;
+
+            color: #7a211c;
+
+            font-size: 14px;
+
+            line-height: 1.5;
+
+            animation: mostrarError 0.25s ease;
+        }
+
+
+        .login-error i {
+            font-size: 18px;
+
+            flex-shrink: 0;
+
+            margin-top: 1px;
+        }
+
+
+        @@keyframes mostrarError {
+
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
             }
 
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
 
-            /* FONDO */
+        }
+
+
+        /* =====================================================
+           ERRORES DE CAMPOS
+        ====================================================== */
+
+        .field-validation-error {
+            display: block;
+
+            margin-top: 6px;
+
+            color: #a52a24;
+
+            font-size: 13px;
+        }
+
+
+        /* =====================================================
+           LABELS
+        ====================================================== */
+
+        .form-label {
+            color: #4e342e;
+
+            font-size: 15px;
+
+            font-weight: 600;
+
+            margin-bottom: 9px;
+        }
+
+
+        /* =====================================================
+           INPUT GROUP
+        ====================================================== */
+
+        .input-group {
+            border-radius: 13px;
+
+            overflow: hidden;
+
+            background: white;
+
+            border: 1px solid #e2d5c9;
+
+            transition: all 0.25s ease;
+        }
+
+
+        .input-group:focus-within {
+            border-color: #a52a24;
+
+            box-shadow:
+                0 0 0 3px rgba(165, 42, 36, 0.12);
+        }
+
+
+        .input-group-text {
+            border: none;
+
+            background: transparent;
+
+            color: #9b6b2f;
+
+            font-size: 17px;
+
+            padding-left: 16px;
+            padding-right: 12px;
+        }
+
+
+        /* =====================================================
+           INPUT
+        ====================================================== */
+
+        .form-control {
+            height: 52px;
+
+            border: none !important;
+
+            box-shadow: none !important;
+
+            background: transparent;
+
+            color: #3e2723;
+
+            font-size: 15px;
+        }
+
+
+        .form-control::placeholder {
+            color: #b5aaa4;
+        }
+
+
+        /* =====================================================
+           BOTON PASSWORD
+        ====================================================== */
+
+        .password-toggle {
+            border: none;
+
+            background: transparent;
+
+            color: #9b6b2f;
+
+            cursor: pointer;
+
+            padding: 0 16px;
+
+            transition: color 0.2s ease;
+        }
+
+
+        .password-toggle:hover {
+            color: #671f1b;
+        }
+
+
+        .password-toggle:focus {
+            outline: none;
+
+            box-shadow: none;
+        }
+
+
+        .password-toggle i {
+            font-size: 18px;
+        }
+
+
+        /* =====================================================
+           BOTON LOGIN
+        ====================================================== */
+
+        .btn-login {
+            width: 100%;
+
+            height: 54px;
+
+            border: none;
+
+            border-radius: 13px;
+
+            background: #8f2923;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.3px;
+
+            transition: all 0.25s ease;
+
+            box-shadow:
+                0 5px 15px rgba(143, 41, 35, 0.25);
+        }
+
+
+        .btn-login:hover {
+            background: #6f1e1a;
+
+            color: white;
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 8px 20px rgba(143, 41, 35, 0.35);
+        }
+
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+
+        /* =====================================================
+           PIE
+        ====================================================== */
+
+        .footer-text {
+            text-align: center;
+
+            margin-top: 25px;
+
+            color: #9a8981;
+
+            font-size: 12px;
+        }
+
+
+        .footer-text span {
+            color: #9b6b2f;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ====================================================== */
+
+        @@media (max-width: 480px) {
 
             body {
-                min-height: 100vh;
-                margin: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-family: "Segoe UI", sans-serif;
-                background: linear-gradient( rgba(47, 18, 13, 0.88), rgba(47, 18, 13, 0.92) ), url("https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1920&q=80");
-                background-size: cover;
-                background-position: center;
-                background-attachment: fixed;
+                background-attachment: scroll;
             }
-
-
-            /* CONTENEDOR*/
 
             .login-container {
-                width: 100%;
-                max-width: 500px;
-                padding: 20px;
+                padding: 15px;
             }
-
-
-            /*TARJETA */
-
-            .login-card {
-                border: none;
-                border-radius: 26px;
-                overflow: hidden;
-                background: #fffaf3;
-                box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
-            }
-
-
-            /* ENCABEZADO */
 
             .login-header {
-                position: relative;
-                text-align: center;
-                padding: 48px 30px 38px;
-                background: #671f1b;
-                color: white;
+                padding: 38px 20px 32px;
             }
-
-
-                /* Decoración inferior */
-
-                .login-header::after {
-                    content: "";
-                    position: absolute;
-                    bottom: -12px;
-                    left: 0;
-                    width: 100%;
-                    height: 25px;
-                    background: #671f1b;
-                    clip-path: polygon( 0 0, 5% 40%, 10% 0, 15% 40%, 20% 0, 25% 40%, 30% 0, 35% 40%, 40% 0, 45% 40%, 50% 0, 55% 40%, 60% 0, 65% 40%, 70% 0, 75% 40%, 80% 0, 85% 40%, 90% 0, 95% 40%, 100% 0 );
-                }
-
-
-            /*ICONO DEL RESTAURANTE */
-
-            .restaurant-icon {
-                width: 85px;
-                height: 85px;
-                margin: 0 auto 18px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-                background: #d9a441;
-                color: #671f1b;
-                font-size: 38px;
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-            }
-
-
-            /*TITULO */
 
             .login-header h2 {
-                margin: 0;
-                font-family: Georgia, serif;
-                font-size: 34px;
-                font-weight: 700;
-                letter-spacing: 0.5px;
+                font-size: 28px;
             }
 
+            .restaurant-icon {
+                width: 75px;
+                height: 75px;
 
-            .login-header p {
-                margin-top: 8px;
-                margin-bottom: 0;
-                color: #f4dca6;
-                font-size: 15px;
-                letter-spacing: 1.5px;
-                text-transform: uppercase;
+                font-size: 32px;
             }
-
-
-            /*CUERPO*/
 
             .login-body {
-                padding: 48px 42px 38px;
+                padding: 40px 24px 30px;
             }
 
-
-            /*DECORACION */
-
-            .food-decoration {
-                text-align: center;
-                color: #d9a441;
+            .welcome-text h5 {
                 font-size: 18px;
-                letter-spacing: 8px;
-                margin-bottom: 12px;
             }
 
-
-            /* BIENVENIDA */
-
-            .welcome-text {
-                text-align: center;
-                margin-bottom: 32px;
-            }
-
-
-                .welcome-text h5 {
-                    color: #3e2723;
-                    font-size: 20px;
-                    font-weight: 700;
-                    margin-bottom: 7px;
-                }
-
-
-                .welcome-text p {
-                    color: #8a7770;
-                    font-size: 15px;
-                    margin-bottom: 0;
-                }
-
-
-            /*LABELS */
-
-            .form-label {
-                color: #4e342e;
-                font-size: 15px;
-                font-weight: 600;
-                margin-bottom: 9px;
-            }
-
-
-            /* INPUTS */
-
-            .input-group {
-                border-radius: 13px;
-                overflow: hidden;
-                background: white;
-                border: 1px solid #e2d5c9;
-                transition: all 0.25s ease;
-            }
-
-
-                .input-group:focus-within {
-                    border-color: #a52a24;
-                    box-shadow: 0 0 0 3px rgba(165, 42, 36, 0.12);
-                }
-
-
-            .input-group-text {
-                border: none;
-                background: transparent;
-                color: #9b6b2f;
-                font-size: 17px;
-                padding-left: 16px;
-                padding-right: 12px;
-            }
-
-
-            .form-control {
-                height: 52px;
-                border: none !important;
-                box-shadow: none !important;
-                background: transparent;
-                color: #3e2723;
-                font-size: 15px;
-            }
-
-
-                .form-control::placeholder {
-                    color: #b5aaa4;
-                }
-
-
-            /* BOTON MOSTRAR CONTRASEÑA */
-
-            .password-toggle {
-                border: none;
-                background: transparent;
-                color: #9b6b2f;
-                cursor: pointer;
-                padding: 0 16px;
-                transition: color 0.2s ease;
-            }
-
-
-                .password-toggle:hover {
-                    color: #671f1b;
-                }
-
-
-                .password-toggle:focus {
-                    outline: none;
-                    box-shadow: none;
-                }
-
-
-                .password-toggle i {
-                    font-size: 18px;
-                }
-
-
-            /* BOTON */
-
-            .btn-login {
-                width: 100%;
-                height: 54px;
-                border: none;
-                border-radius: 13px;
-                background: #8f2923;
-                color: white;
-                font-size: 16px;
-                font-weight: 700;
-                letter-spacing: 0.3px;
-                transition: all 0.25s ease;
-                box-shadow: 0 5px 15px rgba(143, 41, 35, 0.25);
-            }
-
-
-                .btn-login:hover {
-                    background: #6f1e1a;
-                    color: white;
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 20px rgba(143, 41, 35, 0.35);
-                }
-
-
-                .btn-login:active {
-                    transform: translateY(0);
-                }
-
-
-            /* ALERTA */
-
-            .alert {
-                border: none;
-                border-radius: 12px;
-                font-size: 14px;
-            }
-
-
-            .alert-danger {
-                background: #f8dfdc;
-                color: #7a211c;
-            }
-
-
-            /*PIE */
-
-            .footer-text {
-                text-align: center;
-                margin-top: 25px;
-                color: #9a8981;
-                font-size: 12px;
-            }
-
-
-                .footer-text span {
-                    color: #9b6b2f;
-                }
-
-
-            /*  RESPONSIVE*/
-
-            @@media (max-width: 480px) {
-
-                body {
-                    background-attachment: scroll;
-                }
-
-                .login-container {
-                    padding: 15px;
-                }
-
-                .login-header {
-                    padding: 38px 20px 32px;
-                }
-
-                    .login-header h2 {
-                        font-size: 28px;
-                    }
-
-                .restaurant-icon {
-                    width: 75px;
-                    height: 75px;
-                    font-size: 32px;
-                }
-
-                .login-body {
-                    padding: 40px 24px 30px;
-                }
-
-                .welcome-text h5 {
-                    font-size: 18px;
-                }
-            }
+        }
 
     </style>
 
@@ -357,17 +577,16 @@
 
 <body>
 
-
     <div class="login-container">
-
 
         <div class="card login-card">
 
 
-            <!-- <ENCABEZADO -->
+            <!-- =================================================
+                 ENCABEZADO
+            ================================================== -->
 
             <div class="login-header">
-
 
                 <div class="restaurant-icon">
 
@@ -375,33 +594,28 @@
 
                 </div>
 
-
                 <h2>
                     Restaurante
                 </h2>
-
 
                 <p>
                     Sistema de Gestión
                 </p>
 
-
             </div>
 
 
-            <!--CUERPO -->
+            <!-- =================================================
+                 CUERPO
+            ================================================== -->
 
             <div class="login-body">
 
-
-                <!-- Decoración -->
 
                 <div class="food-decoration">
                     • • •
                 </div>
 
-
-                <!-- Bienvenida -->
 
                 <div class="welcome-text">
 
@@ -416,36 +630,50 @@
                 </div>
 
 
-                <!-- ERROR -->
-                @if (ViewBag.Error != null)
-                {
+                <!-- =================================================
+                     ERROR GENERAL DE AUTENTICACIÓN
+                ================================================== -->
 
-                    <div class="alert alert-danger mb-4"
+                @if (!string.IsNullOrWhiteSpace(errorGeneral))
+                {
+                    <div class="login-error"
                          role="alert">
 
-                        <i class="bi bi-exclamation-circle me-2"></i>
+                        <i class="bi bi-exclamation-circle-fill"></i>
 
-                        @ViewBag.Error
+                        <div>
+                            @errorGeneral
+                        </div>
 
                     </div>
-
                 }
 
 
-                <!-- FORMULARIO -->
+                <!-- =================================================
+                     FORMULARIO
+                ================================================== -->
 
                 <form asp-controller="Account"
                       asp-action="Login"
                       method="post">
 
-
                     @Html.AntiForgeryToken()
 
 
-                    <!--USUARIO -->
+                    <!-- =================================================
+                         RETURN URL
+                    ================================================== -->
+
+                    <input type="hidden"
+                           name="returnUrl"
+                           value="@ViewBag.ReturnUrl" />
+
+
+                    <!-- =================================================
+                         USUARIO
+                    ================================================== -->
 
                     <div class="mb-4">
-
 
                         <label for="usuario"
                                class="form-label">
@@ -456,7 +684,6 @@
 
 
                         <div class="input-group">
-
 
                             <span class="input-group-text">
 
@@ -471,19 +698,32 @@
                                    class="form-control"
                                    placeholder="Ingrese su usuario"
                                    autocomplete="username"
-                                   required />
-
+                                   value="@ViewData.ModelState["usuario"]?.AttemptedValue" />
 
                         </div>
 
 
+                        <!-- Error específico del usuario -->
+
+                        @if (ViewData.ModelState.ContainsKey("usuario") &&
+                             ViewData.ModelState["usuario"] != null &&
+                             ViewData.ModelState["usuario"]!.Errors.Count > 0)
+                        {
+                            <span class="field-validation-error">
+
+                                @ViewData.ModelState["usuario"]!.Errors[0].ErrorMessage
+
+                            </span>
+                        }
+
                     </div>
 
 
-                    <!--CONTRASEÑA -->
+                    <!-- =================================================
+                         CONTRASEÑA
+                    ================================================== -->
 
                     <div class="mb-4">
-
 
                         <label for="password"
                                class="form-label">
@@ -495,9 +735,6 @@
 
                         <div class="input-group">
 
-
-                            <!-- Icono de candado -->
-
                             <span class="input-group-text">
 
                                 <i class="bi bi-lock-fill"></i>
@@ -505,18 +742,13 @@
                             </span>
 
 
-                            <!-- Campo contraseña -->
-
                             <input type="password"
                                    id="password"
                                    name="password"
                                    class="form-control"
                                    placeholder="Ingrese su contraseña"
-                                   autocomplete="current-password"
-                                   required />
+                                   autocomplete="current-password" />
 
-
-                            <!-- Botón mostrar/ocultar -->
 
                             <button type="button"
                                     class="input-group-text password-toggle"
@@ -528,14 +760,28 @@
 
                             </button>
 
-
                         </div>
 
+
+                        <!-- Error específico de contraseña -->
+
+                        @if (ViewData.ModelState.ContainsKey("password") &&
+                             ViewData.ModelState["password"] != null &&
+                             ViewData.ModelState["password"]!.Errors.Count > 0)
+                        {
+                            <span class="field-validation-error">
+
+                                @ViewData.ModelState["password"]!.Errors[0].ErrorMessage
+
+                            </span>
+                        }
 
                     </div>
 
 
-                    <!--BOTON LOGIN -->
+                    <!-- =================================================
+                         BOTON
+                    ================================================== -->
 
                     <button type="submit"
                             class="btn btn-login">
@@ -546,11 +792,12 @@
 
                     </button>
 
-
                 </form>
 
 
-                <!--PIE -->
+                <!-- =================================================
+                     PIE
+                ================================================== -->
 
                 <div class="footer-text">
 
@@ -565,76 +812,92 @@
 
             </div>
 
-
         </div>
-
 
     </div>
 
 
-    <!--BOOTSTRAP JS -->
+    <!-- =====================================================
+         BOOTSTRAP JS
+    ====================================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 
-    <!--MOSTRAR / OCULTAR CONTRASEÑA -->
+    <!-- =====================================================
+         MOSTRAR / OCULTAR CONTRASEÑA
+    ====================================================== -->
 
     <script>
 
-            document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
 
-                const togglePassword = document.getElementById("togglePassword");
-                const passwordInput = document.getElementById("password");
+            const togglePassword =
+                document.getElementById("togglePassword");
 
-                togglePassword.addEventListener("click", function () {
-
-                    // Cambiar tipo del input
-                    const isPassword = passwordInput.type === "password";
-
-                    passwordInput.type = isPassword ? "text" : "password";
+            const passwordInput =
+                document.getElementById("password");
 
 
-                    // Cambiar icono
-                    const icon = this.querySelector("i");
+            if (!togglePassword || !passwordInput) {
+                return;
+            }
 
-                    if (isPassword) {
 
-                        icon.classList.remove("bi-eye-fill");
-                        icon.classList.add("bi-eye-slash-fill");
+            togglePassword.addEventListener("click", function () {
 
-                        this.setAttribute(
-                            "aria-label",
-                            "Ocultar contraseña"
-                        );
+                const isPassword =
+                    passwordInput.type === "password";
 
-                        this.setAttribute(
-                            "title",
-                            "Ocultar contraseña"
-                        );
 
-                    } else {
+                passwordInput.type =
+                    isPassword ? "text" : "password";
 
-                        icon.classList.remove("bi-eye-slash-fill");
-                        icon.classList.add("bi-eye-fill");
 
-                        this.setAttribute(
-                            "aria-label",
-                            "Mostrar contraseña"
-                        );
+                const icon =
+                    this.querySelector("i");
 
-                        this.setAttribute(
-                            "title",
-                            "Mostrar contraseña"
-                        );
 
-                    }
+                if (isPassword) {
 
-                });
+                    icon.classList.remove("bi-eye-fill");
+
+                    icon.classList.add("bi-eye-slash-fill");
+
+                    this.setAttribute(
+                        "aria-label",
+                        "Ocultar contraseña"
+                    );
+
+                    this.setAttribute(
+                        "title",
+                        "Ocultar contraseña"
+                    );
+
+                }
+                else {
+
+                    icon.classList.remove("bi-eye-slash-fill");
+
+                    icon.classList.add("bi-eye-fill");
+
+                    this.setAttribute(
+                        "aria-label",
+                        "Mostrar contraseña"
+                    );
+
+                    this.setAttribute(
+                        "title",
+                        "Mostrar contraseña"
+                    );
+
+                }
 
             });
 
-    </script>
+        });
 
+    </script>
 
 </body>
 

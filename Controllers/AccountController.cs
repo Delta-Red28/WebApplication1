@@ -18,8 +18,9 @@ namespace WebApplication1.Controllers
         }
 
 
+        // ============================================================
         // LOGIN - GET
-       
+        // ============================================================
 
         [HttpGet]
         [AllowAnonymous]
@@ -31,19 +32,28 @@ namespace WebApplication1.Controllers
         }
 
 
+        // ============================================================
         // LOGIN - POST
+        // ============================================================
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(
-            string usuario,
-            string password,
+            string? usuario,
+            string? password,
             string? returnUrl = null)
         {
+            // ========================================================
+            // CONSERVAR RETURN URL
+            // ========================================================
+
             ViewBag.ReturnUrl = returnUrl;
 
-            // VALIDACIONES BÁSICAS
+
+            // ========================================================
+            // VALIDAR USUARIO
+            // ========================================================
 
             if (string.IsNullOrWhiteSpace(usuario))
             {
@@ -53,6 +63,11 @@ namespace WebApplication1.Controllers
                 );
             }
 
+
+            // ========================================================
+            // VALIDAR CONTRASEÑA
+            // ========================================================
+
             if (string.IsNullOrWhiteSpace(password))
             {
                 ModelState.AddModelError(
@@ -61,16 +76,27 @@ namespace WebApplication1.Controllers
                 );
             }
 
+
+            // ========================================================
+            // SI HAY ERRORES DE VALIDACIÓN
+            // ========================================================
+
             if (!ModelState.IsValid)
             {
                 return View();
             }
 
 
-            usuario = usuario.Trim();
+            // ========================================================
+            // LIMPIAR ESPACIOS DEL USUARIO
+            // ========================================================
+
+            usuario = usuario!.Trim();
 
 
+            // ========================================================
             // BUSCAR USUARIO
+            // ========================================================
 
             var usuarioDb = await _context.Usuarios
                 .Include(u => u.IdRolNavigation)
@@ -78,20 +104,24 @@ namespace WebApplication1.Controllers
                     u.Usuario1 == usuario);
 
 
+            // ========================================================
             // USUARIO NO EXISTE
+            // ========================================================
 
             if (usuarioDb == null)
             {
                 ModelState.AddModelError(
                     "",
-                    "Usuario o contraseña incorrectos."
+                    "El usuario ingresado no existe."
                 );
 
                 return View();
             }
 
 
+            // ========================================================
             // USUARIO INACTIVO
+            // ========================================================
 
             if (!usuarioDb.Estado)
             {
@@ -104,7 +134,9 @@ namespace WebApplication1.Controllers
             }
 
 
+            // ========================================================
             // VALIDAR CONTRASEÑA
+            // ========================================================
 
             bool passwordCorrecta = false;
 
@@ -112,7 +144,7 @@ namespace WebApplication1.Controllers
             {
                 passwordCorrecta =
                     BCrypt.Net.BCrypt.Verify(
-                        password,
+                        password!,
                         usuarioDb.PasswordHash
                     );
             }
@@ -122,39 +154,53 @@ namespace WebApplication1.Controllers
             }
 
 
+            // ========================================================
             // CONTRASEÑA INCORRECTA
+            // ========================================================
 
             if (!passwordCorrecta)
             {
+                // Aumentar contador de intentos fallidos
+
                 usuarioDb.IntentosFallidos++;
 
                 await _context.SaveChangesAsync();
 
+
+                // Mostrar error en el login
+
                 ModelState.AddModelError(
                     "",
-                    "Usuario o contraseña incorrectos."
+                    "La contraseña ingresada es incorrecta."
                 );
 
                 return View();
             }
 
 
+            // ========================================================
             // LOGIN CORRECTO
+            // ========================================================
 
             usuarioDb.IntentosFallidos = 0;
+
             usuarioDb.UltimoAcceso = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
 
+            // ========================================================
             // OBTENER ROL
+            // ========================================================
 
             string nombreRol =
                 usuarioDb.IdRolNavigation?.Nombre
                 ?? "";
 
 
+            // ========================================================
             // CREAR CLAIMS
+            // ========================================================
 
             var claims = new List<Claim>
             {
@@ -175,7 +221,7 @@ namespace WebApplication1.Controllers
 
                 new Claim(
                     ClaimTypes.Email,
-                    usuarioDb.Correo
+                    usuarioDb.Correo ?? ""
                 ),
 
                 new Claim(
@@ -185,16 +231,27 @@ namespace WebApplication1.Controllers
             };
 
 
+            // ========================================================
+            // CREAR IDENTIDAD
+            // ========================================================
+
             var identity = new ClaimsIdentity(
                 claims,
                 CookieAuthenticationDefaults.AuthenticationScheme
             );
 
 
-            var principal = new ClaimsPrincipal(identity);
+            // ========================================================
+            // CREAR PRINCIPAL
+            // ========================================================
+
+            var principal =
+                new ClaimsPrincipal(identity);
 
 
+            // ========================================================
             // CREAR SESIÓN
+            // ========================================================
 
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
@@ -207,7 +264,9 @@ namespace WebApplication1.Controllers
             );
 
 
+            // ========================================================
             // CAMBIO OBLIGATORIO DE CONTRASEÑA
+            // ========================================================
 
             if (usuarioDb.DebeCambiarPassword)
             {
@@ -218,7 +277,9 @@ namespace WebApplication1.Controllers
             }
 
 
+            // ========================================================
             // RETURN URL
+            // ========================================================
 
             if (!string.IsNullOrWhiteSpace(returnUrl) &&
                 Url.IsLocalUrl(returnUrl))
@@ -227,7 +288,9 @@ namespace WebApplication1.Controllers
             }
 
 
-            // INICIO DEL SISTEMA
+            // ========================================================
+            // IR AL INICIO
+            // ========================================================
 
             return RedirectToAction(
                 "Index",
@@ -236,7 +299,9 @@ namespace WebApplication1.Controllers
         }
 
 
+        // ============================================================
         // LOGOUT
+        // ============================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -246,11 +311,15 @@ namespace WebApplication1.Controllers
                 CookieAuthenticationDefaults.AuthenticationScheme
             );
 
-            return RedirectToAction(nameof(Login));
+            return RedirectToAction(
+                nameof(Login)
+            );
         }
 
 
+        // ============================================================
         // ACCESS DENIED
+        // ============================================================
 
         [HttpGet]
         [AllowAnonymous]
@@ -260,7 +329,9 @@ namespace WebApplication1.Controllers
         }
 
 
+        // ============================================================
         // CAMBIAR PASSWORD - GET
+        // ============================================================
 
         [Authorize]
         [HttpGet]
@@ -270,17 +341,21 @@ namespace WebApplication1.Controllers
         }
 
 
+        // ============================================================
         // CAMBIAR PASSWORD - POST
+        // ============================================================
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CambiarPassword(
-            string passwordActual,
-            string nuevaPassword,
-            string confirmarPassword)
+            string? passwordActual,
+            string? nuevaPassword,
+            string? confirmarPassword)
         {
-            // VALIDACIONES
+            // ========================================================
+            // VALIDAR PASSWORD ACTUAL
+            // ========================================================
 
             if (string.IsNullOrWhiteSpace(passwordActual))
             {
@@ -290,6 +365,11 @@ namespace WebApplication1.Controllers
                 );
             }
 
+
+            // ========================================================
+            // VALIDAR NUEVA PASSWORD
+            // ========================================================
+
             if (string.IsNullOrWhiteSpace(nuevaPassword))
             {
                 ModelState.AddModelError(
@@ -298,6 +378,11 @@ namespace WebApplication1.Controllers
                 );
             }
 
+
+            // ========================================================
+            // VALIDAR CONFIRMACIÓN
+            // ========================================================
+
             if (string.IsNullOrWhiteSpace(confirmarPassword))
             {
                 ModelState.AddModelError(
@@ -305,6 +390,11 @@ namespace WebApplication1.Controllers
                     "Debe confirmar la nueva contraseña."
                 );
             }
+
+
+            // ========================================================
+            // VALIDAR QUE COINCIDAN
+            // ========================================================
 
             if (!string.IsNullOrWhiteSpace(nuevaPassword) &&
                 !string.IsNullOrWhiteSpace(confirmarPassword) &&
@@ -317,14 +407,19 @@ namespace WebApplication1.Controllers
             }
 
 
+            // ========================================================
+            // SI HAY ERRORES
+            // ========================================================
+
             if (!ModelState.IsValid)
             {
                 return View();
             }
 
 
-            
+            // ========================================================
             // OBTENER ID DEL USUARIO LOGUEADO
+            // ========================================================
 
             var claimId =
                 User.FindFirstValue(
@@ -332,17 +427,25 @@ namespace WebApplication1.Controllers
                 );
 
 
-            if (!int.TryParse(claimId, out int idUsuario))
+            if (!int.TryParse(
+                claimId,
+                out int idUsuario))
             {
-                return RedirectToAction(nameof(Login));
+                return RedirectToAction(
+                    nameof(Login)
+                );
             }
 
 
+            // ========================================================
             // BUSCAR USUARIO
+            // ========================================================
 
-            var usuarioDb = await _context.Usuarios
-                .FirstOrDefaultAsync(u =>
-                    u.IdUsuario == idUsuario);
+            var usuarioDb =
+                await _context.Usuarios
+                    .FirstOrDefaultAsync(
+                        u => u.IdUsuario == idUsuario
+                    );
 
 
             if (usuarioDb == null)
@@ -351,7 +454,9 @@ namespace WebApplication1.Controllers
             }
 
 
+            // ========================================================
             // VALIDAR PASSWORD ACTUAL
+            // ========================================================
 
             bool passwordCorrecta = false;
 
@@ -359,7 +464,7 @@ namespace WebApplication1.Controllers
             {
                 passwordCorrecta =
                     BCrypt.Net.BCrypt.Verify(
-                        passwordActual,
+                        passwordActual!,
                         usuarioDb.PasswordHash
                     );
             }
@@ -368,6 +473,10 @@ namespace WebApplication1.Controllers
                 passwordCorrecta = false;
             }
 
+
+            // ========================================================
+            // PASSWORD ACTUAL INCORRECTA
+            // ========================================================
 
             if (!passwordCorrecta)
             {
@@ -380,11 +489,27 @@ namespace WebApplication1.Controllers
             }
 
 
+            // ========================================================
             // EVITAR MISMA CONTRASEÑA
+            // ========================================================
 
-            if (BCrypt.Net.BCrypt.Verify(
-                    nuevaPassword,
-                    usuarioDb.PasswordHash))
+            bool mismaPassword = false;
+
+            try
+            {
+                mismaPassword =
+                    BCrypt.Net.BCrypt.Verify(
+                        nuevaPassword!,
+                        usuarioDb.PasswordHash
+                    );
+            }
+            catch
+            {
+                mismaPassword = false;
+            }
+
+
+            if (mismaPassword)
             {
                 ModelState.AddModelError(
                     "nuevaPassword",
@@ -395,24 +520,46 @@ namespace WebApplication1.Controllers
             }
 
 
-            // GUARDAR NUEVA CONTRASEÑA
+            // ========================================================
+            // GENERAR NUEVO HASH
+            // ========================================================
 
             usuarioDb.PasswordHash =
                 BCrypt.Net.BCrypt.HashPassword(
-                    nuevaPassword
+                    nuevaPassword!
                 );
 
+
+            // ========================================================
+            // ACTUALIZAR DATOS
+            // ========================================================
+
             usuarioDb.DebeCambiarPassword = false;
-            usuarioDb.FechaCambioPassword = DateTime.Now;
+
+            usuarioDb.FechaCambioPassword =
+                DateTime.Now;
+
             usuarioDb.IntentosFallidos = 0;
 
+
+            // ========================================================
+            // GUARDAR CAMBIOS
+            // ========================================================
 
             await _context.SaveChangesAsync();
 
 
+            // ========================================================
+            // MENSAJE
+            // ========================================================
+
             TempData["Mensaje"] =
                 "Contraseña actualizada correctamente.";
 
+
+            // ========================================================
+            // VOLVER AL INICIO
+            // ========================================================
 
             return RedirectToAction(
                 "Index",

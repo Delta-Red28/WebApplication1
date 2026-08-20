@@ -18,6 +18,7 @@ public partial class EstadoPago
 
     public bool Estado { get; set; }
 
-    [InverseProperty("IdEstadoPagoNavigation")]
-    public virtual ICollection<Pago> Pagos { get; set; } = new List<Pago>();
+    [InverseProperty(nameof(Pago.IdEstadoPagoNavigation))]
+    public virtual ICollection<Pago> Pagos { get; set; }
+        = new List<Pago>();
 }

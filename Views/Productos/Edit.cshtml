@@ -342,7 +342,9 @@
                                     <input asp-for="TiempoPreparacion"
                                            class="form-control"
                                            type="number"
-                                           min="0" />
+                                           min="0"
+                                           step="1"
+                                           inputmode="numeric" />
 
                                     <span class="input-group-text">
                                         minutos
@@ -353,6 +355,12 @@
                                 <span asp-validation-for="TiempoPreparacion"
                                       class="text-danger small">
                                 </span>
+
+                                <div class="form-text">
+
+                                    Ingresa el tiempo en minutos enteros.
+
+                                </div>
 
                             </div>
 
@@ -399,8 +407,8 @@
 
 
                             <!-- =================================================
-     CONTROL DE INVENTARIO
-     ================================================= -->
+                                 CONTROL DE INVENTARIO
+                                 ================================================= -->
 
                             <div class="col-12">
 
@@ -643,5 +651,27 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+
+        // ============================================================
+        // TIEMPO DE PREPARACIÓN: SOLO NÚMEROS ENTEROS
+        // ============================================================
+
+        const tiempoPreparacion =
+            document.getElementById("TiempoPreparacion");
+
+        if (tiempoPreparacion) {
+
+            tiempoPreparacion.addEventListener("input", function() {
+
+                this.value =
+                    this.value.replace(/[^\d]/g, "");
+
+            });
+
+        }
+
+    </script>
 
 }

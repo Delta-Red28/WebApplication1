@@ -1,0 +1,1038 @@
+﻿@model WebApplication1.Models.Pedido
+
+@{
+    ViewData["Title"] = "Detalle del pedido";
+
+    var estado = Model.IdEstadoPedidoNavigation?.Nombre
+        ?? "Sin estado";
+
+    var estaCancelado = estado.Trim().Equals(
+        "Cancelado",
+        StringComparison.OrdinalIgnoreCase);
+
+    var estaFacturado = estado.Trim().Equals(
+        "Facturado",
+        StringComparison.OrdinalIgnoreCase);
+
+    var tieneFactura = ViewBag.TieneFactura != null &&
+                       (bool)ViewBag.TieneFactura;
+
+    var puedeCancelar =
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente");
+
+    var puedeCambiarEstado =
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente") ||
+        User.IsInRole("Cajero") ||
+        User.IsInRole("Mesero") ||
+        User.IsInRole("Cocina");
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                <i class="bi bi-receipt-cutoff me-2"></i>
+
+                Detalle del pedido
+
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                Información detallada del pedido
+                @(Model.NumeroPedido ?? $"#{Model.IdPedido}").
+
+            </p>
+
+        </div>
+
+
+        <div class="d-flex gap-2">
+
+            <!-- REGRESAR -->
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+
+                Regresar a pedidos
+
+            </a>
+
+
+            <!-- EDITAR -->
+            @if (!estaCancelado && !tieneFactura)
+            {
+                <a asp-action="Edit"
+                   asp-route-id="@Model.IdPedido"
+                   class="btn btn-warning">
+
+                    <i class="bi bi-pencil me-1"></i>
+
+                    Editar
+
+                </a>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJES -->
+    <!-- ========================================================= -->
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Mensaje"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN PRINCIPAL -->
+    <!-- ========================================================= -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- PEDIDO -->
+
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-header bg-white py-3">
+
+                    <h5 class="mb-0 fw-semibold">
+
+                        <i class="bi bi-info-circle me-2"></i>
+
+                        Información del pedido
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="row g-4">
+
+                        <!-- NÚMERO -->
+
+                        <div class="col-md-4">
+
+                            <label class="text-muted small">
+                                Número de pedido
+                            </label>
+
+                            <div class="fw-bold fs-5">
+
+                                @(Model.NumeroPedido
+                                    ?? $"#{Model.IdPedido}")
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- FECHA -->
+
+                        <div class="col-md-4">
+
+                            <label class="text-muted small">
+                                Fecha
+                            </label>
+
+                            <div>
+
+                                @Model.FechaPedido.ToString(
+                                    "dd/MM/yyyy")
+
+                            </div>
+
+                            <small class="text-muted">
+
+                                @Model.FechaPedido.ToString(
+                                    "HH:mm:ss")
+
+                            </small>
+
+                        </div>
+
+
+                        <!-- ESTADO -->
+
+                        <div class="col-md-4">
+
+                            <label class="text-muted small d-block">
+                                Estado
+                            </label>
+
+                            @if (estaCancelado)
+                            {
+                                <span class="badge bg-danger">
+
+                                    <i class="bi bi-x-circle me-1"></i>
+
+                                    Cancelado
+
+                                </span>
+                            }
+                            else if (estaFacturado)
+                            {
+                                <span class="badge bg-success">
+
+                                    <i class="bi bi-cash-coin me-1"></i>
+
+                                    Facturado
+
+                                </span>
+                            }
+                            else if (estado.Equals(
+                                "Pendiente",
+                                StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-warning text-dark">
+
+                                    <i class="bi bi-clock me-1"></i>
+
+                                    Pendiente
+
+                                </span>
+                            }
+                            else if (estado.Equals(
+                                "En cocina",
+                                StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-info text-dark">
+
+                                    <i class="bi bi-fire me-1"></i>
+
+                                    En cocina
+
+                                </span>
+                            }
+                            else if (estado.Equals(
+                                "Preparándose",
+                                StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-primary">
+
+                                    <i class="bi bi-gear me-1"></i>
+
+                                    Preparándose
+
+                                </span>
+                            }
+                            else if (estado.Equals(
+                                "Listo",
+                                StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-primary">
+
+                                    <i class="bi bi-check2-circle me-1"></i>
+
+                                    Listo
+
+                                </span>
+                            }
+                            else if (estado.Equals(
+                                "Entregado",
+                                StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-success">
+
+                                    <i class="bi bi-box-seam me-1"></i>
+
+                                    Entregado
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+
+                                    @estado
+
+                                </span>
+                            }
+
+                        </div>
+
+
+                        <!-- CLIENTE -->
+
+                        <div class="col-md-6">
+
+                            <label class="text-muted small">
+                                Cliente
+                            </label>
+
+                            @if (Model.IdClienteNavigation != null)
+                            {
+                                <div class="fw-semibold">
+
+                                    @Model.IdClienteNavigation.Nombres
+                                    @Model.IdClienteNavigation.Apellidos
+
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(
+                                    Model.IdClienteNavigation.Telefono))
+                                {
+                                    <small class="text-muted">
+
+                                        <i class="bi bi-telephone me-1"></i>
+
+                                        @Model.IdClienteNavigation.Telefono
+
+                                    </small>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-muted">
+                                    Sin cliente
+                                </div>
+                            }
+
+                        </div>
+
+
+                        <!-- MESA -->
+
+                        <div class="col-md-3">
+
+                            <label class="text-muted small">
+                                Mesa
+                            </label>
+
+                            @if (Model.IdMesaNavigation != null)
+                            {
+                                <div>
+
+                                    <span class="badge bg-light text-dark border">
+
+                                        <i class="bi bi-grid-3x3-gap me-1"></i>
+
+                                        Mesa
+                                        @Model.IdMesaNavigation.NumeroMesa
+
+                                    </span>
+
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-muted">
+                                    Sin mesa
+                                </div>
+                            }
+
+                        </div>
+
+
+                        <!-- TIPO -->
+
+                        <div class="col-md-3">
+
+                            <label class="text-muted small">
+                                Tipo de pedido
+                            </label>
+
+                            <div>
+
+                                @(Model.IdTipoPedidoNavigation?.Nombre
+                                    ?? "Sin especificar")
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- USUARIO -->
+
+                        <div class="col-md-6">
+
+                            <label class="text-muted small">
+                                Atendido por
+                            </label>
+
+                            @if (Model.IdUsuarioNavigation != null)
+                            {
+                                <div class="fw-semibold">
+
+                                    @Model.IdUsuarioNavigation.Nombres
+                                    @Model.IdUsuarioNavigation.Apellidos
+
+                                </div>
+
+                                <small class="text-muted">
+
+                                    <i class="bi bi-person me-1"></i>
+
+                                    @Model.IdUsuarioNavigation.Usuario1
+
+                                </small>
+                            }
+                            else
+                            {
+                                <div class="text-muted">
+                                    Usuario no disponible
+                                </div>
+                            }
+
+                        </div>
+
+
+                        <!-- OBSERVACIÓN -->
+
+                        <div class="col-12">
+
+                            <label class="text-muted small">
+                                Observación
+                            </label>
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                Model.Observacion))
+                            {
+                                <div class="bg-light rounded p-3">
+
+                                    @Model.Observacion
+
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-muted">
+                                    Sin observaciones.
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- RESUMEN -->
+        <!-- ===================================================== -->
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-header bg-white py-3">
+
+                    <h5 class="mb-0 fw-semibold">
+
+                        <i class="bi bi-calculator me-2"></i>
+
+                        Resumen
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between mb-3">
+
+                        <span class="text-muted">
+                            Subtotal
+                        </span>
+
+                        <span>
+                            C$ @Model.Subtotal.ToString("N2")
+                        </span>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between mb-3">
+
+                        <span class="text-muted">
+                            Descuento
+                        </span>
+
+                        <span class="text-danger">
+
+                            @if (Model.Descuento > 0)
+                            {
+                                <text>
+                                    - C$ @Model.Descuento.ToString("N2")
+                                </text>
+                            }
+                            else
+                            {
+                                <text>
+                                    C$ 0.00
+                                </text>
+                            }
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between mb-3">
+
+                        <span class="text-muted">
+                            Impuesto
+                        </span>
+
+                        <span>
+                            C$ @Model.Impuesto.ToString("N2")
+                        </span>
+
+                    </div>
+
+
+                    <hr />
+
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <span class="fw-bold">
+                            Total
+                        </span>
+
+                        <span class="fs-4 fw-bold
+                            @(estaCancelado
+                                ? "text-muted text-decoration-line-through"
+                                : "text-success")">
+
+                            C$ @Model.Total.ToString("N2")
+
+                        </span>
+
+                    </div>
+
+
+                    @if (estaCancelado)
+                    {
+                        <div class="alert alert-danger mt-4 mb-0">
+
+                            <i class="bi bi-x-circle me-2"></i>
+
+                            Este pedido está cancelado y no se
+                            considera una venta activa.
+
+                        </div>
+                    }
+                    else if (tieneFactura || estaFacturado)
+                    {
+                        <div class="alert alert-success mt-4 mb-0">
+
+                            <i class="bi bi-check-circle me-2"></i>
+
+                            Este pedido ya fue facturado.
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- CAMBIO DE ESTADO -->
+    <!-- ========================================================= -->
+    @if (!estaCancelado && !tieneFactura && puedeCambiarEstado)
+    {
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-white py-3">
+
+                <h5 class="mb-0 fw-semibold">
+
+                    <i class="bi bi-arrow-repeat me-2"></i>
+
+                    Actualizar estado
+
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <form asp-action="CambiarEstado"
+                      method="post"
+                      class="row g-3 align-items-end">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.IdPedido" />
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Nuevo estado
+                        </label>
+
+                        <select name="idEstado"
+                                class="form-select"
+                                required>
+
+                            <option value="">
+                                -- Seleccione un estado --
+                            </option>
+
+                            @foreach (var item in
+                                ViewBag.EstadosPedido as
+                                IEnumerable<SelectListItem>
+                                ?? Enumerable.Empty<SelectListItem>())
+                            {
+                                if (item.Text != null &&
+                                    !item.Text.Trim().Equals(
+                                        "Cancelado",
+                                        StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <option value="@item.Value"
+                                            selected="@(item.Value == Model.IdEstadoPedido.ToString())">
+
+                                        @item.Text
+
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="col-md-auto">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-check-circle me-1"></i>
+
+                            Actualizar estado
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- DETALLES DE PRODUCTOS -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0 fw-semibold">
+
+                    <i class="bi bi-basket me-2"></i>
+
+                    Productos del pedido
+
+                </h5>
+
+                <span class="text-muted small">
+
+                    @(Model.DetallePedidos?.Count ?? 0) producto(s)
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (Model.DetallePedidos == null ||
+                 !Model.DetallePedidos.Any())
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-basket display-5 text-muted"></i>
+
+                    <p class="text-muted mt-3 mb-0">
+
+                        Este pedido no contiene productos.
+
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>
+                                    Producto
+                                </th>
+
+                                <th class="text-center">
+                                    Cantidad
+                                </th>
+
+                                <th class="text-end">
+                                    Precio unitario
+                                </th>
+
+                                <th class="text-end">
+                                    Descuento
+                                </th>
+
+                                <th class="text-end">
+                                    Subtotal
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var detalle in
+                                Model.DetallePedidos)
+                            {
+                                <tr>
+
+                                    <!-- PRODUCTO -->
+
+                                    <td>
+
+                                        @if (detalle.IdProductoNavigation != null)
+                                        {
+                                            <div class="fw-semibold">
+
+                                                @detalle.IdProductoNavigation.Nombre
+
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Producto no disponible
+                                            </span>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            detalle.Observacion))
+                                        {
+                                            <small class="text-muted">
+
+                                                <i class="bi bi-chat-left-text me-1"></i>
+
+                                                @detalle.Observacion
+
+                                            </small>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- CANTIDAD -->
+
+                                    <td class="text-center">
+
+                                        <span class="badge bg-light text-dark border">
+
+                                            @detalle.Cantidad.ToString("N0")
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- PRECIO -->
+
+                                    <td class="text-end">
+
+                                        C$
+                                        @detalle.PrecioUnitario.ToString("N2")
+
+                                    </td>
+
+
+                                    <!-- DESCUENTO -->
+
+                                    <td class="text-end">
+
+                                        @if (detalle.Descuento > 0)
+                                        {
+                                            <span class="text-danger">
+
+                                                - C$
+                                                @detalle.Descuento.ToString("N2")
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                C$ 0.00
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- SUBTOTAL -->
+
+                                    <td class="text-end">
+
+                                        C$
+                                        @detalle.Subtotal.ToString("N2")
+
+                                    </td>
+
+
+                                    <!-- TOTAL -->
+
+                                    <td class="text-end fw-semibold">
+
+                                        C$
+                                        @detalle.TotalLinea.ToString("N2")
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+
+                        <tfoot class="table-light">
+
+                            <tr>
+
+                                <td colspan="5"
+                                    class="text-end fw-bold">
+
+                                    Total del pedido:
+
+                                </td>
+
+                                <td class="text-end fw-bold text-success">
+
+                                    C$
+                                    @Model.Total.ToString("N2")
+
+                                </td>
+
+                            </tr>
+
+                        </tfoot>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- CANCELAR PEDIDO -->
+    <!-- ========================================================= -->
+    @if (puedeCancelar &&
+             !estaCancelado &&
+             !tieneFactura &&
+             !estaFacturado)
+    {
+        <div class="card border-danger shadow-sm mb-4">
+
+            <div class="card-header bg-danger text-white">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+
+                    Zona de cancelación
+
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row align-items-center">
+
+                    <div class="col-md-8">
+
+                        <h6 class="fw-bold">
+                            Cancelar este pedido
+                        </h6>
+
+                        <p class="text-muted mb-md-0">
+
+                            Esta acción cambiará el estado del pedido
+                            a <strong>Cancelado</strong>.
+
+                            El total original se conservará como
+                            histórico, pero el pedido dejará de
+                            considerarse una venta activa.
+
+                        </p>
+
+                    </div>
+
+
+                    <div class="col-md-4 text-md-end">
+
+                        <form asp-action="Anular"
+                              asp-route-id="@Model.IdPedido"
+                              method="post"
+                              class="d-inline">
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="btn btn-danger"
+                                    onclick="return confirmarCancelacion();">
+
+                                <i class="bi bi-x-circle me-1"></i>
+
+                                Cancelar pedido
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- PIE -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center">
+
+        <small class="text-muted">
+
+            <i class="bi bi-info-circle me-1"></i>
+
+            El total histórico del pedido se conserva incluso si
+            el pedido es cancelado.
+
+        </small>
+
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Regresar a pedidos
+
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================= -->
+<!-- SCRIPTS -->
+<!-- ============================================================= -->
+@section Scripts {
+
+    <script>
+
+        function confirmarCancelacion() {
+
+            return confirm(
+                "¿Está seguro de cancelar este pedido?\n\n" +
+                "El pedido pasará al estado Cancelado y " +
+                "dejará de considerarse una venta activa."
+                    );
+
+                }
+
+    </script>
+
+}

@@ -1,0 +1,694 @@
+﻿@model WebApplication1.Models.Pago
+
+@{
+    ViewData["Title"] = "Detalle del Pago";
+
+    var factura = Model.IdFacturaNavigation;
+    var metodoPago = Model.IdMetodoPagoNavigation;
+    var moneda = Model.IdMonedaNavigation;
+    var banco = Model.IdBancoNavigation;
+    var tipoTarjeta = Model.IdTipoTarjetaNavigation;
+    var estadoPago = Model.IdEstadoPagoNavigation;
+
+    bool pagoAnulado = Model.IdEstadoPago == 4;
+}
+
+<div class="container mt-4">
+
+    <!-- ============================================================
+         ENCABEZADO
+    ============================================================ -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-receipt-cutoff"></i>
+                Detalle del Pago
+            </h2>
+
+            <p class="text-muted mb-0">
+                Información completa del pago registrado.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a asp-controller="Pago"
+               asp-action="Index"
+               class="btn btn-secondary">
+
+                <i class="bi bi-arrow-left"></i>
+                Volver
+
+            </a>
+
+            @if (!pagoAnulado)
+            {
+                <a asp-controller="Pago"
+                   asp-action="Edit"
+                   asp-route-id="@Model.IdPago"
+                   class="btn btn-warning">
+
+                    <i class="bi bi-pencil-square"></i>
+                    Editar
+
+                </a>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         MENSAJES
+    ============================================================ -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+
+            <i class="bi bi-exclamation-triangle-fill"></i>
+
+            @TempData["Error"]
+
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            @TempData["Success"]
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         ESTADO DEL PAGO
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-8">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="me-3">
+
+                            @if (pagoAnulado)
+                            {
+                                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width:60px;height:60px;">
+
+                                    <i class="bi bi-x-circle fs-3"></i>
+
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width:60px;height:60px;">
+
+                                    <i class="bi bi-check-circle fs-3"></i>
+
+                                </div>
+                            }
+
+                        </div>
+
+                        <div>
+
+                            <h4 class="mb-1">
+                                Pago #@Model.IdPago
+                            </h4>
+
+                            @if (pagoAnulado)
+                            {
+                                <span class="badge bg-danger">
+                                    Pago Anulado
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">
+                                    Pago Confirmado
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                    <div class="text-muted">
+                        Monto del pago
+                    </div>
+
+                    <div class="fw-bold fs-3 @(pagoAnulado ? "text-danger" : "text-success")">
+
+                        @Model.Monto.ToString("N2")
+
+                    </div>
+
+                    @if (moneda != null)
+                    {
+                        <small class="text-muted">
+                            @moneda.Nombre
+                            (@moneda.CodigoIso)
+                        </small>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         INFORMACIÓN GENERAL
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-info-circle"></i>
+
+                Información general
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <!-- ID PAGO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Número de pago
+                    </label>
+
+                    <div class="fw-bold">
+                        #@Model.IdPago
+                    </div>
+
+                </div>
+
+
+                <!-- FECHA -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Fecha del pago
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @Model.FechaPago.ToString("dd/MM/yyyy HH:mm")
+
+                    </div>
+
+                </div>
+
+
+                <!-- ESTADO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Estado
+                    </label>
+
+                    <div>
+
+                        @if (pagoAnulado)
+                        {
+                            <span class="badge bg-danger">
+
+                                <i class="bi bi-x-circle"></i>
+
+                                Anulado
+
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">
+
+                                <i class="bi bi-check-circle"></i>
+
+                                Confirmado
+
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         FACTURA
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-receipt"></i>
+
+                Factura asociada
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Factura
+                    </label>
+
+                    <div class="fw-bold fs-5">
+
+                        #@Model.IdFactura
+
+                    </div>
+
+                </div>
+
+
+                @if (factura != null)
+                {
+                    <div class="col-md-4 mb-3">
+
+                        <label class="text-muted">
+                            Total de factura
+                        </label>
+
+                        <div class="fw-bold">
+
+                            @factura.Total.ToString("N2")
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="text-muted">
+                            Saldo pendiente
+                        </label>
+
+                        <div class="fw-bold @(factura.SaldoPendiente > 0 ? "text-danger" : "text-success")">
+
+                            @factura.SaldoPendiente.ToString("N2")
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+
+            @if (factura != null)
+            {
+                <div class="mt-2">
+
+                    <a asp-controller="Factura"
+                       asp-action="Details"
+                       asp-route-id="@factura.IdFactura"
+                       class="btn btn-outline-primary">
+
+                        <i class="bi bi-box-arrow-up-right"></i>
+
+                        Ver factura
+
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         INFORMACIÓN DEL PAGO
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-light">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-credit-card"></i>
+
+                Información del pago
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <!-- MÉTODO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Método de pago
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @if (metodoPago != null)
+                        {
+                            @metodoPago.Nombre
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No especificado
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- MONEDA -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Moneda
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @if (moneda != null)
+                        {
+                            @moneda.Nombre
+                            <span class="text-muted">
+                                (@moneda.CodigoIso)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No especificada
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- MONTO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Monto
+                    </label>
+
+                    <div class="fw-bold fs-5">
+
+                        @Model.Monto.ToString("N2")
+
+                    </div>
+
+                </div>
+
+
+                <!-- BANCO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Banco
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @if (banco != null)
+                        {
+                            @banco.Nombre
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No aplica
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- TARJETA -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Tipo de tarjeta
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @if (tipoTarjeta != null)
+                        {
+                            @tipoTarjeta.Nombre
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No aplica
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- REFERENCIA -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Referencia
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @if (!string.IsNullOrWhiteSpace(Model.Referencia))
+                        {
+                            @Model.Referencia
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No especificada
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- AUTORIZACIÓN -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Número de autorización
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @if (!string.IsNullOrWhiteSpace(Model.NumeroAutorizacion))
+                        {
+                            @Model.NumeroAutorizacion
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No especificado
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- MONTO RECIBIDO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Monto recibido
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @if (Model.MontoRecibido.HasValue)
+                        {
+                            @Model.MontoRecibido.Value.ToString("N2")
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No especificado
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         OBSERVACIÓN
+    ============================================================ -->
+    @if (!string.IsNullOrWhiteSpace(Model.Observacion))
+    {
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-chat-left-text"></i>
+
+                    Observación
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <p class="mb-0">
+                    @Model.Observacion
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         ACCIONES
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <a asp-controller="Pago"
+                       asp-action="Index"
+                       class="btn btn-secondary">
+
+                        <i class="bi bi-arrow-left"></i>
+
+                        Volver a pagos
+
+                    </a>
+
+                </div>
+
+
+                <div class="d-flex gap-2">
+
+                    @if (!pagoAnulado)
+                    {
+                        <a asp-controller="Pago"
+                           asp-action="Edit"
+                           asp-route-id="@Model.IdPago"
+                           class="btn btn-warning">
+
+                            <i class="bi bi-pencil-square"></i>
+
+                            Editar pago
+
+                        </a>
+
+                        <a asp-controller="Pago"
+                           asp-action="Delete"
+                           asp-route-id="@Model.IdPago"
+                           class="btn btn-danger">
+
+                            <i class="bi bi-x-circle"></i>
+
+                            Anular pago
+
+                        </a>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

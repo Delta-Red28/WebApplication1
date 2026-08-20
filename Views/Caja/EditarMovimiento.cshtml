@@ -1,0 +1,544 @@
+﻿@model WebApplication1.Models.MovimientoCaja
+
+@{
+    ViewData["Title"] = "Editar movimiento";
+
+    var caja = ViewBag.Caja as WebApplication1.Models.Caja;
+    var tiposMovimiento =
+        ViewBag.TiposMovimiento
+        as List<WebApplication1.Models.TipoMovimientoCaja>
+        ?? new List<WebApplication1.Models.TipoMovimientoCaja>();
+
+    var monedas =
+        ViewBag.Monedas
+        as List<WebApplication1.Models.Monedum>
+        ?? new List<WebApplication1.Models.Monedum>();
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ============================================================
+         ENCABEZADO
+         ============================================================ -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-pencil-square me-2"></i>
+                Editar movimiento
+            </h2>
+
+            @if (caja != null)
+            {
+                <div class="text-muted">
+                    Caja #@caja.IdCaja
+                </div>
+            }
+        </div>
+
+        @if (caja != null)
+        {
+            <a asp-controller="Caja"
+               asp-action="Movimientos"
+               asp-route-id="@caja.IdCaja"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+                Volver a movimientos
+
+            </a>
+        }
+
+    </div>
+
+
+    <!-- ============================================================
+         MENSAJES
+         ============================================================ -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <div class="row justify-content-center">
+
+        <div class="col-12 col-xl-8">
+
+            <div class="card shadow-sm border-0">
+
+                <!-- ====================================================
+                     CABECERA CARD
+                     ==================================================== -->
+
+                <div class="card-header bg-primary text-white py-3">
+
+                    <div class="d-flex align-items-center">
+
+                        <div>
+                            <h5 class="mb-0">
+                                <i class="bi bi-cash-stack me-2"></i>
+                                Modificar movimiento
+                            </h5>
+
+                            <small class="opacity-75">
+                                Movimiento #@Model.IdMovimientoCaja
+                            </small>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ====================================================
+                     CUERPO
+                     ==================================================== -->
+
+                <div class="card-body p-4">
+
+                    <!-- Información del movimiento -->
+
+                    <div class="alert alert-light border mb-4">
+
+                        <div class="row">
+
+                            <div class="col-md-4 mb-2 mb-md-0">
+
+                                <small class="text-muted d-block">
+                                    Movimiento
+                                </small>
+
+                                <strong>
+                                    #@Model.IdMovimientoCaja
+                                </strong>
+
+                            </div>
+
+                            <div class="col-md-4 mb-2 mb-md-0">
+
+                                <small class="text-muted d-block">
+                                    Fecha
+                                </small>
+
+                                <strong>
+                                    @Model.FechaMovimiento.ToString(
+                                        "dd/MM/yyyy HH:mm")
+                                </strong>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <small class="text-muted d-block">
+                                    Estado
+                                </small>
+
+                                @if (Model.Anulado)
+                                {
+                                    <span class="badge bg-danger">
+                                        Anulado
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        Activo
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    @if (Model.Anulado)
+                    {
+                        <div class="alert alert-danger">
+
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                            <strong>Movimiento anulado.</strong>
+
+                            <div class="mt-1">
+                                Los movimientos anulados no pueden
+                                modificarse.
+                            </div>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- =================================================
+                             FORMULARIO
+                             ================================================= -->
+
+                        <form asp-controller="Caja"
+                              asp-action="EditarMovimiento"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   asp-for="IdMovimientoCaja" />
+
+                            <input type="hidden"
+                                   name="idCaja"
+                                   value="@Model.IdCaja" />
+
+
+                            <!-- =============================================
+                                 TIPO DE MOVIMIENTO
+                                 ============================================= -->
+
+                            <div class="mb-4">
+
+                                <label asp-for="IdTipoMovimiento"
+                                       class="form-label fw-semibold">
+
+                                    <i class="bi bi-arrow-left-right me-1"></i>
+                                    Tipo de movimiento
+
+                                </label>
+
+                                <select asp-for="IdTipoMovimiento"
+                                        class="form-select"
+                                        required>
+
+                                    <option value="">
+                                        -- Seleccione un tipo --
+                                    </option>
+
+                                    @foreach (var tipo in tiposMovimiento)
+                                    {
+                                        if (tipo.IdTipoMovimiento == 1)
+                                        {
+                                            <option value="@tipo.IdTipoMovimiento">
+                                                @tipo.Nombre
+                                            </option>
+                                        }
+                                        else if (tipo.IdTipoMovimiento == 2)
+                                        {
+                                            <option value="@tipo.IdTipoMovimiento">
+                                                @tipo.Nombre
+                                            </option>
+                                        }
+                                        else if (tipo.IdTipoMovimiento == 3)
+                                        {
+                                            <option value="@tipo.IdTipoMovimiento">
+                                                @tipo.Nombre
+                                            </option>
+                                        }
+                                    }
+
+                                </select>
+
+                                <div class="form-text">
+                                    Seleccione si el movimiento corresponde
+                                    a un ingreso, egreso o ajuste.
+                                </div>
+
+                                <span asp-validation-for="IdTipoMovimiento"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- =============================================
+                                 MONEDA
+                                 ============================================= -->
+
+                            <div class="mb-4">
+
+                                <label asp-for="IdMoneda"
+                                       class="form-label fw-semibold">
+
+                                    <i class="bi bi-currency-exchange me-1"></i>
+                                    Moneda
+
+                                </label>
+
+                                <select asp-for="IdMoneda"
+                                        class="form-select"
+                                        required>
+
+                                    <option value="">
+                                        -- Seleccione una moneda --
+                                    </option>
+
+                                    @foreach (var moneda in monedas)
+                                    {
+                                        <option value="@moneda.IdMoneda">
+
+                                            @moneda.Nombre
+                                            (@moneda.CodigoIso)
+
+                                            @if (!string.IsNullOrWhiteSpace(
+                                                moneda.Simbolo))
+                                            {
+                                                @: - @moneda.Simbolo
+                                            }
+
+                                        </option>
+                                    }
+
+                                </select>
+
+                                <div class="form-text">
+                                    La moneda determina en qué saldo se
+                                    contabilizará el movimiento.
+                                </div>
+
+                                <span asp-validation-for="IdMoneda"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- =============================================
+                                 MONTO
+                                 ============================================= -->
+
+                            <div class="mb-4">
+
+                                <label asp-for="Monto"
+                                       class="form-label fw-semibold">
+
+                                    <i class="bi bi-cash me-1"></i>
+                                    Monto
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text">
+                                        <i class="bi bi-cash-coin"></i>
+                                    </span>
+
+                                    <input asp-for="Monto"
+                                           class="form-control"
+                                           type="number"
+                                           min="0.01"
+                                           step="0.01"
+                                           required />
+
+                                </div>
+
+                                <div class="form-text">
+                                    El monto debe ser mayor que cero.
+                                </div>
+
+                                <span asp-validation-for="Monto"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- =============================================
+                                 DESCRIPCIÓN
+                                 ============================================= -->
+
+                            <div class="mb-4">
+
+                                <label asp-for="Descripcion"
+                                       class="form-label fw-semibold">
+
+                                    <i class="bi bi-card-text me-1"></i>
+                                    Descripción
+
+                                </label>
+
+                                <textarea asp-for="Descripcion"
+                                          class="form-control"
+                                          rows="4"
+                                          maxlength="500"
+                                          required
+                                          placeholder="Indique la descripción del movimiento..."></textarea>
+
+                                <div class="form-text">
+                                    Describa brevemente el motivo del
+                                    movimiento.
+                                    Máximo 500 caracteres.
+                                </div>
+
+                                <span asp-validation-for="Descripcion"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- =============================================
+                                 ADVERTENCIA
+                                 ============================================= -->
+
+                            <div class="alert alert-warning">
+
+                                <div class="d-flex">
+
+                                    <i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i>
+
+                                    <div>
+
+                                        <strong>
+                                            Importante
+                                        </strong>
+
+                                        <div class="mt-1">
+                                            Al guardar los cambios se
+                                            recalcularán automáticamente
+                                            los totales de la caja.
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- =============================================
+                                 BOTONES
+                                 ============================================= -->
+
+                            <div class="d-flex justify-content-between
+                                align-items-center mt-4">
+
+                                <a asp-controller="Caja"
+                                   asp-action="Movimientos"
+                                   asp-route-id="@Model.IdCaja"
+                                   class="btn btn-outline-secondary">
+
+                                    <i class="bi bi-x-lg me-1"></i>
+                                    Cancelar
+
+                                </a>
+
+                                <button type="submit"
+                                        class="btn btn-primary">
+
+                                    <i class="bi bi-check-lg me-1"></i>
+                                    Guardar cambios
+
+                                </button>
+
+                            </div>
+
+                        </form>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================================================================
+     VALIDACIÓN
+     ================================================================ -->
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const form = document.querySelector(
+                'form[asp-action="EditarMovimiento"]'
+            );
+
+            if (!form) {
+                return;
+            }
+
+            form.addEventListener("submit", function(event) {
+
+                const monto = document.getElementById("Monto");
+                const descripcion =
+                    document.getElementById("Descripcion");
+
+                if (monto) {
+
+                    const valor =
+                        parseFloat(monto.value);
+
+                    if (isNaN(valor) || valor <= 0) {
+
+                        event.preventDefault();
+
+                        monto.classList.add("is-invalid");
+
+                        monto.focus();
+
+                        return;
+                    }
+
+                    monto.classList.remove("is-invalid");
+                }
+
+                if (descripcion) {
+
+                    const valor =
+                        descripcion.value.trim();
+
+                    if (valor.length === 0) {
+
+                        event.preventDefault();
+
+                        descripcion.classList.add("is-invalid");
+
+                        descripcion.focus();
+
+                        return;
+                    }
+
+                    descripcion.classList.remove("is-invalid");
+                }
+
+            });
+
+        });
+
+    </script>
+}

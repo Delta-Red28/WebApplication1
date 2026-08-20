@@ -1,0 +1,760 @@
+﻿@model WebApplication1.Models.Pago
+
+@{
+    ViewData["Title"] = "Registrar Pago";
+
+    var factura = ViewBag.Factura as WebApplication1.Models.Factura;
+    var caja = ViewBag.Caja as WebApplication1.Models.Caja;
+}
+
+<div class="container mt-4">
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-cash-coin"></i>
+                Registrar Pago
+            </h2>
+
+            <p class="text-muted mb-0">
+                Registre el pago de una factura.
+            </p>
+        </div>
+
+        <a asp-controller="Pago"
+           asp-action="Index"
+           class="btn btn-secondary">
+
+            <i class="bi bi-arrow-left"></i>
+            Volver
+
+        </a>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJES -->
+    <!-- ========================================================= -->
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="bi bi-exclamation-triangle-fill"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+
+            <div class="fw-bold mb-2">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Se encontraron los siguientes errores:
+            </div>
+
+            <div asp-validation-summary="ModelOnly"></div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- CAJA ABIERTA -->
+    <!-- ========================================================= -->
+
+    @if (caja != null)
+    {
+        <div class="alert alert-success mb-4">
+
+            <div class="d-flex align-items-center">
+
+                <i class="bi bi-safe2-fill fs-3 me-3"></i>
+
+                <div>
+
+                    <strong>Caja abierta</strong>
+
+                    <br />
+
+                    Caja #@caja.IdCaja
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN DE FACTURA -->
+    <!-- ========================================================= -->
+
+    @if (factura != null)
+    {
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-primary text-white">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-receipt"></i>
+
+                    Información de la factura
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <!-- FACTURA -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <label class="form-label text-muted">
+                            Factura
+                        </label>
+
+                        <div class="fw-bold fs-5">
+                            #@factura.IdFactura
+                        </div>
+
+                    </div>
+
+
+                    <!-- TOTAL -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <label class="form-label text-muted">
+                            Total
+                        </label>
+
+                        <div class="fw-bold">
+
+                            @factura.Total.ToString("N2")
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SALDO -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <label class="form-label text-muted">
+                            Saldo pendiente
+                        </label>
+
+                        <div class="fw-bold text-danger">
+
+                            @factura.SaldoPendiente.ToString("N2")
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- MONEDA -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <label class="form-label text-muted">
+                            Moneda
+                        </label>
+
+                        <div class="fw-bold">
+
+                            @factura.IdMoneda
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- FORMULARIO -->
+    <!-- ========================================================= -->
+
+    <form asp-controller="Pago"
+          asp-action="Create"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+
+        <div class="card shadow-sm">
+
+            <!-- ================================================= -->
+            <!-- HEADER -->
+            <!-- ================================================= -->
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-pencil-square"></i>
+
+                    Datos del pago
+
+                </h5>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- BODY -->
+            <!-- ================================================= -->
+
+            <div class="card-body">
+
+                <div class="row">
+
+
+                    <!-- ========================================= -->
+                    <!-- FACTURA -->
+                    <!-- ========================================= -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="IdFactura"
+                               class="form-label">
+
+                            Factura
+
+                        </label>
+
+
+                        @if (factura != null)
+                        {
+                            <input type="hidden"
+                                   asp-for="IdFactura" />
+
+                            <input type="text"
+                                   class="form-control"
+                                   value="Factura #@factura.IdFactura"
+                                   readonly />
+                        }
+                        else
+                        {
+                            <select asp-for="IdFactura"
+                                    class="form-select">
+
+                                <option value="">
+                                    -- Seleccione una factura --
+                                </option>
+
+                                @if (ViewBag.Facturas != null)
+                                {
+                                    foreach (var item in ViewBag.Facturas)
+                                    {
+                                        <option value="@item.IdFactura">
+
+                                            Factura #@item.IdFactura
+                                            -
+                                            Saldo:
+                                            @item.SaldoPendiente.ToString("N2")
+
+                                        </option>
+                                    }
+                                }
+
+                            </select>
+                        }
+
+
+                        <span asp-validation-for="IdFactura"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- ========================================= -->
+                    <!-- MONTO -->
+                    <!-- ========================================= -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Monto"
+                               class="form-label">
+
+                            Monto del pago
+
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+
+                                <i class="bi bi-cash"></i>
+
+                            </span>
+
+                            <input asp-for="Monto"
+                                   class="form-control"
+                                   type="number"
+                                   step="0.01"
+                                   min="0.01"
+                                   placeholder="0.00" />
+
+                        </div>
+
+                        <span asp-validation-for="Monto"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- ========================================= -->
+                    <!-- MÉTODO DE PAGO -->
+                    <!-- ========================================= -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="IdMetodoPago"
+                               class="form-label">
+
+                            Método de pago
+
+                        </label>
+
+                        <select asp-for="IdMetodoPago"
+                                class="form-select">
+
+                            <option value="">
+                                -- Seleccione método de pago --
+                            </option>
+
+                            @if (ViewBag.MetodosPago != null)
+                            {
+                                foreach (var item in ViewBag.MetodosPago)
+                                {
+                                    <option value="@item.IdMetodoPago">
+
+                                        @item.Nombre
+
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                        <span asp-validation-for="IdMetodoPago"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- ========================================= -->
+                    <!-- MONEDA -->
+                    <!-- ========================================= -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="IdMoneda"
+                               class="form-label">
+
+                            Moneda
+
+                        </label>
+
+                        <select asp-for="IdMoneda"
+                                class="form-select">
+
+                            <option value="">
+                                -- Seleccione moneda --
+                            </option>
+
+                            @if (ViewBag.Monedas != null)
+                            {
+                                foreach (var item in ViewBag.Monedas)
+                                {
+                                    <option value="@item.IdMoneda">
+
+                                        @item.Nombre
+                                        (@item.CodigoIso)
+
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                        <span asp-validation-for="IdMoneda"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- ========================================= -->
+                    <!-- BANCO -->
+                    <!-- ========================================= -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="IdBanco"
+                               class="form-label">
+
+                            Banco
+
+                        </label>
+
+                        <select asp-for="IdBanco"
+                                class="form-select">
+
+                            <option value="">
+                                -- No aplica --
+                            </option>
+
+                            @if (ViewBag.Bancos != null)
+                            {
+                                foreach (var item in ViewBag.Bancos)
+                                {
+                                    <option value="@item.IdBanco">
+
+                                        @item.Nombre
+
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                        <span asp-validation-for="IdBanco"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- ========================================= -->
+                    <!-- TIPO DE TARJETA -->
+                    <!-- ========================================= -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="IdTipoTarjeta"
+                               class="form-label">
+
+                            Tipo de tarjeta
+
+                        </label>
+
+                        <select asp-for="IdTipoTarjeta"
+                                class="form-select">
+
+                            <option value="">
+                                -- No aplica --
+                            </option>
+
+                            @if (ViewBag.TiposTarjeta != null)
+                            {
+                                foreach (var item in ViewBag.TiposTarjeta)
+                                {
+                                    <option value="@item.IdTipoTarjeta">
+
+                                        @item.Nombre
+
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                        <span asp-validation-for="IdTipoTarjeta"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- ========================================= -->
+                    <!-- REFERENCIA -->
+                    <!-- ========================================= -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Referencia"
+                               class="form-label">
+
+                            Referencia
+
+                        </label>
+
+                        <input asp-for="Referencia"
+                               class="form-control"
+                               placeholder="Número de referencia" />
+
+                        <span asp-validation-for="Referencia"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- ========================================= -->
+                    <!-- AUTORIZACIÓN -->
+                    <!-- ========================================= -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="NumeroAutorizacion"
+                               class="form-label">
+
+                            Número de autorización
+
+                        </label>
+
+                        <input asp-for="NumeroAutorizacion"
+                               class="form-control"
+                               placeholder="Número de autorización" />
+
+                        <span asp-validation-for="NumeroAutorizacion"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- ========================================= -->
+                    <!-- MONTO RECIBIDO -->
+                    <!-- ========================================= -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="MontoRecibido"
+                               class="form-label">
+
+                            Monto recibido
+
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+
+                                <i class="bi bi-wallet2"></i>
+
+                            </span>
+
+                            <input asp-for="MontoRecibido"
+                                   class="form-control"
+                                   type="number"
+                                   step="0.01"
+                                   min="0"
+                                   placeholder="0.00" />
+
+                        </div>
+
+                        <small class="text-muted">
+                            Utilice este campo cuando el cliente
+                            entregue un monto diferente al pago.
+                        </small>
+
+                        <span asp-validation-for="MontoRecibido"
+                              class="text-danger">
+                        </span>
+
+                        <div id="montoRecibidoError"
+                             class="invalid-feedback">
+                            El monto recibido no puede ser menor
+                            que el monto del pago.
+                        </div>
+
+                    </div>
+
+
+                    <!-- ========================================= -->
+                    <!-- FECHA DEL PAGO -->
+                    <!-- ========================================= -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="FechaPago"
+                               class="form-label">
+
+                            Fecha del pago
+
+                        </label>
+
+                        <input asp-for="FechaPago"
+                               class="form-control"
+                               type="datetime-local" />
+
+                        <span asp-validation-for="FechaPago"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- ========================================= -->
+                    <!-- OBSERVACIÓN -->
+                    <!-- ========================================= -->
+
+                    <div class="col-12 mb-3">
+
+                        <label asp-for="Observacion"
+                               class="form-label">
+
+                            Observación
+
+                        </label>
+
+                        <textarea asp-for="Observacion"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Observaciones del pago"></textarea>
+
+                        <span asp-validation-for="Observacion"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- FOOTER -->
+            <!-- ================================================= -->
+
+            <div class="card-footer d-flex justify-content-end gap-2">
+
+                <a asp-controller="Pago"
+                   asp-action="Index"
+                   class="btn btn-secondary">
+
+                    <i class="bi bi-x-circle"></i>
+
+                    Cancelar
+
+                </a>
+
+
+                <button type="submit"
+                        class="btn btn-success">
+
+                    <i class="bi bi-check-circle"></i>
+
+                    Registrar pago
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- ============================================================= -->
+<!-- SCRIPTS -->
+<!-- ============================================================= -->
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const monto =
+                document.getElementById("Monto");
+
+            const montoRecibido =
+                document.getElementById("MontoRecibido");
+
+            if (!monto || !montoRecibido) {
+                return;
+            }
+
+            function validarMontoRecibido() {
+
+                const valor =
+                    parseFloat(monto.value || "0");
+
+                const recibido =
+                    parseFloat(montoRecibido.value || "0");
+
+                if (recibido > 0 && recibido < valor) {
+
+                    montoRecibido.classList.add("is-invalid");
+
+                }
+                else {
+
+                    montoRecibido.classList.remove("is-invalid");
+
+                }
+            }
+
+
+            monto.addEventListener(
+                "input",
+                validarMontoRecibido
+            );
+
+
+            montoRecibido.addEventListener(
+                "input",
+                validarMontoRecibido
+            );
+
+        });
+
+    </script>
+}

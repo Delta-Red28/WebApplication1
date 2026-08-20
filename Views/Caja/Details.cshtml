@@ -1,0 +1,1750 @@
+﻿@model WebApplication1.Models.Caja
+
+@{
+    ViewData["Title"] = "Detalle de caja";
+
+    var cajaAbierta = Model.FechaCierre == null;
+
+
+    // ============================================================
+    // USUARIO RESPONSABLE
+    // ============================================================
+
+    var usuarioResponsable = Model.IdUsuarioNavigation != null
+        ? $"{Model.IdUsuarioNavigation.Nombres} {Model.IdUsuarioNavigation.Apellidos}".Trim()
+        : $"Usuario #{Model.IdUsuario}";
+
+    var nombreUsuario = Model.IdUsuarioNavigation?.Usuario1
+        ?? $"ID: {Model.IdUsuario}";
+
+    var correoUsuario = Model.IdUsuarioNavigation?.Correo
+        ?? "";
+
+    var usuarioActivo = Model.IdUsuarioNavigation?.Estado ?? false;
+
+
+    // ============================================================
+    // ESTADO DE CAJA
+    // ============================================================
+
+    var estadoCaja =
+        Model.IdEstadoCajaNavigation != null
+            ? Model.IdEstadoCajaNavigation.Nombre
+            : $"Estado #{Model.IdEstadoCaja}";
+
+
+    // ============================================================
+    // VALORES SEGUROS
+    // ============================================================
+
+    var totalContadoCordobas =
+        Model.TotalContadoCordobas ?? 0m;
+
+    var totalContadoDolares =
+        Model.TotalContadoDolares ?? 0m;
+
+    var diferenciaCordobas =
+        Model.DiferenciaCordobas ?? 0m;
+
+    var diferenciaDolares =
+        Model.DiferenciaDolares ?? 0m;
+
+
+    // ============================================================
+    // CULTURAS
+    // ============================================================
+
+    var culturaCordobas =
+        System.Globalization.CultureInfo.GetCultureInfo("es-NI");
+
+    var culturaDolares =
+        System.Globalization.CultureInfo.GetCultureInfo("en-US");
+}
+
+
+<div class="container-fluid">
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="mb-1">
+
+                <i class="bi bi-cash-stack me-2"></i>
+
+                Detalle de caja
+
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                Información y movimientos de la caja #@Model.IdCaja
+
+            </p>
+
+        </div>
+
+
+        <div class="d-flex gap-2">
+
+            <a asp-controller="Caja"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+
+                Volver
+
+            </a>
+
+
+            @if (cajaAbierta)
+            {
+                <a asp-controller="Caja"
+                   asp-action="Cerrar"
+                   asp-route-id="@Model.IdCaja"
+                   class="btn btn-danger">
+
+                    <i class="bi bi-lock me-1"></i>
+
+                    Cerrar caja
+
+                </a>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJES -->
+    <!-- ========================================================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- ESTADO -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-8">
+
+                    <div class="d-flex align-items-center">
+
+                        @if (cajaAbierta)
+                        {
+                            <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+
+                                <i class="bi bi-unlock-fill text-success fs-3"></i>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="bg-danger bg-opacity-10 rounded-circle p-3 me-3">
+
+                                <i class="bi bi-lock-fill text-danger fs-3"></i>
+
+                            </div>
+                        }
+
+
+                        <div>
+
+                            <h4 class="mb-1">
+
+                                Caja #@Model.IdCaja
+
+                            </h4>
+
+
+                            @if (cajaAbierta)
+                            {
+                                <span class="badge bg-success">
+
+                                    <i class="bi bi-unlock me-1"></i>
+
+                                    Abierta
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+
+                                    <i class="bi bi-lock me-1"></i>
+
+                                    Cerrada
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                    <div class="text-muted small">
+
+                        Estado registrado
+
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        @estadoCaja
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN GENERAL -->
+    <!-- ========================================================= -->
+
+    <div class="row g-4 mb-4">
+
+
+        <!-- ===================================================== -->
+        <!-- USUARIO RESPONSABLE -->
+        <!-- ===================================================== -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center mb-3">
+
+                        <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+
+                            <i class="bi bi-person text-primary fs-4"></i>
+
+                        </div>
+
+                        <div>
+
+                            <div class="text-muted small">
+
+                                Usuario responsable
+
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @usuarioResponsable
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="small text-muted mb-1">
+
+                        Usuario:
+
+                        <strong>
+
+                            @nombreUsuario
+
+                        </strong>
+
+                    </div>
+
+
+                    @if (!string.IsNullOrWhiteSpace(correoUsuario))
+                    {
+                        <div class="small text-muted mb-1">
+
+                            Correo:
+
+                            <strong>
+
+                                @correoUsuario
+
+                            </strong>
+
+                        </div>
+                    }
+
+
+                    <div class="small text-muted">
+
+                        ID usuario:
+
+                        <strong>
+
+                            @Model.IdUsuario
+
+                        </strong>
+
+                    </div>
+
+
+                    @if (Model.IdUsuarioNavigation != null)
+                    {
+                        <div class="mt-2">
+
+                            @if (usuarioActivo)
+                            {
+                                <span class="badge bg-success">
+
+                                    <i class="bi bi-check-circle me-1"></i>
+
+                                    Activo
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+
+                                    <i class="bi bi-x-circle me-1"></i>
+
+                                    Inactivo
+
+                                </span>
+                            }
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- APERTURA -->
+        <!-- ===================================================== -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center mb-3">
+
+                        <div class="bg-info bg-opacity-10 rounded p-2 me-3">
+
+                            <i class="bi bi-calendar-event text-info fs-4"></i>
+
+                        </div>
+
+                        <div>
+
+                            <div class="text-muted small">
+
+                                Fecha de apertura
+
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @Model.FechaApertura.ToString("dd/MM/yyyy")
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="small text-muted">
+
+                        Hora:
+
+                        <strong>
+
+                            @Model.FechaApertura.ToString("hh:mm tt")
+
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- CIERRE -->
+        <!-- ===================================================== -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center mb-3">
+
+                        <div class="bg-warning bg-opacity-10 rounded p-2 me-3">
+
+                            <i class="bi bi-calendar-x text-warning fs-4"></i>
+
+                        </div>
+
+                        <div>
+
+                            <div class="text-muted small">
+
+                                Fecha de cierre
+
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @if (Model.FechaCierre.HasValue)
+                                {
+                                    @Model.FechaCierre.Value.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+
+                                        Sin cerrar
+
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="small text-muted">
+
+                        Hora:
+
+                        @if (Model.FechaCierre.HasValue)
+                        {
+                            <strong>
+
+                                @Model.FechaCierre.Value.ToString("hh:mm tt")
+
+                            </strong>
+                        }
+                        else
+                        {
+                            <span>--</span>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- ESTADO -->
+        <!-- ===================================================== -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center mb-3">
+
+                        <div class="@(cajaAbierta
+                                                        ? "bg-success bg-opacity-10"
+                                                        : "bg-secondary bg-opacity-10")
+                            rounded p-2 me-3">
+
+                            <i class="bi bi-wallet2
+                                @(cajaAbierta
+                                   ? "text-success"
+                                   : "text-secondary")
+                                fs-4">
+                            </i>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="text-muted small">
+
+                                Estado
+
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @estadoCaja
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    @if (cajaAbierta)
+                    {
+                        <span class="text-success">
+
+                            <i class="bi bi-circle-fill me-1"></i>
+
+                            Caja operativa
+
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-secondary">
+
+                            <i class="bi bi-circle-fill me-1"></i>
+
+                            Caja cerrada
+
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- RESUMEN FINANCIERO -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-bar-chart me-2"></i>
+
+                    Resumen financiero
+
+                </h5>
+
+
+                <a asp-controller="Caja"
+                   asp-action="Resumen"
+                   asp-route-id="@Model.IdCaja"
+                   class="btn btn-sm btn-outline-primary">
+
+                    <i class="bi bi-eye me-1"></i>
+
+                    Ver resumen
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+
+            <!-- ================================================= -->
+            <!-- CÓRDOBAS -->
+            <!-- ================================================= -->
+
+            <div class="mb-4">
+
+                <div class="d-flex align-items-center mb-3">
+
+                    <div class="bg-success bg-opacity-10 rounded p-2 me-2">
+
+                        <i class="bi bi-currency-exchange text-success"></i>
+
+                    </div>
+
+                    <h5 class="mb-0">
+
+                        Córdobas (C$)
+
+                    </h5>
+
+                </div>
+
+
+                <div class="row g-4">
+
+
+                    <!-- MONTO INICIAL -->
+
+                    <div class="col-md-6 col-xl-3">
+
+                        <div class="border rounded p-3 h-100">
+
+                            <div class="text-muted small mb-1">
+
+                                Monto inicial
+
+                            </div>
+
+                            <div class="fs-4 fw-bold">
+
+                                @Model.MontoInicialCordobas.ToString(
+                                    "C2",
+                                    culturaCordobas)
+
+                            </div>
+
+                            <div class="small text-muted">
+
+                                Fondo inicial
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- INGRESOS -->
+
+                    <div class="col-md-6 col-xl-3">
+
+                        <div class="border border-success rounded p-3 h-100">
+
+                            <div class="text-success small mb-1">
+
+                                <i class="bi bi-arrow-down-circle me-1"></i>
+
+                                Total ingresos
+
+                            </div>
+
+                            <div class="fs-4 fw-bold text-success">
+
+                                @Model.TotalIngresosCordobas.ToString(
+                                    "C2",
+                                    culturaCordobas)
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- EGRESOS -->
+
+                    <div class="col-md-6 col-xl-3">
+
+                        <div class="border border-danger rounded p-3 h-100">
+
+                            <div class="text-danger small mb-1">
+
+                                <i class="bi bi-arrow-up-circle me-1"></i>
+
+                                Total egresos
+
+                            </div>
+
+                            <div class="fs-4 fw-bold text-danger">
+
+                                @Model.TotalEgresosCordobas.ToString(
+                                    "C2",
+                                    culturaCordobas)
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SISTEMA -->
+
+                    <div class="col-md-6 col-xl-3">
+
+                        <div class="border border-primary rounded p-3 h-100 bg-primary bg-opacity-10">
+
+                            <div class="text-primary small mb-1">
+
+                                <i class="bi bi-calculator me-1"></i>
+
+                                Total sistema
+
+                            </div>
+
+                            <div class="fs-4 fw-bold text-primary">
+
+                                @Model.TotalSistemaCordobas.ToString(
+                                    "C2",
+                                    culturaCordobas)
+
+                            </div>
+
+                            <div class="small text-muted">
+
+                                Efectivo esperado
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <hr />
+
+
+            <!-- ================================================= -->
+            <!-- DÓLARES -->
+            <!-- ================================================= -->
+
+            <div class="mt-4">
+
+                <div class="d-flex align-items-center mb-3">
+
+                    <div class="bg-success bg-opacity-10 rounded p-2 me-2">
+
+                        <i class="bi bi-currency-dollar text-success"></i>
+
+                    </div>
+
+                    <h5 class="mb-0">
+
+                        Dólares (US$)
+
+                    </h5>
+
+                </div>
+
+
+                <div class="row g-4">
+
+
+                    <!-- MONTO INICIAL -->
+
+                    <div class="col-md-6 col-xl-3">
+
+                        <div class="border rounded p-3 h-100">
+
+                            <div class="text-muted small mb-1">
+
+                                Monto inicial
+
+                            </div>
+
+                            <div class="fs-4 fw-bold">
+
+                                @Model.MontoInicialDolares.ToString(
+                                    "C2",
+                                    culturaDolares)
+
+                            </div>
+
+                            <div class="small text-muted">
+
+                                Fondo inicial
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- INGRESOS -->
+
+                    <div class="col-md-6 col-xl-3">
+
+                        <div class="border border-success rounded p-3 h-100">
+
+                            <div class="text-success small mb-1">
+
+                                <i class="bi bi-arrow-down-circle me-1"></i>
+
+                                Total ingresos
+
+                            </div>
+
+                            <div class="fs-4 fw-bold text-success">
+
+                                @Model.TotalIngresosDolares.ToString(
+                                    "C2",
+                                    culturaDolares)
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- EGRESOS -->
+
+                    <div class="col-md-6 col-xl-3">
+
+                        <div class="border border-danger rounded p-3 h-100">
+
+                            <div class="text-danger small mb-1">
+
+                                <i class="bi bi-arrow-up-circle me-1"></i>
+
+                                Total egresos
+
+                            </div>
+
+                            <div class="fs-4 fw-bold text-danger">
+
+                                @Model.TotalEgresosDolares.ToString(
+                                    "C2",
+                                    culturaDolares)
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SISTEMA -->
+
+                    <div class="col-md-6 col-xl-3">
+
+                        <div class="border border-primary rounded p-3 h-100 bg-primary bg-opacity-10">
+
+                            <div class="text-primary small mb-1">
+
+                                <i class="bi bi-calculator me-1"></i>
+
+                                Total sistema
+
+                            </div>
+
+                            <div class="fs-4 fw-bold text-primary">
+
+                                @Model.TotalSistemaDolares.ToString(
+                                    "C2",
+                                    culturaDolares)
+
+                            </div>
+
+                            <div class="small text-muted">
+
+                                Efectivo esperado
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- ARQUEO -->
+            <!-- ================================================= -->
+            @if (Model.TotalContadoCordobas.HasValue ||
+                             Model.TotalContadoDolares.HasValue)
+            {
+                <hr class="my-4" />
+
+                <h5 class="mb-4">
+
+                    <i class="bi bi-calculator me-2"></i>
+
+                    Resultado del arqueo
+
+                </h5>
+
+
+                <div class="row g-4">
+
+
+                    <!-- CÓRDOBAS -->
+
+                    <div class="col-md-6">
+
+                        <div class="border rounded p-4 h-100">
+
+                            <h6 class="mb-4">
+
+                                <i class="bi bi-currency-exchange me-2"></i>
+
+                                Córdobas
+
+                            </h6>
+
+
+                            <div class="row g-3">
+
+                                <div class="col-6">
+
+                                    <div class="text-muted small">
+
+                                        Total contado
+
+                                    </div>
+
+                                    <div class="fs-5 fw-bold">
+
+                                        @totalContadoCordobas.ToString(
+                                            "C2",
+                                            culturaCordobas)
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="col-6">
+
+                                    <div class="text-muted small">
+
+                                        Diferencia
+
+                                    </div>
+
+                                    <div class="fs-5 fw-bold
+                                        @(diferenciaCordobas > 0
+                                            ? "text-success"
+                                            : diferenciaCordobas < 0
+                                                ? "text-danger"
+                                                : "text-secondary")">
+
+                                        @diferenciaCordobas.ToString(
+                                            "C2",
+                                            culturaCordobas)
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="mt-3">
+
+                                @if (diferenciaCordobas > 0)
+                                {
+                                    <span class="badge bg-success">
+
+                                        Sobrante
+
+                                    </span>
+                                }
+                                else if (diferenciaCordobas < 0)
+                                {
+                                    <span class="badge bg-danger">
+
+                                        Faltante
+
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+
+                                        Caja cuadrada
+
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- DÓLARES -->
+
+                    <div class="col-md-6">
+
+                        <div class="border rounded p-4 h-100">
+
+                            <h6 class="mb-4">
+
+                                <i class="bi bi-currency-dollar me-2"></i>
+
+                                Dólares
+
+                            </h6>
+
+
+                            <div class="row g-3">
+
+                                <div class="col-6">
+
+                                    <div class="text-muted small">
+
+                                        Total contado
+
+                                    </div>
+
+                                    <div class="fs-5 fw-bold">
+
+                                        @totalContadoDolares.ToString(
+                                            "C2",
+                                            culturaDolares)
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="col-6">
+
+                                    <div class="text-muted small">
+
+                                        Diferencia
+
+                                    </div>
+
+                                    <div class="fs-5 fw-bold
+                                        @(diferenciaDolares > 0
+                                            ? "text-success"
+                                            : diferenciaDolares < 0
+                                                ? "text-danger"
+                                                : "text-secondary")">
+
+                                        @diferenciaDolares.ToString(
+                                            "C2",
+                                            culturaDolares)
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="mt-3">
+
+                                @if (diferenciaDolares > 0)
+                                {
+                                    <span class="badge bg-success">
+
+                                        Sobrante
+
+                                    </span>
+                                }
+                                else if (diferenciaDolares < 0)
+                                {
+                                    <span class="badge bg-danger">
+
+                                        Faltante
+
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+
+                                        Caja cuadrada
+
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- OBSERVACIÓN -->
+    <!-- ========================================================= -->
+    @if (!string.IsNullOrWhiteSpace(Model.Observacion))
+    {
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-chat-left-text me-2"></i>
+
+                    Observación
+
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <p class="mb-0">
+
+                    @Model.Observacion
+
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- ACCIONES -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-lightning me-2"></i>
+
+                Acciones
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+
+                <!-- MOVIMIENTOS -->
+
+                <div class="col-md-6 col-lg-3">
+
+                    <a asp-controller="Caja"
+                       asp-action="Movimientos"
+                       asp-route-id="@Model.IdCaja"
+                       class="btn btn-outline-primary w-100 py-3">
+
+                        <i class="bi bi-list-ul d-block fs-3 mb-1"></i>
+
+                        Ver movimientos
+
+                    </a>
+
+                </div>
+
+
+                @if (cajaAbierta)
+                {
+
+                    <!-- REGISTRAR MOVIMIENTO -->
+
+                    <div class="col-md-6 col-lg-3">
+
+                        <a asp-controller="Caja"
+                           asp-action="RegistrarMovimiento"
+                           asp-route-id="@Model.IdCaja"
+                           class="btn btn-outline-success w-100 py-3">
+
+                            <i class="bi bi-plus-circle d-block fs-3 mb-1"></i>
+
+                            Registrar movimiento
+
+                        </a>
+
+                    </div>
+
+
+                    <!-- REGISTRAR PAGO -->
+
+                    <div class="col-md-6 col-lg-3">
+
+                        <a asp-controller="Caja"
+                           asp-action="BuscarPago"
+                           asp-route-idCaja="@Model.IdCaja"
+                           class="btn btn-outline-info w-100 py-3">
+
+                            <i class="bi bi-credit-card d-block fs-3 mb-1"></i>
+
+                            Registrar pago
+
+                        </a>
+
+                    </div>
+
+
+                    <!-- CERRAR -->
+
+                    <div class="col-md-6 col-lg-3">
+
+                        <a asp-controller="Caja"
+                           asp-action="Cerrar"
+                           asp-route-id="@Model.IdCaja"
+                           class="btn btn-outline-danger w-100 py-3">
+
+                            <i class="bi bi-lock d-block fs-3 mb-1"></i>
+
+                            Cerrar caja
+
+                        </a>
+
+                    </div>
+
+                }
+                else
+                {
+
+                    <!-- RESUMEN -->
+
+                    <div class="col-md-6 col-lg-3">
+
+                        <a asp-controller="Caja"
+                           asp-action="Resumen"
+                           asp-route-id="@Model.IdCaja"
+                           class="btn btn-outline-secondary w-100 py-3">
+
+                            <i class="bi bi-bar-chart d-block fs-3 mb-1"></i>
+
+                            Ver resumen
+
+                        </a>
+
+                    </div>
+
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MOVIMIENTOS RECIENTES -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-clock-history me-2"></i>
+
+                    Movimientos recientes
+
+                </h5>
+
+
+                <a asp-controller="Caja"
+                   asp-action="Movimientos"
+                   asp-route-id="@Model.IdCaja"
+                   class="btn btn-sm btn-outline-primary">
+
+                    Ver todos
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (Model.MovimientoCajas != null &&
+                 Model.MovimientoCajas.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>Fecha</th>
+
+                                <th>Tipo</th>
+
+                                <th>Descripción</th>
+
+                                <th>Pago</th>
+
+                                <th>Moneda</th>
+
+                                <th class="text-end">
+
+                                    Monto
+
+                                </th>
+
+                                <th class="text-center">
+
+                                    Estado
+
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var movimiento in
+                                Model.MovimientoCajas
+                                    .OrderByDescending(m => m.FechaMovimiento)
+                                    .Take(10))
+                            {
+                                var tipo =
+                                    movimiento.IdTipoMovimientoNavigation?.Nombre
+                                    ?? "Sin tipo";
+
+                                var tipoNormalizado =
+                                    tipo.Trim().ToLowerInvariant();
+
+                                // =====================================================
+                                // TIPOS ACTUALES:
+                                // 1 = Ingreso
+                                // 2 = Egreso
+                                // 3 = Ajuste
+                                // =====================================================
+
+                                var esIngreso =
+                                    tipoNormalizado == "ingreso";
+
+                                var esEgreso =
+                                    tipoNormalizado == "egreso";
+
+                                var esAjuste =
+                                    tipoNormalizado == "ajuste";
+
+
+                                var moneda =
+                                    movimiento.IdMonedaNavigation?.Nombre
+                                    ?? "Sin moneda";
+
+                                var simbolo =
+                                    movimiento.IdMonedaNavigation?.Simbolo
+                                    ?? "";
+
+
+                                <tr class="@(movimiento.Anulado
+                                                                        ? "table-secondary"
+                                                                        : "")">
+
+
+                                    <!-- FECHA -->
+
+                                    <td>
+
+                                        <div class="fw-semibold">
+
+                                            @movimiento.FechaMovimiento.ToString(
+                                                "dd/MM/yyyy")
+
+                                        </div>
+
+                                        <div class="small text-muted">
+
+                                            @movimiento.FechaMovimiento.ToString(
+                                                "hh:mm tt")
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- TIPO -->
+
+                                    <td>
+
+                                        @if (movimiento.Anulado)
+                                        {
+                                            <span class="badge bg-secondary">
+
+                                                <i class="bi bi-x-circle me-1"></i>
+
+                                                @tipo
+
+                                            </span>
+                                        }
+                                        else if (esIngreso)
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="bi bi-arrow-down me-1"></i>
+
+                                                Ingreso
+
+                                            </span>
+                                        }
+                                        else if (esEgreso)
+                                        {
+                                            <span class="badge bg-danger">
+
+                                                <i class="bi bi-arrow-up me-1"></i>
+
+                                                Egreso
+
+                                            </span>
+                                        }
+                                        else if (esAjuste)
+                                        {
+                                            <span class="badge bg-warning text-dark">
+
+                                                <i class="bi bi-sliders me-1"></i>
+
+                                                Ajuste
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+
+                                                <i class="bi bi-arrow-left-right me-1"></i>
+
+                                                @tipo
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- DESCRIPCIÓN -->
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            movimiento.Descripcion))
+                                        {
+                                            @movimiento.Descripcion
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                Sin descripción
+
+                                            </span>
+                                        }
+
+
+                                        @if (movimiento.Anulado &&
+                                             !string.IsNullOrWhiteSpace(
+                                                 movimiento.MotivoAnulacion))
+                                        {
+                                            <div class="small text-danger mt-1">
+
+                                                <i class="bi bi-exclamation-circle me-1"></i>
+
+                                                @movimiento.MotivoAnulacion
+
+                                            </div>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- PAGO -->
+
+                                    <td>
+
+                                        @if (movimiento.IdPago.HasValue)
+                                        {
+                                            <span class="badge bg-info">
+
+                                                <i class="bi bi-credit-card me-1"></i>
+
+                                                Pago #@movimiento.IdPago.Value
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                —
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- MONEDA -->
+
+                                    <td>
+
+                                        @if (movimiento.IdMoneda.HasValue)
+                                        {
+                                            <span class="badge bg-light text-dark border">
+
+                                                <i class="bi bi-currency-exchange me-1"></i>
+
+                                                @moneda
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                —
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- MONTO -->
+
+                                    <td class="text-end">
+
+                                        @if (movimiento.Anulado)
+                                        {
+                                            <span class="fw-bold text-secondary text-decoration-line-through">
+
+                                                @simbolo
+                                                @movimiento.Monto.ToString("N2")
+
+                                            </span>
+                                        }
+                                        else if (esIngreso)
+                                        {
+                                            <span class="fw-bold text-success">
+
+                                                +
+
+                                                @simbolo
+
+                                                @movimiento.Monto.ToString("N2")
+
+                                            </span>
+                                        }
+                                        else if (esEgreso)
+                                        {
+                                            <span class="fw-bold text-danger">
+
+                                                -
+
+                                                @simbolo
+
+                                                @movimiento.Monto.ToString("N2")
+
+                                            </span>
+                                        }
+                                        else if (esAjuste)
+                                        {
+                                            <span class="fw-bold text-warning">
+
+                                                @simbolo
+
+                                                @movimiento.Monto.ToString("N2")
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="fw-bold text-secondary">
+
+                                                @simbolo
+
+                                                @movimiento.Monto.ToString("N2")
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ESTADO -->
+
+                                    <td class="text-center">
+
+                                        @if (movimiento.Anulado)
+                                        {
+                                            <span class="badge bg-danger">
+
+                                                <i class="bi bi-x-circle me-1"></i>
+
+                                                Anulado
+
+                                            </span>
+
+                                            @if (movimiento.FechaAnulacion.HasValue)
+                                            {
+                                                <div class="small text-muted mt-1">
+
+                                                    @movimiento.FechaAnulacion.Value.ToString(
+                                                        "dd/MM/yyyy HH:mm")
+
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="bi bi-check-circle me-1"></i>
+
+                                                Activo
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-inbox text-muted fs-1"></i>
+
+                    <h5 class="mt-3">
+
+                        No hay movimientos
+
+                    </h5>
+
+                    <p class="text-muted mb-0">
+
+                        Todavía no se han registrado movimientos
+                        en esta caja.
+
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN -->
+    <!-- ========================================================= -->
+
+    <div class="text-muted small mb-4">
+
+        <i class="bi bi-info-circle me-1"></i>
+
+        Caja #@Model.IdCaja
+
+        ·
+
+        Usuario #@Model.IdUsuario
+
+        @if (Model.IdUsuarioNavigation != null)
+        {
+            <text>
+
+                ·
+
+                @usuarioResponsable
+
+            </text>
+        }
+
+        ·
+
+        Estado: @estadoCaja
+
+    </div>
+
+</div>

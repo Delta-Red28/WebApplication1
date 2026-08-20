@@ -13,6 +13,11 @@
         nombreCompleto = usuarioActual;
     }
 
+    if (string.IsNullOrWhiteSpace(nombreCompleto))
+    {
+        nombreCompleto = "Usuario";
+    }
+
     var iniciales = "";
 
     var partesNombre = nombreCompleto
@@ -135,6 +140,7 @@
             <!-- ================================================= -->
             <!-- ADMINISTRADOR -->
             <!-- ================================================= -->
+
             @if (User.IsInRole("Administrador"))
             {
 
@@ -193,7 +199,9 @@
 
                 <li>
 
-                    <a href="#">
+                    <a asp-controller="Pedido"
+                       asp-action="Index"
+                       class="@(controladorActual == "Pedido" ? "active" : "")">
 
                         <i class="bi bi-receipt"></i>
 
@@ -219,7 +227,7 @@
                 </li>
 
 
-                <!-- CATEGORÍAS DE PRODUCTOS -->
+                <!-- CATEGORÍAS -->
 
                 <li>
 
@@ -272,7 +280,9 @@
 
                 <li>
 
-                    <a href="#">
+                    <a asp-controller="Caja"
+                       asp-action="Index"
+                       class="@(controladorActual == "Caja" ? "active" : "")">
 
                         <i class="bi bi-cash-stack"></i>
 
@@ -287,7 +297,9 @@
 
                 <li>
 
-                    <a href="#">
+                    <a asp-controller="Factura"
+                       asp-action="Index"
+                       class="@(controladorActual == "Factura" ? "active" : "")">
 
                         <i class="bi bi-file-earmark-text"></i>
 
@@ -318,6 +330,7 @@
             <!-- ================================================= -->
             <!-- GERENTE -->
             <!-- ================================================= -->
+
             @if (User.IsInRole("Gerente"))
             {
 
@@ -359,7 +372,9 @@
 
                 <li>
 
-                    <a href="#">
+                    <a asp-controller="Pedido"
+                       asp-action="Index"
+                       class="@(controladorActual == "Pedido" ? "active" : "")">
 
                         <i class="bi bi-receipt"></i>
 
@@ -370,7 +385,41 @@
                 </li>
 
 
-                <!-- CATEGORÍAS DE PRODUCTOS -->
+                <!-- CAJA -->
+
+                <li>
+
+                    <a asp-controller="Caja"
+                       asp-action="Index"
+                       class="@(controladorActual == "Caja" ? "active" : "")">
+
+                        <i class="bi bi-cash-stack"></i>
+
+                        <span>Caja</span>
+
+                    </a>
+
+                </li>
+
+
+                <!-- FACTURACIÓN -->
+
+                <li>
+
+                    <a asp-controller="Factura"
+                       asp-action="Index"
+                       class="@(controladorActual == "Factura" ? "active" : "")">
+
+                        <i class="bi bi-file-earmark-text"></i>
+
+                        <span>Facturación</span>
+
+                    </a>
+
+                </li>
+
+
+                <!-- CATEGORÍAS -->
 
                 <li>
 
@@ -424,6 +473,7 @@
             <!-- ================================================= -->
             <!-- CAJERO -->
             <!-- ================================================= -->
+
             @if (User.IsInRole("Cajero"))
             {
 
@@ -448,7 +498,9 @@
 
                 <li>
 
-                    <a href="#">
+                    <a asp-controller="Pedido"
+                       asp-action="Index"
+                       class="@(controladorActual == "Pedido" ? "active" : "")">
 
                         <i class="bi bi-receipt"></i>
 
@@ -463,7 +515,9 @@
 
                 <li>
 
-                    <a href="#">
+                    <a asp-controller="Caja"
+                       asp-action="Index"
+                       class="@(controladorActual == "Caja" ? "active" : "")">
 
                         <i class="bi bi-cash-stack"></i>
 
@@ -478,7 +532,9 @@
 
                 <li>
 
-                    <a href="#">
+                    <a asp-controller="Factura"
+                       asp-action="Index"
+                       class="@(controladorActual == "Factura" ? "active" : "")">
 
                         <i class="bi bi-file-earmark-text"></i>
 
@@ -494,6 +550,7 @@
             <!-- ================================================= -->
             <!-- MESERO -->
             <!-- ================================================= -->
+
             @if (User.IsInRole("Mesero"))
             {
 
@@ -518,7 +575,9 @@
 
                 <li>
 
-                    <a href="#">
+                    <a asp-controller="Pedido"
+                       asp-action="Index"
+                       class="@(controladorActual == "Pedido" ? "active" : "")">
 
                         <i class="bi bi-receipt"></i>
 
@@ -549,6 +608,7 @@
             <!-- ================================================= -->
             <!-- COCINA -->
             <!-- ================================================= -->
+
             @if (User.IsInRole("Cocina"))
             {
 
@@ -556,7 +616,9 @@
 
                 <li>
 
-                    <a href="#">
+                    <a asp-controller="Pedido"
+                       asp-action="Index"
+                       class="@(controladorActual == "Pedido" ? "active" : "")">
 
                         <i class="bi bi-receipt"></i>
 
@@ -712,7 +774,7 @@
 
 
         <!-- ===================================================== -->
-        <!-- CONTENIDO DE LA VISTA -->
+        <!-- CONTENIDO -->
         <!-- ===================================================== -->
 
         <main class="content">
@@ -737,14 +799,14 @@
 
     <script>
 
-                    function toggleSidebar() {
+        function toggleSidebar() {
 
-                        const sidebar =
-                            document.getElementById("sidebar");
+            const sidebar =
+                document.getElementById("sidebar");
 
             sidebar.classList.toggle("show");
 
-                    }
+        }
 
     </script>
 

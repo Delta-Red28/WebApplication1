@@ -1,0 +1,439 @@
+﻿@model WebApplication1.Models.Pago
+
+@{
+    ViewData["Title"] = "Anular Pago";
+
+    var factura = Model.IdFacturaNavigation;
+    var metodoPago = Model.IdMetodoPagoNavigation;
+    var moneda = Model.IdMonedaNavigation;
+}
+
+<div class="container mt-4">
+
+    <!-- ============================================================
+         ENCABEZADO
+    ============================================================ -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-x-circle text-danger"></i>
+                Anular Pago
+            </h2>
+
+            <p class="text-muted mb-0">
+                Confirme la anulación del pago seleccionado.
+            </p>
+        </div>
+
+        <a asp-controller="Pago"
+           asp-action="Details"
+           asp-route-id="@Model.IdPago"
+           class="btn btn-secondary">
+
+            <i class="bi bi-arrow-left"></i>
+            Volver al detalle
+
+        </a>
+
+    </div>
+
+
+    <!-- ============================================================
+         ALERTA PRINCIPAL
+    ============================================================ -->
+
+    <div class="alert alert-warning shadow-sm">
+
+        <div class="d-flex align-items-start">
+
+            <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+
+            <div>
+
+                <h5 class="alert-heading mb-2">
+                    ¿Está seguro de anular este pago?
+                </h5>
+
+                <p class="mb-1">
+                    Esta acción cambiará el estado del pago a
+                    <strong>Anulado</strong>.
+                </p>
+
+                <p class="mb-0">
+                    El movimiento asociado será anulado y el monto
+                    del pago será devuelto al saldo pendiente de la factura.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         INFORMACIÓN DEL PAGO
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-danger text-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-receipt-cutoff"></i>
+
+                Información del pago
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <!-- ID PAGO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Número de pago
+                    </label>
+
+                    <div class="fw-bold fs-5">
+
+                        #@Model.IdPago
+
+                    </div>
+
+                </div>
+
+
+                <!-- FACTURA -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Factura
+                    </label>
+
+                    <div class="fw-bold fs-5">
+
+                        #@Model.IdFactura
+
+                    </div>
+
+                </div>
+
+
+                <!-- FECHA -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Fecha del pago
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @Model.FechaPago.ToString("dd/MM/yyyy HH:mm")
+
+                    </div>
+
+                </div>
+
+
+                <!-- MONTO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Monto del pago
+                    </label>
+
+                    <div class="fw-bold text-danger fs-4">
+
+                        @Model.Monto.ToString("N2")
+
+                    </div>
+
+                </div>
+
+
+                <!-- MONEDA -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Moneda
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @if (moneda != null)
+                        {
+                            @moneda.Nombre
+
+                            <span class="text-muted">
+                                (@moneda.CodigoIso)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No especificada
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- MÉTODO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Método de pago
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @if (metodoPago != null)
+                        {
+                            @metodoPago.Nombre
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No especificado
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         INFORMACIÓN DE FACTURA
+    ============================================================ -->
+    @if (factura != null)
+    {
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-light">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-receipt"></i>
+
+                    Efecto sobre la factura
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <!-- TOTAL -->
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="text-muted">
+                            Total de factura
+                        </label>
+
+                        <div class="fw-bold">
+
+                            @factura.Total.ToString("N2")
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SALDO ACTUAL -->
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="text-muted">
+                            Saldo pendiente actual
+                        </label>
+
+                        <div class="fw-bold text-danger">
+
+                            @factura.SaldoPendiente.ToString("N2")
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SALDO DESPUÉS -->
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="text-muted">
+                            Saldo después de anular
+                        </label>
+
+                        <div class="fw-bold text-warning">
+
+                            @{
+                                var saldoDespues =
+                                    factura.SaldoPendiente + Model.Monto;
+
+                                if (saldoDespues > factura.Total)
+                                {
+                                    saldoDespues = factura.Total;
+                                }
+                            }
+
+                            @saldoDespues.ToString("N2")
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="alert alert-info mb-0">
+
+                    <i class="bi bi-info-circle"></i>
+
+                    Al anular este pago, el monto de
+
+                    <strong>
+                        @Model.Monto.ToString("N2")
+                    </strong>
+
+                    será devuelto al saldo pendiente de la factura.
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         OBSERVACIÓN
+    ============================================================ -->
+    @if (!string.IsNullOrWhiteSpace(Model.Observacion))
+    {
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-chat-left-text"></i>
+
+                    Observación del pago
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <p class="mb-0">
+                    @Model.Observacion
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         CONFIRMACIÓN
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4 border-danger">
+
+        <div class="card-body">
+
+            <div class="text-center mb-4">
+
+                <div class="text-danger mb-3">
+
+                    <i class="bi bi-exclamation-octagon-fill"
+                       style="font-size: 4rem;">
+                    </i>
+
+                </div>
+
+                <h4>
+                    Confirmar anulación
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    Esta operación no elimina el registro del pago.
+                    El pago quedará registrado como <strong>anulado</strong>.
+
+                </p>
+
+            </div>
+
+
+            <!-- ====================================================
+                 FORMULARIO
+            ==================================================== -->
+
+            <form asp-controller="Pago"
+                  asp-action="Delete"
+                  asp-route-id="@Model.IdPago"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div class="d-flex justify-content-center gap-2">
+
+                    <a asp-controller="Pago"
+                       asp-action="Details"
+                       asp-route-id="@Model.IdPago"
+                       class="btn btn-secondary">
+
+                        <i class="bi bi-arrow-left"></i>
+
+                        Cancelar
+
+                    </a>
+
+
+                    <button type="submit"
+                            class="btn btn-danger">
+
+                        <i class="bi bi-x-circle"></i>
+
+                        Sí, anular pago
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

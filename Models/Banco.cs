@@ -20,6 +20,7 @@ public partial class Banco
 
     public DateTime FechaRegistro { get; set; }
 
-    [InverseProperty("IdBancoNavigation")]
-    public virtual ICollection<Pago> Pagos { get; set; } = new List<Pago>();
+    [InverseProperty(nameof(Pago.IdBancoNavigation))]
+    public virtual ICollection<Pago> Pagos { get; set; }
+        = new List<Pago>();
 }

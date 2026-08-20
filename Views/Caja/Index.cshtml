@@ -1,0 +1,1114 @@
+﻿@model IEnumerable<WebApplication1.Models.Caja>
+
+@{
+    ViewData["Title"] = "Caja";
+
+    var cajas = Model?.ToList()
+        ?? new List<WebApplication1.Models.Caja>();
+
+
+    // ============================================================
+    // CAJAS ABIERTAS
+    // ============================================================
+
+    var cajasAbiertas = cajas
+        .Where(c => c.FechaCierre == null)
+        .OrderBy(c => c.FechaApertura)
+        .ToList();
+
+    var cantidadCajasAbiertas = cajasAbiertas.Count;
+
+    // Máximo general de 3 cajas abiertas
+    var puedeAbrirOtraCaja =
+        cantidadCajasAbiertas < 3;
+
+
+    // ============================================================
+    // CULTURAS
+    // ============================================================
+
+    var culturaCordobas =
+        System.Globalization.CultureInfo.GetCultureInfo("es-NI");
+
+    var culturaDolares =
+        System.Globalization.CultureInfo.GetCultureInfo("en-US");
+
+
+    // ============================================================
+    // PERMISOS
+    // ============================================================
+
+    var puedeEditarMovimientos =
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente");
+
+    var puedeAdministrarCaja =
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente") ||
+        User.IsInRole("Cajero");
+
+
+    // ============================================================
+    // USUARIO ACTUAL
+    // ============================================================
+
+    var usuarioActual =
+        User.Identity?.Name;
+
+
+    // ============================================================
+    // CAJA ABIERTA DEL USUARIO ACTUAL
+    // ============================================================
+
+    var cajaAbiertaUsuarioActual =
+        cajasAbiertas.FirstOrDefault(c =>
+            c.IdUsuarioNavigation != null &&
+            (
+                c.IdUsuarioNavigation.Usuario1 == usuarioActual ||
+                (
+                    c.IdUsuarioNavigation.Nombres + " " +
+                    c.IdUsuarioNavigation.Apellidos
+                ) == usuarioActual
+            )
+        );
+
+    var usuarioActualTieneCaja =
+        cajaAbiertaUsuarioActual != null;
+
+
+    // ============================================================
+    // PUEDE ABRIR CAJA
+    // ============================================================
+
+    var puedeAbrirCaja =
+        puedeAdministrarCaja &&
+        puedeAbrirOtraCaja &&
+        !usuarioActualTieneCaja;
+}
+
+
+<div class="container-fluid">
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="mb-1">
+                <i class="bi bi-cash-stack me-2"></i>
+                Caja
+            </h2>
+
+            <p class="text-muted mb-0">
+                Administración y control de cajas
+            </p>
+
+        </div>
+
+
+        @if (puedeAdministrarCaja)
+        {
+            @if (puedeAbrirCaja)
+            {
+                <a asp-controller="Caja"
+                   asp-action="Abrir"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-unlock me-1"></i>
+
+                    Abrir caja
+
+                </a>
+            }
+            else if (usuarioActualTieneCaja)
+            {
+                <button type="button"
+                        class="btn btn-secondary"
+                        disabled>
+
+                    <i class="bi bi-person-lock me-1"></i>
+
+                    Ya tienes una caja abierta
+
+                </button>
+            }
+            else if (!puedeAbrirOtraCaja)
+            {
+                <button type="button"
+                        class="btn btn-secondary"
+                        disabled>
+
+                    <i class="bi bi-lock me-1"></i>
+
+                    Límite de 3 cajas alcanzado
+
+                </button>
+            }
+        }
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJE SUCCESS -->
+    <!-- ========================================================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJE ERROR -->
+    <!-- ========================================================= -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- AVISO: USUARIO YA TIENE CAJA -->
+    <!-- ========================================================= -->
+    @if (usuarioActualTieneCaja)
+    {
+        <div class="alert alert-info d-flex align-items-center mb-4"
+             role="alert">
+
+            <i class="bi bi-info-circle-fill me-2"></i>
+
+            <div>
+
+                <strong>Ya tienes una caja abierta.</strong>
+
+                No puedes abrir otra caja mientras la actual permanezca abierta.
+
+                <a asp-controller="Caja"
+                   asp-action="Details"
+                   asp-route-id="@cajaAbiertaUsuarioActual!.IdCaja"
+                   class="alert-link ms-1">
+
+                    Ver mi caja
+
+                </a>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- CAJAS ABIERTAS -->
+    <!-- ========================================================= -->
+    @if (cajasAbiertas.Any())
+    {
+        <div class="card border-success shadow-sm mb-4">
+
+            <div class="card-header bg-success text-white">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+
+                        <i class="bi bi-unlock-fill me-2"></i>
+
+                        <span class="fw-semibold">
+                            Cajas actualmente abiertas
+                        </span>
+
+                    </div>
+
+                    <span class="badge bg-light text-success fs-6">
+                        @cantidadCajasAbiertas / 3
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    @foreach (var cajaAbierta in cajasAbiertas)
+                    {
+                        <div class="col-xl-4 col-lg-6 col-md-6">
+
+                            <div class="card border-success shadow-sm h-100">
+
+                                <!-- HEADER -->
+
+                                <div class="card-header bg-light">
+
+                                    <div class="d-flex justify-content-between align-items-center">
+
+                                        <span class="fw-bold">
+
+                                            <i class="bi bi-cash-coin me-1"></i>
+
+                                            Caja #@cajaAbierta.IdCaja
+
+                                        </span>
+
+                                        <span class="badge bg-success">
+                                            ABIERTA
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="card-body">
+
+                                    <!-- ================================================= -->
+                                    <!-- USUARIO -->
+                                    <!-- ================================================= -->
+
+                                    <div class="mb-3">
+
+                                        <div class="text-muted small">
+                                            Usuario responsable
+                                        </div>
+
+                                        <div class="fw-semibold">
+
+                                            @if (cajaAbierta.IdUsuarioNavigation != null)
+                                            {
+                                                <div>
+                                                    @cajaAbierta.IdUsuarioNavigation.Nombres
+                                                    @cajaAbierta.IdUsuarioNavigation.Apellidos
+                                                </div>
+
+                                                <div class="small text-muted">
+                                                    @@@cajaAbierta.IdUsuarioNavigation.Usuario1
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                @:Usuario #@cajaAbierta.IdUsuario
+                                            }
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- FECHA -->
+                                    <!-- ================================================= -->
+
+                                    <div class="mb-3">
+
+                                        <div class="text-muted small">
+                                            Fecha de apertura
+                                        </div>
+
+                                        <div class="fw-semibold">
+
+                                            @cajaAbierta.FechaApertura.ToString(
+                                                "dd/MM/yyyy HH:mm")
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- MONTOS INICIALES -->
+                                    <!-- ================================================= -->
+
+                                    <div class="row g-2 mb-3">
+
+                                        <div class="col-6">
+
+                                            <div class="border rounded p-3">
+
+                                                <div class="text-muted small">
+                                                    Apertura C$
+                                                </div>
+
+                                                <div class="fw-bold text-primary">
+
+                                                    @cajaAbierta.MontoInicialCordobas.ToString(
+                                                        "C2",
+                                                        culturaCordobas)
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="col-6">
+
+                                            <div class="border rounded p-3">
+
+                                                <div class="text-muted small">
+                                                    Apertura US$
+                                                </div>
+
+                                                <div class="fw-bold text-success">
+
+                                                    @cajaAbierta.MontoInicialDolares.ToString(
+                                                        "C2",
+                                                        culturaDolares)
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- SALDOS -->
+                                    <!-- ================================================= -->
+
+                                    <div class="row g-2 mb-4">
+
+                                        <div class="col-6">
+
+                                            <div class="border rounded p-3 bg-light">
+
+                                                <div class="text-muted small">
+                                                    Sistema C$
+                                                </div>
+
+                                                <div class="fs-5 fw-bold text-primary">
+
+                                                    @cajaAbierta.TotalSistemaCordobas.ToString(
+                                                        "C2",
+                                                        culturaCordobas)
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="col-6">
+
+                                            <div class="border rounded p-3 bg-light">
+
+                                                <div class="text-muted small">
+                                                    Sistema US$
+                                                </div>
+
+                                                <div class="fs-5 fw-bold text-success">
+
+                                                    @cajaAbierta.TotalSistemaDolares.ToString(
+                                                        "C2",
+                                                        culturaDolares)
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- INGRESOS / EGRESOS -->
+                                    <!-- ================================================= -->
+
+                                    <div class="border-top pt-3 mb-3">
+
+                                        <div class="row g-2">
+
+                                            <div class="col-6">
+
+                                                <div class="small text-muted">
+                                                    Ingresos C$
+                                                </div>
+
+                                                <div class="text-success fw-semibold">
+
+                                                    @cajaAbierta.TotalIngresosCordobas.ToString(
+                                                        "C2",
+                                                        culturaCordobas)
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <div class="col-6">
+
+                                                <div class="small text-muted">
+                                                    Ingresos US$
+                                                </div>
+
+                                                <div class="text-success fw-semibold">
+
+                                                    @cajaAbierta.TotalIngresosDolares.ToString(
+                                                        "C2",
+                                                        culturaDolares)
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <div class="col-6">
+
+                                                <div class="small text-muted">
+                                                    Egresos C$
+                                                </div>
+
+                                                <div class="text-danger fw-semibold">
+
+                                                    @cajaAbierta.TotalEgresosCordobas.ToString(
+                                                        "C2",
+                                                        culturaCordobas)
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <div class="col-6">
+
+                                                <div class="small text-muted">
+                                                    Egresos US$
+                                                </div>
+
+                                                <div class="text-danger fw-semibold">
+
+                                                    @cajaAbierta.TotalEgresosDolares.ToString(
+                                                        "C2",
+                                                        culturaDolares)
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- BOTONES -->
+                                    <!-- ================================================= -->
+
+                                    <div class="d-grid gap-2">
+
+                                        <!-- VER -->
+
+                                        <a asp-controller="Caja"
+                                           asp-action="Details"
+                                           asp-route-id="@cajaAbierta.IdCaja"
+                                           class="btn btn-outline-primary">
+
+                                            <i class="bi bi-eye me-1"></i>
+
+                                            Ver caja
+
+                                        </a>
+
+
+                                        <!-- MOVIMIENTOS -->
+
+                                        <a asp-controller="Caja"
+                                           asp-action="Movimientos"
+                                           asp-route-id="@cajaAbierta.IdCaja"
+                                           class="btn btn-outline-info">
+
+                                            <i class="bi bi-arrow-left-right me-1"></i>
+
+                                            Ver movimientos
+
+                                        </a>
+
+
+                                        @if (puedeAdministrarCaja)
+                                        {
+                                            <!-- REGISTRAR MOVIMIENTO -->
+
+                                            <a asp-controller="Caja"
+                                               asp-action="RegistrarMovimiento"
+                                               asp-route-id="@cajaAbierta.IdCaja"
+                                               class="btn btn-outline-success">
+
+                                                <i class="bi bi-plus-circle me-1"></i>
+
+                                                Registrar movimiento
+
+                                            </a>
+
+
+                                            <!-- CERRAR -->
+
+                                            <a asp-controller="Caja"
+                                               asp-action="Cerrar"
+                                               asp-route-id="@cajaAbierta.IdCaja"
+                                               class="btn btn-outline-danger">
+
+                                                <i class="bi bi-lock me-1"></i>
+
+                                                Cerrar caja
+
+                                            </a>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <!-- ========================================================= -->
+        <!-- SIN CAJAS ABIERTAS -->
+        <!-- ========================================================= -->
+
+        <div class="card border-warning shadow-sm mb-4">
+
+            <div class="card-body text-center py-5">
+
+                <i class="bi bi-cash-stack fs-1 text-warning"></i>
+
+                <h5 class="mt-3">
+                    No hay cajas abiertas
+                </h5>
+
+                <p class="text-muted mb-4">
+                    Actualmente no existe ninguna caja abierta.
+                </p>
+
+
+                @if (puedeAdministrarCaja)
+                {
+                    <a asp-controller="Caja"
+                       asp-action="Abrir"
+                       class="btn btn-primary">
+
+                        <i class="bi bi-unlock me-1"></i>
+
+                        Abrir caja
+
+                    </a>
+                }
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- CAPACIDAD -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+
+                <div>
+
+                    <span class="fw-semibold">
+                        Capacidad de cajas
+                    </span>
+
+                    <small class="text-muted ms-2">
+                        Máximo 3 cajas abiertas simultáneamente
+                    </small>
+
+                </div>
+
+
+                <span class="fw-bold
+                    @(cantidadCajasAbiertas >= 3
+                        ? "text-danger"
+                        : "text-success")">
+
+                    @cantidadCajasAbiertas / 3
+
+                </span>
+
+            </div>
+
+
+            <div class="progress"
+                 style="height: 10px;">
+
+                <div class="progress-bar
+                    @(cantidadCajasAbiertas >= 3
+                        ? "bg-danger"
+                        : "bg-success")"
+                     role="progressbar"
+                     style="width: @Math.Min((cantidadCajasAbiertas * 100) / 3, 100)%"
+                     aria-valuenow="@cantidadCajasAbiertas"
+                     aria-valuemin="0"
+                     aria-valuemax="3">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- HISTORIAL -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-list-ul me-2"></i>
+
+                    Historial de cajas
+
+                </h5>
+
+
+                <span class="badge bg-secondary">
+
+                    @cajas.Count caja(s)
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (!cajas.Any())
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-cash-stack fs-1 text-muted"></i>
+
+                    <h5 class="mt-3">
+                        No hay cajas registradas
+                    </h5>
+
+                    <p class="text-muted">
+                        Todavía no se ha registrado ninguna caja.
+                    </p>
+
+
+                    @if (puedeAdministrarCaja)
+                    {
+                        <a asp-controller="Caja"
+                           asp-action="Abrir"
+                           class="btn btn-primary">
+
+                            <i class="bi bi-plus-circle me-1"></i>
+
+                            Abrir primera caja
+
+                        </a>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>#</th>
+
+                                <th>Usuario</th>
+
+                                <th>Estado</th>
+
+                                <th>Apertura</th>
+
+                                <th>Cierre</th>
+
+                                <th class="text-end">Inicial C$</th>
+
+                                <th class="text-end">Inicial US$</th>
+
+                                <th class="text-end">Ingresos C$</th>
+
+                                <th class="text-end">Ingresos US$</th>
+
+                                <th class="text-end">Egresos C$</th>
+
+                                <th class="text-end">Egresos US$</th>
+
+                                <th class="text-end">Sistema C$</th>
+
+                                <th class="text-end">Sistema US$</th>
+
+                                <th class="text-center">Acciones</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var caja in cajas)
+                            {
+                                var estaAbierta =
+                                    caja.FechaCierre == null;
+
+                                <tr>
+
+                                    <!-- ID -->
+
+                                    <td class="fw-semibold">
+                                        @caja.IdCaja
+                                    </td>
+
+
+                                    <!-- USUARIO -->
+
+                                    <td>
+
+                                        @if (caja.IdUsuarioNavigation != null)
+                                        {
+                                            <div class="fw-semibold">
+
+                                                @caja.IdUsuarioNavigation.Nombres
+                                                @caja.IdUsuarioNavigation.Apellidos
+
+                                            </div>
+
+                                            <div class="small text-muted">
+
+                                                @@@caja.IdUsuarioNavigation.Usuario1
+
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Usuario #@caja.IdUsuario
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ESTADO -->
+
+                                    <td>
+
+                                        @if (estaAbierta)
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="bi bi-unlock-fill me-1"></i>
+
+                                                Abierta
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+
+                                                <i class="bi bi-lock-fill me-1"></i>
+
+                                                Cerrada
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- APERTURA -->
+
+                                    <td>
+
+                                        @caja.FechaApertura.ToString(
+                                            "dd/MM/yyyy")
+
+                                        <br />
+
+                                        <small class="text-muted">
+
+                                            @caja.FechaApertura.ToString(
+                                                "HH:mm")
+
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- CIERRE -->
+
+                                    <td>
+
+                                        @if (caja.FechaCierre.HasValue)
+                                        {
+                                            @caja.FechaCierre.Value.ToString(
+                                                "dd/MM/yyyy")
+
+                                            <br />
+
+                                            <small class="text-muted">
+
+                                                @caja.FechaCierre.Value.ToString(
+                                                    "HH:mm")
+
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success">
+
+                                                <i class="bi bi-unlock-fill me-1"></i>
+
+                                                En curso
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- INICIAL C$ -->
+
+                                    <td class="text-end text-primary fw-semibold">
+
+                                        @caja.MontoInicialCordobas.ToString(
+                                            "C2",
+                                            culturaCordobas)
+
+                                    </td>
+
+
+                                    <!-- INICIAL USD -->
+
+                                    <td class="text-end text-success fw-semibold">
+
+                                        @caja.MontoInicialDolares.ToString(
+                                            "C2",
+                                            culturaDolares)
+
+                                    </td>
+
+
+                                    <!-- INGRESOS C$ -->
+
+                                    <td class="text-end text-success">
+
+                                        @caja.TotalIngresosCordobas.ToString(
+                                            "C2",
+                                            culturaCordobas)
+
+                                    </td>
+
+
+                                    <!-- INGRESOS USD -->
+
+                                    <td class="text-end text-success">
+
+                                        @caja.TotalIngresosDolares.ToString(
+                                            "C2",
+                                            culturaDolares)
+
+                                    </td>
+
+
+                                    <!-- EGRESOS C$ -->
+
+                                    <td class="text-end text-danger">
+
+                                        @caja.TotalEgresosCordobas.ToString(
+                                            "C2",
+                                            culturaCordobas)
+
+                                    </td>
+
+
+                                    <!-- EGRESOS USD -->
+
+                                    <td class="text-end text-danger">
+
+                                        @caja.TotalEgresosDolares.ToString(
+                                            "C2",
+                                            culturaDolares)
+
+                                    </td>
+
+
+                                    <!-- SISTEMA C$ -->
+
+                                    <td class="text-end fw-semibold">
+
+                                        @caja.TotalSistemaCordobas.ToString(
+                                            "C2",
+                                            culturaCordobas)
+
+                                    </td>
+
+
+                                    <!-- SISTEMA USD -->
+
+                                    <td class="text-end fw-semibold">
+
+                                        @caja.TotalSistemaDolares.ToString(
+                                            "C2",
+                                            culturaDolares)
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- ACCIONES -->
+                                    <!-- ================================================= -->
+
+                                    <td>
+
+                                        <div class="d-flex justify-content-center gap-1">
+
+                                            <!-- VER -->
+
+                                            <a asp-controller="Caja"
+                                               asp-action="Details"
+                                               asp-route-id="@caja.IdCaja"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver detalles">
+
+                                                <i class="bi bi-eye"></i>
+
+                                            </a>
+
+
+                                            <!-- MOVIMIENTOS -->
+
+                                            <a asp-controller="Caja"
+                                               asp-action="Movimientos"
+                                               asp-route-id="@caja.IdCaja"
+                                               class="btn btn-sm btn-outline-info"
+                                               title="Ver movimientos">
+
+                                                <i class="bi bi-arrow-left-right"></i>
+
+                                            </a>
+
+
+                                            @if (estaAbierta && puedeAdministrarCaja)
+                                            {
+                                                <!-- REGISTRAR MOVIMIENTO -->
+
+                                                <a asp-controller="Caja"
+                                                   asp-action="RegistrarMovimiento"
+                                                   asp-route-id="@caja.IdCaja"
+                                                   class="btn btn-sm btn-outline-success"
+                                                   title="Registrar movimiento">
+
+                                                    <i class="bi bi-plus-circle"></i>
+
+                                                </a>
+
+
+                                                <!-- CERRAR -->
+
+                                                <a asp-controller="Caja"
+                                                   asp-action="Cerrar"
+                                                   asp-route-id="@caja.IdCaja"
+                                                   class="btn btn-sm btn-outline-danger"
+                                                   title="Cerrar caja">
+
+                                                    <i class="bi bi-lock"></i>
+
+                                                </a>
+                                            }
+
+
+                                            @if (!estaAbierta && puedeEditarMovimientos)
+                                            {
+                                                <!-- ADMINISTRAR MOVIMIENTOS -->
+
+                                                <a asp-controller="Caja"
+                                                   asp-action="Movimientos"
+                                                   asp-route-id="@caja.IdCaja"
+                                                   class="btn btn-sm btn-outline-warning"
+                                                   title="Administrar movimientos">
+
+                                                    <i class="bi bi-pencil-square"></i>
+
+                                                </a>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

@@ -33,11 +33,18 @@ public partial class Monedum
     public DateTime FechaRegistro { get; set; }
 
     [InverseProperty("IdMonedaNavigation")]
-    public virtual ICollection<Compra> Compras { get; set; } = new List<Compra>();
+    public virtual ICollection<Compra> Compras { get; set; }
+        = new List<Compra>();
 
     [InverseProperty("IdMonedaNavigation")]
-    public virtual ICollection<Factura> Facturas { get; set; } = new List<Factura>();
+    public virtual ICollection<Factura> Facturas { get; set; }
+        = new List<Factura>();
 
     [InverseProperty("IdMonedaNavigation")]
-    public virtual ICollection<Pago> Pagos { get; set; } = new List<Pago>();
+    public virtual ICollection<Pago> Pagos { get; set; }
+        = new List<Pago>();
+
+    [InverseProperty("IdMonedaNavigation")]
+    public virtual ICollection<MovimientoCaja> MovimientoCajas { get; set; }
+        = new List<MovimientoCaja>();
 }

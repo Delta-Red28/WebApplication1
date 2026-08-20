@@ -1,0 +1,572 @@
+﻿@model WebApplication1.Models.Factura
+
+@{
+    ViewData["Title"] = "Anular Factura";
+
+    var motivoAnulacion =
+        ViewBag.MotivosAnulacion as IEnumerable<WebApplication1.Models.MotivoAnulacion>;
+
+    var pedido = Model.IdPedidoNavigation;
+    var moneda = Model.IdMonedaNavigation;
+    var estado = Model.IdEstadoFacturaNavigation;
+}
+
+<div class="container mt-4">
+
+    <!-- ============================================================
+         ENCABEZADO
+    ============================================================ -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-x-circle text-danger"></i>
+                Anular Factura
+            </h2>
+
+            <p class="text-muted mb-0">
+                Confirme la anulación de la factura antes de continuar.
+            </p>
+        </div>
+
+        <a asp-controller="Factura"
+           asp-action="Details"
+           asp-route-id="@Model.IdFactura"
+           class="btn btn-secondary">
+
+            <i class="bi bi-arrow-left"></i>
+            Volver
+        </a>
+
+    </div>
+
+
+    <!-- ============================================================
+         MENSAJE DE ADVERTENCIA
+    ============================================================ -->
+
+    <div class="alert alert-danger shadow-sm">
+
+        <div class="d-flex">
+
+            <div class="me-3">
+                <i class="bi bi-exclamation-triangle-fill fs-2"></i>
+            </div>
+
+            <div>
+
+                <h5 class="alert-heading">
+                    ¿Está seguro de anular esta factura?
+                </h5>
+
+                <p class="mb-1">
+                    Esta acción cambiará el estado de la factura a
+                    <strong>Anulada</strong>.
+                </p>
+
+                <p class="mb-0">
+                    La operación quedará registrada en el historial
+                    de la factura junto con el usuario, fecha y motivo
+                    de anulación.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         INFORMACIÓN DE LA FACTURA
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-receipt"></i>
+                Información de la factura
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <!-- NÚMERO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Número de factura
+                    </label>
+
+                    <div class="fw-bold fs-5">
+
+                        @Model.NumeroFactura
+
+                    </div>
+
+                </div>
+
+
+                <!-- ID -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        ID Factura
+                    </label>
+
+                    <div class="fw-bold">
+
+                        #@Model.IdFactura
+
+                    </div>
+
+                </div>
+
+
+                <!-- FECHA -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Fecha
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @Model.FechaFactura.ToString("dd/MM/yyyy HH:mm")
+
+                    </div>
+
+                </div>
+
+
+                <!-- PEDIDO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Pedido
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @if (pedido != null)
+                        {
+                            <span>
+                                #@pedido.IdPedido
+                            </span>
+
+                            @if (!string.IsNullOrWhiteSpace(pedido.NumeroPedido))
+                            {
+                                <span class="text-muted">
+                                    (@pedido.NumeroPedido)
+                                </span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No disponible
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- ESTADO -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Estado actual
+                    </label>
+
+                    <div>
+
+                        @if (estado != null)
+                        {
+                            <span class="badge bg-warning text-dark">
+
+                                <i class="bi bi-info-circle"></i>
+
+                                @estado.Nombre
+
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No disponible
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- MONEDA -->
+
+                <div class="col-md-4 mb-3">
+
+                    <label class="text-muted">
+                        Moneda
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @if (moneda != null)
+                        {
+                            @moneda.Nombre
+
+                            <span class="text-muted">
+                                (@moneda.CodigoIso)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No disponible
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         RESUMEN ECONÓMICO
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-light">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-calculator"></i>
+                Resumen de factura
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <!-- SUBTOTAL -->
+
+                <div class="col-md-3 mb-3">
+
+                    <label class="text-muted">
+                        Subtotal
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @Model.Subtotal.ToString("N2")
+
+                    </div>
+
+                </div>
+
+
+                <!-- DESCUENTO -->
+
+                <div class="col-md-3 mb-3">
+
+                    <label class="text-muted">
+                        Descuento
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @Model.Descuento.ToString("N2")
+
+                    </div>
+
+                </div>
+
+
+                <!-- IMPUESTO -->
+
+                <div class="col-md-3 mb-3">
+
+                    <label class="text-muted">
+                        Impuesto
+                    </label>
+
+                    <div class="fw-bold">
+
+                        @Model.Impuesto.ToString("N2")
+
+                    </div>
+
+                </div>
+
+
+                <!-- TOTAL -->
+
+                <div class="col-md-3 mb-3">
+
+                    <label class="text-muted">
+                        Total
+                    </label>
+
+                    <div class="fw-bold fs-4 text-primary">
+
+                        @Model.Total.ToString("N2")
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <hr />
+
+
+            <div class="row">
+
+                <!-- SALDO -->
+
+                <div class="col-md-6">
+
+                    <label class="text-muted">
+                        Saldo pendiente
+                    </label>
+
+                    <div class="fw-bold fs-5
+                        @(Model.SaldoPendiente > 0
+                            ? "text-danger"
+                            : "text-success")">
+
+                        @Model.SaldoPendiente.ToString("N2")
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6 text-md-end">
+
+                    @if (Model.SaldoPendiente <= 0)
+                    {
+                        <span class="badge bg-success fs-6">
+
+                            <i class="bi bi-check-circle"></i>
+                            Factura pagada
+
+                        </span>
+                    }
+                    else if (Model.SaldoPendiente < Model.Total)
+                    {
+                        <span class="badge bg-warning text-dark fs-6">
+
+                            <i class="bi bi-hourglass-split"></i>
+                            Pago parcial
+
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger fs-6">
+
+                            <i class="bi bi-clock"></i>
+                            Pendiente de pago
+
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         FORMULARIO DE ANULACIÓN
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-danger text-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-x-octagon"></i>
+                Datos de anulación
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Delete"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="id"
+                       value="@Model.IdFactura" />
+
+
+                <!-- ====================================================
+                     MOTIVO
+                ==================================================== -->
+
+                <div class="mb-4">
+
+                    <label for="idMotivoAnulacion"
+                           class="form-label fw-bold">
+
+                        Motivo de anulación
+                        <span class="text-danger">*</span>
+
+                    </label>
+
+                    <select id="idMotivoAnulacion"
+                            name="idMotivoAnulacion"
+                            class="form-select"
+                            required>
+
+                        <option value="">
+                            -- Seleccione un motivo --
+                        </option>
+
+                        @if (motivoAnulacion != null)
+                        {
+                            foreach (var motivo in motivoAnulacion)
+                            {
+                                <option value="@motivo.IdMotivoAnulacion">
+
+                                    @motivo.Nombre
+
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                    <div class="form-text">
+                        Seleccione el motivo por el cual se está anulando
+                        la factura.
+                    </div>
+
+                </div>
+
+
+                <!-- ====================================================
+                     OBSERVACIÓN
+                ==================================================== -->
+
+                <div class="mb-4">
+
+                    <label for="observacionAnulacion"
+                           class="form-label fw-bold">
+
+                        Observación de anulación
+
+                    </label>
+
+                    <textarea id="observacionAnulacion"
+                              name="observacionAnulacion"
+                              class="form-control"
+                              rows="4"
+                              maxlength="300"
+                              placeholder="Ingrese una observación adicional, si es necesario..."></textarea>
+
+                    <div class="form-text">
+                        Máximo 300 caracteres.
+                    </div>
+
+                </div>
+
+
+                <!-- ====================================================
+                     CONFIRMACIÓN
+                ==================================================== -->
+
+                <div class="alert alert-warning">
+
+                    <div class="form-check">
+
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="confirmarAnulacion"
+                               required />
+
+                        <label class="form-check-label"
+                               for="confirmarAnulacion">
+
+                            Confirmo que deseo anular la factura
+                            <strong>@Model.NumeroFactura</strong>.
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ====================================================
+                     BOTONES
+                ==================================================== -->
+
+                <div class="d-flex justify-content-between">
+
+                    <a asp-controller="Factura"
+                       asp-action="Details"
+                       asp-route-id="@Model.IdFactura"
+                       class="btn btn-secondary">
+
+                        <i class="bi bi-arrow-left"></i>
+
+                        Cancelar
+
+                    </a>
+
+
+                    <button type="submit"
+                            class="btn btn-danger">
+
+                        <i class="bi bi-x-circle"></i>
+
+                        Anular factura
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

@@ -46,30 +46,35 @@ public partial class Pago
     [Column(TypeName = "decimal(18, 2)")]
     public decimal? MontoRecibido { get; set; }
 
-    [ForeignKey("IdBanco")]
-    [InverseProperty("Pagos")]
+    // =========================
+    // RELACIONES
+    // =========================
+
+    [ForeignKey(nameof(IdBanco))]
+    [InverseProperty(nameof(Banco.Pagos))]
     public virtual Banco? IdBancoNavigation { get; set; }
 
-    [ForeignKey("IdEstadoPago")]
-    [InverseProperty("Pagos")]
+    [ForeignKey(nameof(IdEstadoPago))]
+    [InverseProperty(nameof(EstadoPago.Pagos))]
     public virtual EstadoPago IdEstadoPagoNavigation { get; set; } = null!;
 
-    [ForeignKey("IdFactura")]
-    [InverseProperty("Pagos")]
+    [ForeignKey(nameof(IdFactura))]
+    [InverseProperty(nameof(Factura.Pagos))]
     public virtual Factura IdFacturaNavigation { get; set; } = null!;
 
-    [ForeignKey("IdMetodoPago")]
-    [InverseProperty("Pagos")]
+    [ForeignKey(nameof(IdMetodoPago))]
+    [InverseProperty(nameof(MetodoPago.Pagos))]
     public virtual MetodoPago IdMetodoPagoNavigation { get; set; } = null!;
 
-    [ForeignKey("IdMoneda")]
-    [InverseProperty("Pagos")]
+    [ForeignKey(nameof(IdMoneda))]
+    [InverseProperty(nameof(Monedum.Pagos))]
     public virtual Monedum IdMonedaNavigation { get; set; } = null!;
 
-    [ForeignKey("IdTipoTarjeta")]
-    [InverseProperty("Pagos")]
+    [ForeignKey(nameof(IdTipoTarjeta))]
+    [InverseProperty(nameof(TipoTarjetum.Pagos))]
     public virtual TipoTarjetum? IdTipoTarjetaNavigation { get; set; }
 
-    [InverseProperty("IdPagoNavigation")]
-    public virtual ICollection<MovimientoCaja> MovimientoCajas { get; set; } = new List<MovimientoCaja>();
+    [InverseProperty(nameof(MovimientoCaja.IdPagoNavigation))]
+    public virtual ICollection<MovimientoCaja> MovimientoCajas { get; set; }
+        = new List<MovimientoCaja>();
 }

@@ -1,0 +1,1362 @@
+﻿@model WebApplication1.Models.Caja
+
+@{
+    ViewData["Title"] = "Resumen de Caja";
+
+    // ============================================================
+    // CONFIGURACIÓN
+    // ============================================================
+
+    var culturaCordobas =
+        System.Globalization.CultureInfo.GetCultureInfo("es-NI");
+
+    var culturaDolares =
+        System.Globalization.CultureInfo.GetCultureInfo("en-US");
+
+
+    // ============================================================
+    // DIFERENCIA
+    // ============================================================
+
+    var diferencia = Model.Diferencia ?? 0m;
+
+    var diferenciaPositiva = diferencia > 0m;
+    var diferenciaNegativa = diferencia < 0m;
+    var diferenciaCero = diferencia == 0m;
+
+
+    // ============================================================
+    // MOVIMIENTOS
+    // ============================================================
+
+    var movimientos =
+        Model.MovimientoCajas
+        ?? Enumerable.Empty<WebApplication1.Models.MovimientoCaja>();
+
+
+    // ============================================================
+    // DETECCIÓN DE MONEDAS
+    // ============================================================
+
+    bool EsCordoba(WebApplication1.Models.MovimientoCaja movimiento)
+    {
+        var nombre =
+            movimiento.IdMonedaNavigation?.Nombre ?? "";
+
+        var moneda =
+            nombre.Trim().ToLowerInvariant();
+
+        return moneda.Contains("córdoba")
+            || moneda.Contains("cordoba")
+            || moneda.Contains("nio");
+    }
+
+
+    bool EsDolar(WebApplication1.Models.MovimientoCaja movimiento)
+    {
+        var nombre =
+            movimiento.IdMonedaNavigation?.Nombre ?? "";
+
+        var moneda =
+            nombre.Trim().ToLowerInvariant();
+
+        return moneda.Contains("dólar")
+            || moneda.Contains("dolar")
+            || moneda.Contains("usd");
+    }
+
+
+    var tieneCordobas =
+        movimientos.Any(EsCordoba);
+
+    var tieneDolares =
+        movimientos.Any(EsDolar);
+
+
+    // ============================================================
+    // SALDOS POR MONEDA
+    // ============================================================
+
+    var saldoCordobas =
+        Model.MontoInicialCordobas
+        + Model.TotalIngresosCordobas
+        - Model.TotalEgresosCordobas;
+
+
+    var saldoDolares =
+        Model.MontoInicialDolares
+        + Model.TotalIngresosDolares
+        - Model.TotalEgresosDolares;
+
+
+    // ============================================================
+    // TOTALES DE MOVIMIENTOS
+    // ============================================================
+
+    decimal totalIngresosCordobas = 0m;
+    decimal totalEgresosCordobas = 0m;
+
+    decimal totalIngresosDolares = 0m;
+    decimal totalEgresosDolares = 0m;
+
+
+    foreach (var movimiento in movimientos)
+    {
+        var nombreTipo =
+            movimiento.IdTipoMovimientoNavigation?.Nombre ?? "";
+
+        var tipo =
+            nombreTipo.Trim().ToLowerInvariant();
+
+
+        var esIngreso =
+            tipo.Contains("ingreso")
+            || tipo.Contains("entrada")
+            || tipo.Contains("venta")
+            || tipo.Contains("depósito")
+            || tipo.Contains("deposito");
+
+
+        var esEgreso =
+            tipo.Contains("egreso")
+            || tipo.Contains("salida")
+            || tipo.Contains("retiro")
+            || tipo.Contains("gasto");
+
+
+        if (EsCordoba(movimiento))
+        {
+            if (esIngreso)
+            {
+                totalIngresosCordobas += movimiento.Monto;
+            }
+            else if (esEgreso)
+            {
+                totalEgresosCordobas += movimiento.Monto;
+            }
+        }
+        else if (EsDolar(movimiento))
+        {
+            if (esIngreso)
+            {
+                totalIngresosDolares += movimiento.Monto;
+            }
+            else if (esEgreso)
+            {
+                totalEgresosDolares += movimiento.Monto;
+            }
+        }
+    }
+
+
+    var cantidadMovimientos =
+        movimientos.Count();
+
+
+    // ============================================================
+    // USUARIO RESPONSABLE
+    // ============================================================
+
+    var nombreUsuario =
+        Model.IdUsuarioNavigation?.Nombres ?? "";
+
+    var apellidosUsuario =
+        Model.IdUsuarioNavigation?.Apellidos ?? "";
+
+    var usuarioResponsable =
+        $"{nombreUsuario} {apellidosUsuario}".Trim();
+
+
+    if (string.IsNullOrWhiteSpace(usuarioResponsable))
+    {
+        usuarioResponsable =
+            Model.IdUsuarioNavigation?.Usuario1
+            ?? $"Usuario #{Model.IdUsuario}";
+    }
+
+
+    // ============================================================
+    // ESTADO
+    // ============================================================
+
+    var estadoCaja =
+        Model.IdEstadoCajaNavigation?.Nombre
+        ?? "Sin estado";
+
+
+    var cajaAbierta =
+        Model.FechaCierre == null;
+
+
+    // ============================================================
+    // ESTILO DE DIFERENCIA
+    // ============================================================
+
+    var claseDiferencia =
+        diferenciaPositiva
+            ? "text-success"
+            : diferenciaNegativa
+                ? "text-danger"
+                : "text-secondary";
+
+
+    var iconoDiferencia =
+        diferenciaPositiva
+            ? "bi-plus-circle"
+            : diferenciaNegativa
+                ? "bi-dash-circle"
+                : "bi-check-circle";
+
+
+    var textoDiferencia =
+        diferenciaPositiva
+            ? "Sobrante"
+            : diferenciaNegativa
+                ? "Faltante"
+                : "Caja cuadrada";
+
+
+    var badgeDiferencia =
+        diferenciaPositiva
+            ? "bg-success"
+            : diferenciaNegativa
+                ? "bg-danger"
+                : "bg-secondary";
+}
+
+
+<div class="container-fluid">
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="mb-1">
+
+                <i class="bi bi-cash-stack text-primary me-2"></i>
+
+                Resumen de Caja
+
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                Información general y estado financiero de la caja
+                <strong>#@Model.IdCaja</strong>.
+
+            </p>
+
+        </div>
+
+
+        <div class="d-flex gap-2">
+
+            <a asp-controller="Caja"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+
+                Volver
+
+            </a>
+
+
+            @if (cajaAbierta)
+            {
+                <a asp-controller="Caja"
+                   asp-action="RegistrarMovimiento"
+                   asp-route-id="@Model.IdCaja"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-plus-circle me-1"></i>
+
+                    Registrar movimiento
+
+                </a>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJES -->
+    <!-- ========================================================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- ESTADO DE LA CAJA -->
+    <!-- ========================================================= -->
+
+    <div class="alert @(cajaAbierta ? "alert-success" : "alert-secondary")
+        d-flex align-items-center mb-4"
+         role="alert">
+
+        <i class="bi @(cajaAbierta
+                    ? "bi-unlock-fill"
+                    : "bi-lock-fill") fs-4 me-3"></i>
+
+        <div>
+
+            <strong>
+
+                Caja #@Model.IdCaja
+
+            </strong>
+
+            <div class="small">
+
+                La caja se encuentra actualmente
+
+                <strong>
+                    @(cajaAbierta ? "ABIERTA" : "CERRADA")
+                </strong>.
+
+                @if (!cajaAbierta && Model.FechaCierre.HasValue)
+                {
+                    <span class="ms-1">
+
+                        Fecha de cierre:
+
+                        @Model.FechaCierre.Value.ToString(
+                            "dd/MM/yyyy HH:mm"
+                        )
+
+                    </span>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN GENERAL -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-info-circle text-primary me-2"></i>
+
+                Información de la caja
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <!-- NÚMERO -->
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small mb-1">
+
+                        Número de caja
+
+                    </div>
+
+                    <div class="fs-4 fw-bold">
+
+                        #@Model.IdCaja
+
+                    </div>
+
+                </div>
+
+
+                <!-- USUARIO -->
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small mb-1">
+
+                        Usuario responsable
+
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        <i class="bi bi-person me-1"></i>
+
+                        @usuarioResponsable
+
+                    </div>
+
+                    <div class="small text-muted">
+
+                        ID usuario:
+                        @Model.IdUsuario
+
+                    </div>
+
+                </div>
+
+
+                <!-- APERTURA -->
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small mb-1">
+
+                        Fecha de apertura
+
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        @Model.FechaApertura.ToString(
+                            "dd/MM/yyyy HH:mm"
+                        )
+
+                    </div>
+
+                </div>
+
+
+                <!-- ESTADO -->
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small mb-1">
+
+                        Estado
+
+                    </div>
+
+                    @if (cajaAbierta)
+                    {
+                        <span class="badge bg-success">
+
+                            <i class="bi bi-unlock me-1"></i>
+
+                            @estadoCaja
+
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">
+
+                            <i class="bi bi-lock me-1"></i>
+
+                            @estadoCaja
+
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- SALDOS POR MONEDA -->
+    <!-- ========================================================= -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- ===================================================== -->
+        <!-- CÓRDOBAS -->
+        <!-- ===================================================== -->
+
+        <div class="col-md-6">
+
+            <div class="card border-primary shadow-sm h-100">
+
+                <div class="card-header bg-primary bg-opacity-10">
+
+                    <div class="d-flex align-items-center">
+
+                        <span class="badge bg-primary me-2">
+
+                            C$
+
+                        </span>
+
+                        <span class="fw-semibold">
+
+                            Córdobas
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="text-muted small mb-1">
+
+                        Saldo actual
+
+                    </div>
+
+                    <div class="fs-3 fw-bold text-primary">
+
+                        C$
+                        @saldoCordobas.ToString(
+                            "N2",
+                            culturaCordobas
+                        )
+
+                    </div>
+
+
+                    <hr />
+
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-muted">
+
+                            Monto inicial
+
+                        </span>
+
+                        <strong>
+
+                            C$
+                            @Model.MontoInicialCordobas.ToString(
+                                "N2",
+                                culturaCordobas
+                            )
+
+                        </strong>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-muted">
+
+                            Ingresos
+
+                        </span>
+
+                        <strong class="text-success">
+
+                            + C$
+                            @Model.TotalIngresosCordobas.ToString(
+                                "N2",
+                                culturaCordobas
+                            )
+
+                        </strong>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between">
+
+                        <span class="text-muted">
+
+                            Egresos
+
+                        </span>
+
+                        <strong class="text-danger">
+
+                            - C$
+                            @Model.TotalEgresosCordobas.ToString(
+                                "N2",
+                                culturaCordobas
+                            )
+
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- DÓLARES -->
+        <!-- ===================================================== -->
+
+        <div class="col-md-6">
+
+            <div class="card border-success shadow-sm h-100">
+
+                <div class="card-header bg-success bg-opacity-10">
+
+                    <div class="d-flex align-items-center">
+
+                        <span class="badge bg-success me-2">
+
+                            US$
+
+                        </span>
+
+                        <span class="fw-semibold">
+
+                            Dólares estadounidenses
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="text-muted small mb-1">
+
+                        Saldo actual
+
+                    </div>
+
+                    <div class="fs-3 fw-bold text-success">
+
+                        US$
+                        @saldoDolares.ToString(
+                            "N2",
+                            culturaDolares
+                        )
+
+                    </div>
+
+
+                    <hr />
+
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-muted">
+
+                            Monto inicial
+
+                        </span>
+
+                        <strong>
+
+                            US$
+                            @Model.MontoInicialDolares.ToString(
+                                "N2",
+                                culturaDolares
+                            )
+
+                        </strong>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-muted">
+
+                            Ingresos
+
+                        </span>
+
+                        <strong class="text-success">
+
+                            + US$
+                            @Model.TotalIngresosDolares.ToString(
+                                "N2",
+                                culturaDolares
+                            )
+
+                        </strong>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between">
+
+                        <span class="text-muted">
+
+                            Egresos
+
+                        </span>
+
+                        <strong class="text-danger">
+
+                            - US$
+                            @Model.TotalEgresosDolares.ToString(
+                                "N2",
+                                culturaDolares
+                            )
+
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- RESUMEN GENERAL POR MONEDA -->
+    <!-- ========================================================= -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- MOVIMIENTOS -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+
+                                Movimientos
+
+                            </div>
+
+                            <div class="fs-3 fw-bold">
+
+                                @cantidadMovimientos
+
+                            </div>
+
+                        </div>
+
+                        <div class="text-primary fs-2">
+
+                            <i class="bi bi-list-ul"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- INGRESOS CÓRDOBAS -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+
+                        Ingresos Córdobas
+
+                    </div>
+
+                    <div class="fs-4 fw-bold text-success">
+
+                        C$
+                        @totalIngresosCordobas.ToString(
+                            "N2",
+                            culturaCordobas
+                        )
+
+                    </div>
+
+                    <div class="small text-muted">
+
+                        Ingresos registrados
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- EGRESOS CÓRDOBAS -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+
+                        Egresos Córdobas
+
+                    </div>
+
+                    <div class="fs-4 fw-bold text-danger">
+
+                        C$
+                        @totalEgresosCordobas.ToString(
+                            "N2",
+                            culturaCordobas
+                        )
+
+                    </div>
+
+                    <div class="small text-muted">
+
+                        Egresos registrados
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- DIFERENCIA -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="text-muted small">
+
+                                Diferencia
+
+                            </div>
+
+                            <div class="fs-4 fw-bold @claseDiferencia">
+
+                                @if (diferenciaPositiva)
+                                {
+                                    <span>+</span>
+                                }
+
+                                @diferencia.ToString(
+                                    "N2",
+                                    culturaCordobas
+                                )
+
+                            </div>
+
+                        </div>
+
+                        <div class="@claseDiferencia fs-2">
+
+                            <i class="bi @iconoDiferencia"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- RESUMEN DE DÓLARES -->
+    <!-- ========================================================= -->
+    @if (tieneDolares || Model.MontoInicialDolares > 0)
+    {
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0">
+
+                    <span class="badge bg-success me-2">
+
+                        US$
+
+                    </span>
+
+                    Resumen de movimientos en dólares
+
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+
+                            Ingresos
+
+                        </div>
+
+                        <div class="fs-5 fw-bold text-success">
+
+                            + US$
+                            @totalIngresosDolares.ToString(
+                                "N2",
+                                culturaDolares
+                            )
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+
+                            Egresos
+
+                        </div>
+
+                        <div class="fs-5 fw-bold text-danger">
+
+                            - US$
+                            @totalEgresosDolares.ToString(
+                                "N2",
+                                culturaDolares
+                            )
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+
+                            Saldo
+
+                        </div>
+
+                        <div class="fs-5 fw-bold text-success">
+
+                            US$
+                            @saldoDolares.ToString(
+                                "N2",
+                                culturaDolares
+                            )
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- RESULTADO DEL ARQUEO -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-calculator text-primary me-2"></i>
+
+                Resultado del arqueo
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-8">
+
+                    <div class="text-muted small">
+
+                        Diferencia registrada
+
+                    </div>
+
+                    <div class="fs-2 fw-bold @claseDiferencia">
+
+                        @if (diferenciaPositiva)
+                        {
+                            <span>+</span>
+                        }
+
+                        @diferencia.ToString(
+                            "N2",
+                            culturaCordobas
+                        )
+
+                    </div>
+
+                    <div class="mt-2">
+
+                        <span class="badge @badgeDiferencia">
+
+                            <i class="bi @iconoDiferencia me-1"></i>
+
+                            @textoDiferencia
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                    @if (Model.TotalContado.HasValue)
+                    {
+                        <div class="text-muted small">
+
+                            Total contado físicamente
+
+                        </div>
+
+                        <div class="fs-4 fw-bold">
+
+                            @Model.TotalContado.Value.ToString(
+                                "N2",
+                                culturaCordobas
+                            )
+
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="text-muted">
+
+                            Sin arqueo registrado
+
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN DE MONEDAS -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-currency-exchange text-primary me-2"></i>
+
+                Monedas utilizadas
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <!-- CÓRDOBAS -->
+
+                <div class="col-md-6">
+
+                    @if (tieneCordobas ||
+                         Model.MontoInicialCordobas > 0)
+                    {
+                        <div class="alert alert-primary mb-0">
+
+                            <div class="d-flex align-items-center">
+
+                                <span class="badge bg-primary me-3">
+
+                                    C$
+
+                                </span>
+
+                                <div>
+
+                                    <strong>
+
+                                        Córdobas
+
+                                    </strong>
+
+                                    <div class="small">
+
+                                        Moneda utilizada en la caja.
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light border mb-0">
+
+                            <div class="text-muted">
+
+                                <i class="bi bi-dash-circle me-1"></i>
+
+                                No hay movimientos registrados
+                                en córdobas.
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+
+                <!-- DÓLARES -->
+
+                <div class="col-md-6">
+
+                    @if (tieneDolares ||
+                         Model.MontoInicialDolares > 0)
+                    {
+                        <div class="alert alert-success mb-0">
+
+                            <div class="d-flex align-items-center">
+
+                                <span class="badge bg-success me-3">
+
+                                    US$
+
+                                </span>
+
+                                <div>
+
+                                    <strong>
+
+                                        Dólares estadounidenses
+
+                                    </strong>
+
+                                    <div class="small">
+
+                                        Moneda utilizada en la caja.
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light border mb-0">
+
+                            <div class="text-muted">
+
+                                <i class="bi bi-dash-circle me-1"></i>
+
+                                No hay movimientos registrados
+                                en dólares.
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- ACCIONES -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex flex-wrap justify-content-end gap-2">
+
+                <!-- MOVIMIENTOS -->
+
+                <a asp-controller="Caja"
+                   asp-action="Movimientos"
+                   asp-route-id="@Model.IdCaja"
+                   class="btn btn-outline-primary">
+
+                    <i class="bi bi-list-ul me-1"></i>
+
+                    Ver movimientos
+
+                </a>
+
+
+                @if (cajaAbierta)
+                {
+                    <!-- REGISTRAR -->
+
+                    <a asp-controller="Caja"
+                       asp-action="RegistrarMovimiento"
+                       asp-route-id="@Model.IdCaja"
+                       class="btn btn-primary">
+
+                        <i class="bi bi-plus-circle me-1"></i>
+
+                        Registrar movimiento
+
+                    </a>
+
+
+                    <!-- CERRAR -->
+
+                    <a asp-controller="Caja"
+                       asp-action="Cerrar"
+                       asp-route-id="@Model.IdCaja"
+                       class="btn btn-danger">
+
+                        <i class="bi bi-lock-fill me-1"></i>
+
+                        Cerrar caja
+
+                    </a>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN FINAL -->
+    <!-- ========================================================= -->
+
+    <div class="text-muted small mt-4 mb-4">
+
+        <i class="bi bi-info-circle me-1"></i>
+
+        Caja #@Model.IdCaja
+
+        ·
+
+        Usuario #@Model.IdUsuario
+
+        ·
+
+        @cantidadMovimientos movimientos
+
+        ·
+
+        Estado:
+
+        @(cajaAbierta ? "Abierta" : "Cerrada")
+
+        @if (Model.FechaCierre.HasValue)
+        {
+            <span>
+
+                · Cierre:
+
+                @Model.FechaCierre.Value.ToString(
+                    "dd/MM/yyyy HH:mm"
+                )
+
+            </span>
+        }
+
+    </div>
+
+</div>

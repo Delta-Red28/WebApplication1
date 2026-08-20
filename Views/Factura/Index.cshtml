@@ -1,0 +1,666 @@
+﻿@model IEnumerable<WebApplication1.Models.Factura>
+
+@{
+    ViewData["Title"] = "Facturas";
+}
+
+<div class="container-fluid mt-4">
+
+    <!-- ============================================================
+         ENCABEZADO
+    ============================================================ -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-receipt-cutoff"></i>
+                Facturas
+            </h2>
+
+            <p class="text-muted mb-0">
+                Administración y consulta de facturas del restaurante.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a asp-controller="Factura"
+               asp-action="BuscarFactura"
+               class="btn btn-outline-primary">
+
+                <i class="bi bi-search"></i>
+                Buscar
+
+            </a>
+
+            <a asp-controller="Factura"
+               asp-action="Create"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-circle"></i>
+                Nueva factura
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         MENSAJES
+    ============================================================ -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="bi bi-exclamation-triangle-fill"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         RESUMEN
+    ============================================================ -->
+    @{
+        var facturas = Model?.ToList()
+                       ?? new List<WebApplication1.Models.Factura>();
+
+        var totalFacturas = facturas.Count;
+
+        var facturasPendientes = facturas.Count(f =>
+            f.IdEstadoFactura == 1);
+
+        var facturasPagadas = facturas.Count(f =>
+            f.IdEstadoFactura == 2);
+
+        var facturasAnuladas = facturas.Count(f =>
+            f.IdEstadoFactura == 3);
+
+        var facturasParciales = facturas.Count(f =>
+            f.IdEstadoFactura == 4);
+    }
+
+    <div class="row mb-4">
+
+        <!-- TOTAL -->
+
+        <div class="col-md-3 mb-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+                            <small class="text-muted">
+                                Total facturas
+                            </small>
+
+                            <h3 class="mb-0">
+                                @totalFacturas
+                            </h3>
+                        </div>
+
+                        <div class="text-primary fs-2">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PENDIENTES -->
+
+        <div class="col-md-3 mb-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <small class="text-muted">
+                                Pendientes
+                            </small>
+
+                            <h3 class="mb-0 text-warning">
+                                @facturasPendientes
+                            </h3>
+
+                        </div>
+
+                        <div class="text-warning fs-2">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAGADAS -->
+
+        <div class="col-md-3 mb-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <small class="text-muted">
+                                Pagadas
+                            </small>
+
+                            <h3 class="mb-0 text-success">
+                                @facturasPagadas
+                            </h3>
+
+                        </div>
+
+                        <div class="text-success fs-2">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PARCIALES -->
+
+        <div class="col-md-3 mb-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <small class="text-muted">
+                                Pago parcial
+                            </small>
+
+                            <h3 class="mb-0 text-info">
+                                @facturasParciales
+                            </h3>
+
+                        </div>
+
+                        <div class="text-info fs-2">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         TABLA
+    ============================================================ -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-primary text-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-list-ul"></i>
+
+                    Listado de facturas
+
+                </h5>
+
+                <span class="badge bg-light text-dark">
+
+                    @totalFacturas registros
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (!facturas.Any())
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-receipt text-muted"
+                       style="font-size: 4rem;">
+                    </i>
+
+                    <h5 class="mt-3">
+                        No hay facturas registradas
+                    </h5>
+
+                    <p class="text-muted">
+                        Todavía no existen facturas en el sistema.
+                    </p>
+
+                    <a asp-controller="Factura"
+                       asp-action="Create"
+                       class="btn btn-primary">
+
+                        <i class="bi bi-plus-circle"></i>
+
+                        Crear primera factura
+
+                    </a>
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>
+                                    #
+                                </th>
+
+                                <th>
+                                    Factura
+                                </th>
+
+                                <th>
+                                    Pedido
+                                </th>
+
+                                <th>
+                                    Fecha
+                                </th>
+
+                                <th>
+                                    Cliente
+                                </th>
+
+                                <th>
+                                    Moneda
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+
+                                <th class="text-end">
+                                    Saldo
+                                </th>
+
+                                <th>
+                                    Estado
+                                </th>
+
+                                <th class="text-center">
+                                    Acciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var factura in facturas)
+                            {
+                                <tr>
+
+                                    <!-- ID -->
+
+                                    <td>
+                                        @factura.IdFactura
+                                    </td>
+
+
+                                    <!-- NUMERO FACTURA -->
+
+                                    <td>
+
+                                        <div class="fw-bold">
+                                            @factura.NumeroFactura
+                                        </div>
+
+                                        @if (factura.IdTipoComprobanteNavigation != null)
+                                        {
+                                            <small class="text-muted">
+
+                                                @factura.IdTipoComprobanteNavigation.Nombre
+
+                                            </small>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- PEDIDO -->
+
+                                    <td>
+
+                                        @if (factura.IdPedidoNavigation != null)
+                                        {
+                                            <span class="fw-semibold">
+
+                                                #@factura.IdPedidoNavigation.NumeroPedido
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Sin pedido
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- FECHA -->
+
+                                    <td>
+
+                                        <div>
+                                            @factura.FechaFactura.ToString("dd/MM/yyyy")
+                                        </div>
+
+                                        <small class="text-muted">
+                                            @factura.FechaFactura.ToString("HH:mm")
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- CLIENTE -->
+
+                                    <td>
+
+                                        @if (factura.IdPedidoNavigation?.IdClienteNavigation != null)
+                                        {
+                                            <span>
+                                                Cliente #@factura.IdPedidoNavigation.IdCliente
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Consumidor final
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- MONEDA -->
+
+                                    <td>
+
+                                        @if (factura.IdMonedaNavigation != null)
+                                        {
+                                            <span class="fw-semibold">
+
+                                                @factura.IdMonedaNavigation.CodigoIso
+
+                                            </span>
+
+                                            <small class="text-muted">
+
+                                                @factura.IdMonedaNavigation.Simbolo
+
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- TOTAL -->
+
+                                    <td class="text-end">
+
+                                        <span class="fw-bold">
+
+                                            @factura.Total.ToString("N2")
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- SALDO -->
+
+                                    <td class="text-end">
+
+                                        @if (factura.SaldoPendiente <= 0)
+                                        {
+                                            <span class="text-success fw-bold">
+
+                                                0.00
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger fw-bold">
+
+                                                @factura.SaldoPendiente.ToString("N2")
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ESTADO -->
+
+                                    <td>
+
+                                        @switch (factura.IdEstadoFactura)
+                                        {
+                                            case 1:
+
+                                                <span class="badge bg-warning text-dark">
+
+                                                    <i class="bi bi-clock"></i>
+                                                    Pendiente
+
+                                                </span>
+
+                                                break;
+
+                                            case 2:
+
+                                                <span class="badge bg-success">
+
+                                                    <i class="bi bi-check-circle"></i>
+                                                    Pagada
+
+                                                </span>
+
+                                                break;
+
+                                            case 3:
+
+                                                <span class="badge bg-danger">
+
+                                                    <i class="bi bi-x-circle"></i>
+                                                    Anulada
+
+                                                </span>
+
+                                                break;
+
+                                            case 4:
+
+                                                <span class="badge bg-info text-dark">
+
+                                                    <i class="bi bi-hourglass-split"></i>
+                                                    Pago parcial
+
+                                                </span>
+
+                                                break;
+
+                                            default:
+
+                                                <span class="badge bg-secondary">
+
+                                                    Desconocido
+
+                                                </span>
+
+                                                break;
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ACCIONES -->
+
+                                    <td class="text-center">
+
+                                        <div class="d-flex justify-content-center gap-1">
+
+                                            <!-- DETAILS -->
+
+                                            <a asp-controller="Factura"
+                                               asp-action="Details"
+                                               asp-route-id="@factura.IdFactura"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver detalle">
+
+                                                <i class="bi bi-eye"></i>
+
+                                            </a>
+
+
+                                            <!-- EDIT -->
+                                            @if (factura.IdEstadoFactura != 3)
+                                            {
+                                                <a asp-controller="Factura"
+                                                   asp-action="Edit"
+                                                   asp-route-id="@factura.IdFactura"
+                                                   class="btn btn-sm btn-outline-warning"
+                                                   title="Editar">
+
+                                                    <i class="bi bi-pencil"></i>
+
+                                                </a>
+                                            }
+
+
+                                            <!-- PAGAR -->
+                                            @if (factura.IdEstadoFactura != 3 &&
+                                                                                             factura.SaldoPendiente > 0)
+                                            {
+                                                <a asp-controller="Pago"
+                                                   asp-action="CreateParaFactura"
+                                                   asp-route-id="@factura.IdFactura"
+                                                   class="btn btn-sm btn-outline-success"
+                                                   title="Registrar pago">
+
+                                                    <i class="bi bi-cash-coin"></i>
+
+                                                </a>
+                                            }
+
+
+                                            <!-- ANULAR -->
+                                            @if (factura.IdEstadoFactura != 3)
+                                            {
+                                                <a asp-controller="Factura"
+                                                   asp-action="Delete"
+                                                   asp-route-id="@factura.IdFactura"
+                                                   class="btn btn-sm btn-outline-danger"
+                                                   title="Anular">
+
+                                                    <i class="bi bi-x-circle"></i>
+
+                                                </a>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

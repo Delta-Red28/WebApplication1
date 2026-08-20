@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace WebApplication1.Models;
 
+[Table("TipoTarjeta")]
 public partial class TipoTarjetum
 {
     [Key]
@@ -16,6 +15,7 @@ public partial class TipoTarjetum
 
     public bool Estado { get; set; }
 
-    [InverseProperty("IdTipoTarjetaNavigation")]
-    public virtual ICollection<Pago> Pagos { get; set; } = new List<Pago>();
+    [InverseProperty(nameof(Pago.IdTipoTarjetaNavigation))]
+    public virtual ICollection<Pago> Pagos { get; set; }
+        = new List<Pago>();
 }

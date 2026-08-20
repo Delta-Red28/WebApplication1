@@ -1,0 +1,877 @@
+﻿@model IEnumerable<WebApplication1.Models.Factura>
+
+@{
+    ViewData["Title"] = "Buscar Facturas";
+
+    var estadosFactura =
+        ViewBag.EstadosFactura as IEnumerable<WebApplication1.Models.EstadoFactura>
+        ?? Enumerable.Empty<WebApplication1.Models.EstadoFactura>();
+
+    string buscar = ViewBag.Buscar as string ?? string.Empty;
+
+    DateTime? fechaInicio = null;
+    DateTime? fechaFin = null;
+    int? idEstadoFactura = null;
+
+    if (ViewBag.FechaInicio is DateTime)
+    {
+        fechaInicio = (DateTime)ViewBag.FechaInicio;
+    }
+
+    if (ViewBag.FechaFin is DateTime)
+    {
+        fechaFin = (DateTime)ViewBag.FechaFin;
+    }
+
+    if (ViewBag.IdEstadoFactura is int)
+    {
+        idEstadoFactura = (int)ViewBag.IdEstadoFactura;
+    }
+
+    var facturas = Model?.ToList()
+                   ?? new List<WebApplication1.Models.Factura>();
+}
+
+<div class="container mt-4">
+
+    <!-- ============================================================
+         ENCABEZADO
+    ============================================================ -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="mb-1">
+
+                <i class="bi bi-search"></i>
+
+                Buscar Facturas
+
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                Busque y filtre las facturas registradas.
+
+            </p>
+
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <a asp-controller="Factura"
+               asp-action="Index"
+               class="btn btn-secondary">
+
+                <i class="bi bi-arrow-left"></i>
+
+                Volver a facturas
+
+            </a>
+
+            <a asp-controller="Factura"
+               asp-action="Create"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-circle"></i>
+
+                Nueva factura
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         MENSAJES
+    ============================================================ -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         FORMULARIO DE BÚSQUEDA
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-funnel me-2"></i>
+
+                Filtros de búsqueda
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-controller="Factura"
+                  asp-action="BuscarFactura"
+                  method="get">
+
+                <div class="row">
+
+                    <!-- ==================================================
+                         BUSCAR
+                    ================================================== -->
+
+                    <div class="col-md-4 mb-3">
+
+                        <label for="buscar"
+                               class="form-label fw-bold">
+
+                            Buscar
+
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+
+                                <i class="bi bi-search"></i>
+
+                            </span>
+
+                            <input type="text"
+                                   id="buscar"
+                                   name="buscar"
+                                   value="@buscar"
+                                   class="form-control"
+                                   placeholder="Factura, ID o pedido..." />
+
+                        </div>
+
+                        <div class="form-text">
+
+                            Puede ingresar el número de factura,
+                            ID de factura o número de pedido.
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==================================================
+                         FECHA INICIO
+                    ================================================== -->
+
+                    <div class="col-md-2 mb-3">
+
+                        <label for="fechaInicio"
+                               class="form-label fw-bold">
+
+                            Fecha desde
+
+                        </label>
+
+                        <input type="date"
+                               id="fechaInicio"
+                               name="fechaInicio"
+                               value="@(fechaInicio.HasValue ? fechaInicio.Value.ToString("yyyy-MM-dd") : "")"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <!-- ==================================================
+                         FECHA FIN
+                    ================================================== -->
+
+                    <div class="col-md-2 mb-3">
+
+                        <label for="fechaFin"
+                               class="form-label fw-bold">
+
+                            Fecha hasta
+
+                        </label>
+
+                        <input type="date"
+                               id="fechaFin"
+                               name="fechaFin"
+                               value="@(fechaFin.HasValue ? fechaFin.Value.ToString("yyyy-MM-dd") : "")"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <!-- ==================================================
+                         ESTADO
+                    ================================================== -->
+
+                    <div class="col-md-4 mb-3">
+
+                        <label for="idEstadoFactura"
+                               class="form-label fw-bold">
+
+                            Estado
+
+                        </label>
+
+                        <select id="idEstadoFactura"
+                                name="idEstadoFactura"
+                                class="form-select">
+
+                            <option value="">
+                                Todos los estados
+                            </option>
+
+                            @foreach (var estado in estadosFactura)
+                            {
+                                if (idEstadoFactura.HasValue &&
+                                    idEstadoFactura.Value == estado.IdEstadoFactura)
+                                {
+                                    <option value="@estado.IdEstadoFactura"
+                                            selected="selected">
+
+                                        @estado.Nombre
+
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@estado.IdEstadoFactura">
+
+                                        @estado.Nombre
+
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================================
+                     BOTONES
+                ================================================== -->
+
+                <div class="d-flex flex-wrap justify-content-end gap-2">
+
+                    <a asp-controller="Factura"
+                       asp-action="BuscarFactura"
+                       class="btn btn-outline-secondary">
+
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+
+                        Limpiar filtros
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-search me-1"></i>
+
+                        Buscar
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         RESULTADOS
+    ============================================================ -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-light">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-list-ul me-2"></i>
+
+                    Resultados
+
+                </h5>
+
+                <span class="badge bg-primary">
+
+                    @facturas.Count factura(s)
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            @if (facturas.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover table-striped align-middle mb-0">
+
+                        <thead class="table-dark">
+
+                            <tr>
+
+                                <th>
+                                    Factura
+                                </th>
+
+                                <th>
+                                    Pedido
+                                </th>
+
+                                <th>
+                                    Fecha
+                                </th>
+
+                                <th>
+                                    Estado
+                                </th>
+
+                                <th>
+                                    Moneda
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+
+                                <th class="text-end">
+                                    Saldo
+                                </th>
+
+                                <th class="text-center">
+                                    Acciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var factura in facturas)
+                            {
+                                var estadoFactura =
+                                    factura.IdEstadoFacturaNavigation;
+
+                                var moneda =
+                                    factura.IdMonedaNavigation;
+
+                                var pedido =
+                                    factura.IdPedidoNavigation;
+
+                                bool anulada =
+                                    factura.IdEstadoFactura == 3;
+
+                                <tr>
+
+                                    <!-- ==================================================
+                                         FACTURA
+                                    ================================================== -->
+
+                                    <td>
+
+                                        <div class="fw-bold">
+
+                                            @(factura.NumeroFactura ?? "Sin número")
+
+                                        </div>
+
+                                        <small class="text-muted">
+
+                                            ID:
+                                            @factura.IdFactura
+
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- ==================================================
+                                         PEDIDO
+                                    ================================================== -->
+
+                                    <td>
+
+                                        @if (pedido != null)
+                                        {
+                                            <span class="fw-bold">
+
+                                                @pedido.NumeroPedido
+
+                                            </span>
+
+                                            <br />
+
+                                            <small class="text-muted">
+
+                                                Pedido #@pedido.IdPedido
+
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                #@factura.IdPedido
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ==================================================
+                                         FECHA
+                                    ================================================== -->
+
+                                    <td>
+
+                                        @factura.FechaFactura.ToString("dd/MM/yyyy")
+
+                                        <br />
+
+                                        <small class="text-muted">
+
+                                            @factura.FechaFactura.ToString("HH:mm")
+
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- ==================================================
+                                         ESTADO
+                                    ================================================== -->
+
+                                    <td>
+
+                                        @if (estadoFactura != null)
+                                        {
+                                            if (anulada)
+                                            {
+                                                <span class="badge bg-danger">
+
+                                                    <i class="bi bi-x-circle me-1"></i>
+
+                                                    @estadoFactura.Nombre
+
+                                                </span>
+                                            }
+                                            else if (factura.SaldoPendiente <= 0)
+                                            {
+                                                <span class="badge bg-success">
+
+                                                    <i class="bi bi-check-circle me-1"></i>
+
+                                                    @estadoFactura.Nombre
+
+                                                </span>
+                                            }
+                                            else if (factura.SaldoPendiente < factura.Total)
+                                            {
+                                                <span class="badge bg-warning text-dark">
+
+                                                    <i class="bi bi-clock me-1"></i>
+
+                                                    @estadoFactura.Nombre
+
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">
+
+                                                    @estadoFactura.Nombre
+
+                                                </span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+
+                                                No especificado
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ==================================================
+                                         MONEDA
+                                    ================================================== -->
+
+                                    <td>
+
+                                        @if (moneda != null)
+                                        {
+                                            <span>
+
+                                                @moneda.CodigoIso
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                N/A
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ==================================================
+                                         TOTAL
+                                    ================================================== -->
+
+                                    <td class="text-end">
+
+                                        <span class="fw-bold">
+
+                                            @factura.Total.ToString("N2")
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ==================================================
+                                         SALDO
+                                    ================================================== -->
+
+                                    <td class="text-end">
+
+                                        @if (factura.SaldoPendiente <= 0)
+                                        {
+                                            <span class="text-success fw-bold">
+
+                                                @factura.SaldoPendiente.ToString("N2")
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger fw-bold">
+
+                                                @factura.SaldoPendiente.ToString("N2")
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ==================================================
+                                         ACCIONES
+                                    ================================================== -->
+
+                                    <td>
+
+                                        <div class="d-flex justify-content-center gap-1">
+
+                                            <!-- DETALLE -->
+
+                                            <a asp-controller="Factura"
+                                               asp-action="Details"
+                                               asp-route-id="@factura.IdFactura"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver detalle">
+
+                                                <i class="bi bi-eye"></i>
+
+                                            </a>
+
+
+                                            <!-- EDITAR -->
+                                            @if (!anulada)
+                                            {
+                                                <a asp-controller="Factura"
+                                                   asp-action="Edit"
+                                                   asp-route-id="@factura.IdFactura"
+                                                   class="btn btn-sm btn-outline-warning"
+                                                   title="Editar">
+
+                                                    <i class="bi bi-pencil"></i>
+
+                                                </a>
+                                            }
+
+
+                                            <!-- ANULAR -->
+                                            @if (!anulada)
+                                            {
+                                                <a asp-controller="Factura"
+                                                   asp-action="Delete"
+                                                   asp-route-id="@factura.IdFactura"
+                                                   class="btn btn-sm btn-outline-danger"
+                                                   title="Anular">
+
+                                                    <i class="bi bi-x-circle"></i>
+
+                                                </a>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <!-- ==================================================
+                     SIN RESULTADOS
+                ================================================== -->
+
+                <div class="text-center py-5">
+
+                    <div class="mb-3">
+
+                        <i class="bi bi-search text-muted"
+                           style="font-size: 4rem;">
+                        </i>
+
+                    </div>
+
+                    <h5 class="text-muted">
+
+                        No se encontraron facturas
+
+                    </h5>
+
+                    <p class="text-muted mb-3">
+
+                        No existen facturas que coincidan con
+                        los criterios de búsqueda.
+
+                    </p>
+
+                    <a asp-controller="Factura"
+                       asp-action="BuscarFactura"
+                       class="btn btn-outline-primary">
+
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+
+                        Limpiar búsqueda
+
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         RESUMEN
+    ============================================================ -->
+    @if (facturas.Any())
+    {
+        var facturasActivas =
+            facturas.Where(f => f.IdEstadoFactura != 3).ToList();
+
+        var totalFacturado =
+            facturasActivas.Sum(f => f.Total);
+
+        var saldoTotal =
+            facturasActivas.Sum(f => f.SaldoPendiente);
+
+        var cantidadAnuladas =
+            facturas.Count(f => f.IdEstadoFactura == 3);
+
+        <div class="row mt-4">
+
+            <!-- ==================================================
+                 TOTAL FACTURADO
+            ================================================== -->
+
+            <div class="col-md-4 mb-3">
+
+                <div class="card shadow-sm border-primary">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between">
+
+                            <div>
+
+                                <small class="text-muted">
+
+                                    Total facturado
+
+                                </small>
+
+                                <h4 class="mb-0 text-primary">
+
+                                    @totalFacturado.ToString("N2")
+
+                                </h4>
+
+                            </div>
+
+                            <div>
+
+                                <i class="bi bi-cash-stack text-primary fs-2"></i>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================================
+                 SALDO
+            ================================================== -->
+
+            <div class="col-md-4 mb-3">
+
+                <div class="card shadow-sm border-danger">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between">
+
+                            <div>
+
+                                <small class="text-muted">
+
+                                    Saldo pendiente
+
+                                </small>
+
+                                <h4 class="mb-0 text-danger">
+
+                                    @saldoTotal.ToString("N2")
+
+                                </h4>
+
+                            </div>
+
+                            <div>
+
+                                <i class="bi bi-exclamation-circle text-danger fs-2"></i>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================================
+                 ANULADAS
+            ================================================== -->
+
+            <div class="col-md-4 mb-3">
+
+                <div class="card shadow-sm border-secondary">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between">
+
+                            <div>
+
+                                <small class="text-muted">
+
+                                    Facturas anuladas
+
+                                </small>
+
+                                <h4 class="mb-0 text-secondary">
+
+                                    @cantidadAnuladas
+
+                                </h4>
+
+                            </div>
+
+                            <div>
+
+                                <i class="bi bi-x-circle text-secondary fs-2"></i>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+</div>

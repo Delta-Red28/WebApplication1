@@ -1,0 +1,726 @@
+﻿@model IEnumerable<WebApplication1.Models.HistorialFactura>
+
+@{
+    ViewData["Title"] = "Historial de Factura";
+
+    var factura = ViewBag.Factura as WebApplication1.Models.Factura;
+
+    var historial = Model?
+        .OrderByDescending(h => h.Fecha)
+        .ToList()
+        ?? new List<WebApplication1.Models.HistorialFactura>();
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ============================================================
+         ENCABEZADO
+    ============================================================ -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-clock-history me-2"></i>
+                Historial de Factura
+            </h2>
+
+            <p class="text-muted mb-0">
+                Registro de cambios y estados de la factura.
+            </p>
+        </div>
+
+        <div class="mt-3 mt-md-0">
+
+            @if (factura != null)
+            {
+                <a asp-controller="Factura"
+                   asp-action="Details"
+                   asp-route-id="@factura.IdFactura"
+                   class="btn btn-secondary">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Volver a factura
+
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Factura"
+                   asp-action="Index"
+                   class="btn btn-secondary">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Volver
+
+                </a>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         MENSAJES
+    ============================================================ -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         INFORMACIÓN DE LA FACTURA
+    ============================================================ -->
+    @if (factura != null)
+    {
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-primary text-white">
+
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt me-2"></i>
+                    Información de la factura
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <!-- FACTURA -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <div class="text-muted small">
+                            Factura
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            @factura.NumeroFactura
+                        </div>
+
+                    </div>
+
+
+                    <!-- PEDIDO -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <div class="text-muted small">
+                            Pedido
+                        </div>
+
+                        <div class="fw-bold">
+
+                            @if (factura.IdPedidoNavigation != null)
+                            {
+                                @factura.IdPedidoNavigation.NumeroPedido
+                            }
+                            else
+                            {
+                                <span>
+                                    #@factura.IdPedido
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ESTADO -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <div class="text-muted small">
+                            Estado actual
+                        </div>
+
+                        <div>
+
+                            @if (factura.IdEstadoFacturaNavigation != null)
+                            {
+                                var claseEstado = "bg-secondary";
+                                var iconoEstado = "bi-info-circle";
+
+                                if (factura.IdEstadoFactura == 1)
+                                {
+                                    claseEstado = "bg-warning text-dark";
+                                    iconoEstado = "bi-clock";
+                                }
+                                else if (factura.IdEstadoFactura == 2)
+                                {
+                                    claseEstado = "bg-success";
+                                    iconoEstado = "bi-check-circle";
+                                }
+                                else if (factura.IdEstadoFactura == 3)
+                                {
+                                    claseEstado = "bg-danger";
+                                    iconoEstado = "bi-x-circle";
+                                }
+                                else if (factura.IdEstadoFactura == 4)
+                                {
+                                    claseEstado = "bg-info text-dark";
+                                    iconoEstado = "bi-hourglass-split";
+                                }
+
+                                <span class="badge @claseEstado">
+
+                                    <i class="bi @iconoEstado me-1"></i>
+
+                                    @factura.IdEstadoFacturaNavigation.Nombre
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    Desconocido
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- TOTAL -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <div class="text-muted small">
+                            Total
+                        </div>
+
+                        <div class="fw-bold fs-4 text-primary">
+                            @factura.Total.ToString("N2")
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         RESUMEN
+    ============================================================ -->
+
+    <div class="row mb-4">
+
+        <!-- MOVIMIENTOS -->
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="bg-primary text-white rounded-circle
+                            d-flex align-items-center
+                            justify-content-center me-3"
+                             style="width:50px;height:50px;">
+
+                            <i class="bi bi-list-ul fs-4"></i>
+
+                        </div>
+
+                        <div>
+
+                            <div class="text-muted">
+                                Movimientos registrados
+                            </div>
+
+                            <div class="fw-bold fs-4">
+                                @historial.Count
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ESTADO ACTUAL -->
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="bg-success text-white rounded-circle
+                            d-flex align-items-center
+                            justify-content-center me-3"
+                             style="width:50px;height:50px;">
+
+                            <i class="bi bi-activity fs-4"></i>
+
+                        </div>
+
+                        <div>
+
+                            <div class="text-muted">
+                                Estado actual
+                            </div>
+
+                            <div class="fw-bold">
+
+                                @if (factura != null &&
+                                    factura.IdEstadoFacturaNavigation != null)
+                                {
+                                    @factura.IdEstadoFacturaNavigation.Nombre
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        No disponible
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ÚLTIMO MOVIMIENTO -->
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="bg-info text-dark rounded-circle
+                            d-flex align-items-center
+                            justify-content-center me-3"
+                             style="width:50px;height:50px;">
+
+                            <i class="bi bi-calendar-event fs-4"></i>
+
+                        </div>
+
+                        <div>
+
+                            <div class="text-muted">
+                                Último movimiento
+                            </div>
+
+                            <div class="fw-bold">
+
+                                @if (historial.Any())
+                                {
+                                    @historial.First().Fecha.ToString("dd/MM/yyyy HH:mm")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        Sin movimientos
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         LÍNEA DE TIEMPO
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-light">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-clock-history me-2"></i>
+
+                    Línea de tiempo
+
+                </h5>
+
+                <span class="badge bg-secondary">
+
+                    @historial.Count movimiento(s)
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            @if (!historial.Any())
+            {
+                <!-- SIN HISTORIAL -->
+
+                <div class="text-center py-5">
+
+                    <i class="bi bi-clock-history text-muted"
+                       style="font-size:4rem;"></i>
+
+                    <h5 class="mt-3">
+                        No hay movimientos registrados
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Esta factura todavía no tiene registros
+                        en su historial.
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="position-relative">
+
+                    @for (int i = 0; i < historial.Count; i++)
+                    {
+                        var item = historial[i];
+
+                        var esUltimo = i == 0;
+
+                        var color = "secondary";
+                        var icono = "bi-info-circle";
+
+                        if (item.IdEstadoFactura == 1)
+                        {
+                            color = "warning";
+                            icono = "bi-clock";
+                        }
+                        else if (item.IdEstadoFactura == 2)
+                        {
+                            color = "success";
+                            icono = "bi-check-circle";
+                        }
+                        else if (item.IdEstadoFactura == 3)
+                        {
+                            color = "danger";
+                            icono = "bi-x-circle";
+                        }
+                        else if (item.IdEstadoFactura == 4)
+                        {
+                            color = "info";
+                            icono = "bi-hourglass-split";
+                        }
+
+                        var textoColor =
+                            color == "warning" || color == "info"
+                                ? "text-dark"
+                                : "text-white";
+
+                        <div class="d-flex mb-4">
+
+                            <!-- ICONO -->
+
+                            <div class="me-3 position-relative"
+                                 style="min-width:50px;">
+
+                                <div class="bg-@color @textoColor
+                                    rounded-circle
+                                    d-flex
+                                    align-items-center
+                                    justify-content-center"
+                                     style="width:50px;height:50px;">
+
+                                    <i class="bi @icono fs-5"></i>
+
+                                </div>
+
+                                @if (!esUltimo)
+                                {
+                                    <div class="position-absolute bg-secondary"
+                                         style="
+                                        width:2px;
+                                        height:calc(100% + 24px);
+                                        left:24px;
+                                        top:50px;
+                                        opacity:.25;">
+                                    </div>
+                                }
+
+                            </div>
+
+
+                            <!-- CONTENIDO -->
+
+                            <div class="card border flex-grow-1
+                                @(esUltimo ? "border-primary" : "")">
+
+                                <div class="card-body">
+
+                                    <div class="d-flex
+                                        justify-content-between
+                                        align-items-start
+                                        mb-2">
+
+                                        <div>
+
+                                            <h6 class="mb-1">
+
+                                                @if (item.IdEstadoFacturaNavigation != null)
+                                                {
+                                                    @item.IdEstadoFacturaNavigation.Nombre
+                                                }
+                                                else
+                                                {
+                                                    <span>
+                                                        Estado desconocido
+                                                    </span>
+                                                }
+
+                                            </h6>
+
+                                            @if (esUltimo)
+                                            {
+                                                <span class="badge bg-primary">
+                                                    Estado actual
+                                                </span>
+                                            }
+
+                                        </div>
+
+
+                                        <div class="text-end">
+
+                                            <div class="fw-bold">
+                                                @item.Fecha.ToString("dd/MM/yyyy")
+                                            </div>
+
+                                            <small class="text-muted">
+                                                @item.Fecha.ToString("HH:mm:ss")
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <hr />
+
+
+                                    <!-- USUARIO -->
+
+                                    <div class="mb-2">
+
+                                        <i class="bi bi-person me-1"></i>
+
+                                        <strong>
+                                            Usuario:
+                                        </strong>
+
+                                        @if (item.IdUsuarioNavigation != null)
+                                        {
+                                            var nombreUsuario =
+                                                $"{item.IdUsuarioNavigation.Nombres} {item.IdUsuarioNavigation.Apellidos}"
+                                                .Trim();
+
+                                            if (string.IsNullOrWhiteSpace(nombreUsuario))
+                                            {
+                                                nombreUsuario =
+                                                    item.IdUsuarioNavigation.Usuario1;
+                                            }
+
+                                            @nombreUsuario
+
+                                            @if (!string.IsNullOrWhiteSpace(
+                                                item.IdUsuarioNavigation.Usuario1))
+                                            {
+                                                <small class="text-muted">
+                                                    (@item.IdUsuarioNavigation.Usuario1)
+                                                </small>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Usuario no disponible
+                                            </span>
+                                        }
+
+                                    </div>
+
+
+                                    <!-- OBSERVACIÓN -->
+                                    @if (!string.IsNullOrWhiteSpace(item.Observacion))
+                                    {
+                                        <div class="mt-3">
+
+                                            <div class="text-muted mb-1">
+
+                                                <i class="bi bi-chat-left-text me-1"></i>
+
+                                                Observación
+
+                                            </div>
+
+                                            <div class="bg-light rounded p-3">
+
+                                                @item.Observacion
+
+                                            </div>
+
+                                        </div>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         ACCIONES
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex flex-wrap
+                justify-content-between
+                align-items-center">
+
+                @if (factura != null)
+                {
+                    <a asp-controller="Factura"
+                       asp-action="Details"
+                       asp-route-id="@factura.IdFactura"
+                       class="btn btn-secondary">
+
+                        <i class="bi bi-arrow-left me-1"></i>
+
+                        Volver a factura
+
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Factura"
+                       asp-action="Index"
+                       class="btn btn-secondary">
+
+                        <i class="bi bi-arrow-left me-1"></i>
+
+                        Volver
+
+                    </a>
+                }
+
+
+                @if (factura != null &&
+                    factura.IdEstadoFactura != 3)
+                {
+                    <div class="d-flex gap-2">
+
+                        <a asp-controller="Factura"
+                           asp-action="Edit"
+                           asp-route-id="@factura.IdFactura"
+                           class="btn btn-warning">
+
+                            <i class="bi bi-pencil-square me-1"></i>
+
+                            Editar factura
+
+                        </a>
+
+                        <a asp-controller="Factura"
+                           asp-action="Delete"
+                           asp-route-id="@factura.IdFactura"
+                           class="btn btn-danger">
+
+                            <i class="bi bi-x-circle me-1"></i>
+
+                            Anular factura
+
+                        </a>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

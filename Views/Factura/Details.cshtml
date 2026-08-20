@@ -1,0 +1,1209 @@
+﻿@model WebApplication1.Models.Factura
+
+@{
+    ViewData["Title"] = "Detalle de factura";
+
+    var historial = ViewBag.Historial as IEnumerable<WebApplication1.Models.HistorialFactura>
+                     ?? Enumerable.Empty<WebApplication1.Models.HistorialFactura>();
+
+    // ============================================================
+    // DATOS PRINCIPALES
+    // ============================================================
+
+    var estadoNombre = Model.IdEstadoFacturaNavigation?.Nombre ?? "Sin estado";
+
+    var monedaNombre = Model.IdMonedaNavigation?.Nombre ?? "Sin moneda";
+
+    var monedaSimbolo = Model.IdMonedaNavigation?.Simbolo ?? "";
+
+    var monedaCodigo = Model.IdMonedaNavigation?.CodigoIso ?? "";
+
+    var pedido = Model.IdPedidoNavigation;
+
+    var impuesto = Model.IdImpuestoNavigation;
+
+    var impuestoNombre = impuesto?.Nombre ?? "Sin impuesto";
+
+    var impuestoPorcentaje = impuesto?.Porcentaje ?? 0m;
+
+
+    // ============================================================
+    // CLASE DEL ESTADO
+    // ============================================================
+
+    var estadoClase = "bg-secondary";
+
+    if (Model.IdEstadoFactura == 1)
+    {
+        estadoClase = "bg-warning text-dark";
+    }
+    else if (Model.IdEstadoFactura == 2)
+    {
+        estadoClase = "bg-success";
+    }
+    else if (Model.IdEstadoFactura == 3)
+    {
+        estadoClase = "bg-danger";
+    }
+    else if (Model.IdEstadoFactura == 4)
+    {
+        estadoClase = "bg-info text-dark";
+    }
+
+
+    // ============================================================
+    // TEXTO DEL IMPUESTO
+    // ============================================================
+
+    var impuestoTexto = impuesto != null
+        ? $"{impuestoNombre} ({impuestoPorcentaje:N2}%)"
+        : "Sin impuesto";
+
+
+    // ============================================================
+    // PORCENTAJE DE SALDO
+    // ============================================================
+
+    var saldoPagado = Model.Total - Model.SaldoPendiente;
+
+    if (saldoPagado < 0)
+    {
+        saldoPagado = 0;
+    }
+
+    if (saldoPagado > Model.Total)
+    {
+        saldoPagado = Model.Total;
+    }
+
+    var porcentajePagado = Model.Total > 0
+        ? (saldoPagado / Model.Total) * 100m
+        : 0m;
+
+    if (porcentajePagado > 100)
+    {
+        porcentajePagado = 100;
+    }
+
+    if (porcentajePagado < 0)
+    {
+        porcentajePagado = 0;
+    }
+}
+
+
+<div class="container-fluid">
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <div class="d-flex align-items-center gap-2 mb-1">
+
+                <a asp-action="Index"
+                   class="btn btn-sm btn-outline-secondary">
+
+                    <i class="bi bi-arrow-left"></i>
+
+                </a>
+
+                <h2 class="mb-0">
+
+                    Factura @Model.NumeroFactura
+
+                </h2>
+
+            </div>
+
+            <p class="text-muted mb-0">
+
+                Detalle de la factura y movimientos asociados.
+
+            </p>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- ACCIONES -->
+        <!-- ===================================================== -->
+
+        <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-list me-1"></i>
+
+                Facturas
+
+            </a>
+
+            <a asp-action="Historial"
+               asp-route-id="@Model.IdFactura"
+               class="btn btn-outline-primary">
+
+                <i class="bi bi-clock-history me-1"></i>
+
+                Historial
+
+            </a>
+
+            @if (Model.IdEstadoFactura != 3)
+            {
+                <a asp-action="Edit"
+                   asp-route-id="@Model.IdFactura"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-pencil me-1"></i>
+
+                    Editar
+
+                </a>
+
+                <a asp-action="Delete"
+                   asp-route-id="@Model.IdFactura"
+                   class="btn btn-outline-danger">
+
+                    <i class="bi bi-x-circle me-1"></i>
+
+                    Anular
+
+                </a>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJES -->
+    <!-- ========================================================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN PRINCIPAL -->
+    <!-- ========================================================= -->
+
+    <div class="row g-4">
+
+        <!-- ===================================================== -->
+        <!-- DATOS DE FACTURA -->
+        <!-- ===================================================== -->
+
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-white py-3">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <h5 class="mb-0">
+
+                            <i class="bi bi-file-earmark-text me-2"></i>
+
+                            Información de la factura
+
+                        </h5>
+
+                        <span class="badge @estadoClase">
+
+                            @estadoNombre
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="row g-4">
+
+                        <!-- ================================================= -->
+                        <!-- NÚMERO -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                Número de factura
+                            </div>
+
+                            <div class="fw-semibold fs-5">
+
+                                @Model.NumeroFactura
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- FECHA -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                Fecha de factura
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @Model.FechaFactura.ToString("dd/MM/yyyy HH:mm")
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- PEDIDO -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                Pedido
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @if (pedido != null)
+                                {
+                                    <span>
+                                        #@pedido.NumeroPedido
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        Pedido no disponible
+                                    </span>
+                                }
+
+                            </div>
+
+                            @if (pedido != null)
+                            {
+                                <div class="mt-1">
+
+                                    <a asp-controller="Pedido"
+                                       asp-action="Details"
+                                       asp-route-id="@pedido.IdPedido"
+                                       class="small text-decoration-none">
+
+                                        Ver pedido
+
+                                        <i class="bi bi-arrow-right"></i>
+
+                                    </a>
+
+                                </div>
+                            }
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- TIPO COMPROBANTE -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                Tipo de comprobante
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @(Model.IdTipoComprobanteNavigation?.Nombre
+                                    ?? "No especificado")
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- SERIE -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                Serie
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @(Model.IdSerieFacturaNavigation?.Nombre
+                                    ?? "No especificada")
+
+                            </div>
+
+                            @if (Model.IdSerieFacturaNavigation != null)
+                            {
+                                <div class="small text-muted">
+
+                                    Prefijo:
+                                    @Model.IdSerieFacturaNavigation.Prefijo
+
+                                </div>
+                            }
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- MONEDA -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                Moneda
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @if (!string.IsNullOrWhiteSpace(monedaSimbolo))
+                                {
+                                    <span class="me-1">
+                                        @monedaSimbolo
+                                    </span>
+                                }
+
+                                @monedaNombre
+
+                                @if (!string.IsNullOrWhiteSpace(monedaCodigo))
+                                {
+                                    <span class="text-muted">
+
+                                        (@monedaCodigo)
+
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- IMPUESTO -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                Impuesto / IVA
+                            </div>
+
+                            @if (impuesto != null)
+                            {
+                                <div class="fw-semibold">
+
+                                    <i class="bi bi-percent text-primary me-1"></i>
+
+                                    @impuesto.Nombre
+
+                                </div>
+
+                                <div class="small text-muted">
+
+                                    Tasa aplicada:
+                                    <strong>
+                                        @impuesto.Porcentaje.ToString("N2")%
+                                    </strong>
+
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="fw-semibold text-muted">
+
+                                    Sin impuesto
+
+                                </div>
+                            }
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- TIPO DE CAMBIO -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                Tipo de cambio aplicado
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                @if (Model.TipoCambioAplicado.HasValue)
+                                {
+                                    @Model.TipoCambioAplicado.Value.ToString("N6")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        No especificado
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- ID FACTURA -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                ID de factura
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                #@Model.IdFactura
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- OBSERVACIÓN -->
+                    <!-- ================================================= -->
+                    @if (!string.IsNullOrWhiteSpace(Model.Observacion))
+                    {
+                        <hr class="my-4" />
+
+                        <div>
+
+                            <div class="text-muted small mb-1">
+
+                                Observación
+
+                            </div>
+
+                            <div class="p-3 bg-light rounded">
+
+                                @Model.Observacion
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- RESUMEN ECONÓMICO -->
+        <!-- ===================================================== -->
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-white py-3">
+
+                    <h5 class="mb-0">
+
+                        <i class="bi bi-calculator me-2"></i>
+
+                        Resumen de factura
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <!-- ================================================= -->
+                    <!-- SUBTOTAL -->
+                    <!-- ================================================= -->
+
+                    <div class="d-flex justify-content-between mb-3">
+
+                        <span class="text-muted">
+                            Subtotal
+                        </span>
+
+                        <span class="fw-semibold">
+
+                            @monedaSimbolo
+                            @Model.Subtotal.ToString("N2")
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- DESCUENTO -->
+                    <!-- ================================================= -->
+
+                    <div class="d-flex justify-content-between mb-3">
+
+                        <span class="text-muted">
+                            Descuento
+                        </span>
+
+                        <span class="fw-semibold text-danger">
+
+                            - @monedaSimbolo
+                            @Model.Descuento.ToString("N2")
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- IMPUESTO / IVA -->
+                    <!-- ================================================= -->
+
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+
+                        <div>
+
+                            <div class="text-muted">
+
+                                Impuesto / IVA
+
+                            </div>
+
+                            @if (impuesto != null)
+                            {
+                                <div class="small text-muted">
+
+                                    @impuesto.Nombre
+
+                                    <span class="fw-semibold">
+                                        (@impuesto.Porcentaje.ToString("N2")%)
+                                    </span>
+
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="small text-muted">
+
+                                    Sin impuesto
+
+                                </div>
+                            }
+
+                        </div>
+
+                        <span class="fw-semibold">
+
+                            @monedaSimbolo
+                            @Model.Impuesto.ToString("N2")
+
+                        </span>
+
+                    </div>
+
+
+                    <hr />
+
+
+                    <!-- ================================================= -->
+                    <!-- TOTAL -->
+                    <!-- ================================================= -->
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+
+                        <span class="fw-bold">
+                            Total
+                        </span>
+
+                        <span class="fw-bold fs-4">
+
+                            @monedaSimbolo
+                            @Model.Total.ToString("N2")
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- SALDO -->
+                    <!-- ================================================= -->
+
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded bg-light">
+
+                        <span class="fw-semibold">
+
+                            Saldo pendiente
+
+                        </span>
+
+                        <span class="fw-bold
+                            @(Model.SaldoPendiente <= 0
+                                ? "text-success"
+                                : "text-danger")">
+
+                            @monedaSimbolo
+                            @Model.SaldoPendiente.ToString("N2")
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- PAGADO -->
+                    <!-- ================================================= -->
+
+                    <div class="d-flex justify-content-between mt-3">
+
+                        <span class="text-muted">
+
+                            Pagado
+
+                        </span>
+
+                        <span class="fw-semibold text-success">
+
+                            @monedaSimbolo
+                            @saldoPagado.ToString("N2")
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- PROGRESO DE PAGO -->
+                    <!-- ================================================= -->
+
+                    <div class="mt-3">
+
+                        <div class="d-flex justify-content-between mb-1">
+
+                            <span class="small text-muted">
+
+                                Estado de pago
+
+                            </span>
+
+                            <span class="small fw-semibold">
+
+                                @porcentajePagado.ToString("N1")%
+
+                            </span>
+
+                        </div>
+
+                        <div class="progress"
+                             role="progressbar"
+                             aria-valuenow="@porcentajePagado"
+                             aria-valuemin="0"
+                             aria-valuemax="100"
+                             style="height: 8px;">
+
+                            <div class="progress-bar bg-success"
+                                 style="width: @porcentajePagado.ToString(System.Globalization.CultureInfo.InvariantCulture)%;">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- ANULACIÓN -->
+    <!-- ========================================================= -->
+    @if (Model.IdEstadoFactura == 3)
+    {
+        <div class="card shadow-sm border-0 mt-4">
+
+            <div class="card-header bg-danger text-white py-3">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-x-octagon me-2"></i>
+
+                    Información de anulación
+
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- FECHA -->
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+
+                            Fecha de anulación
+
+                        </div>
+
+                        <div class="fw-semibold">
+
+                            @(Model.FechaAnulacion.HasValue
+                                ? Model.FechaAnulacion.Value.ToString("dd/MM/yyyy HH:mm")
+                                : "No registrada")
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- MOTIVO -->
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+
+                            Motivo
+
+                        </div>
+
+                        <div class="fw-semibold">
+
+                            @(Model.IdMotivoAnulacionNavigation?.Nombre
+                                ?? "No especificado")
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- USUARIO -->
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+
+                            Usuario que anuló
+
+                        </div>
+
+                        @if (Model.IdUsuarioAnuloNavigation != null)
+                        {
+                            <div class="fw-semibold">
+
+                                @Model.IdUsuarioAnuloNavigation.Nombres
+                                @Model.IdUsuarioAnuloNavigation.Apellidos
+
+                            </div>
+
+                            <div class="small text-muted">
+
+                                @Model.IdUsuarioAnuloNavigation.Usuario1
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-muted">
+
+                                No registrado
+
+                            </div>
+                        }
+
+                    </div>
+
+
+                    <!-- OBSERVACIÓN -->
+                    @if (!string.IsNullOrWhiteSpace(Model.ObservacionAnulacion))
+                    {
+                        <div class="col-12">
+
+                            <div class="text-muted small mb-1">
+
+                                Observación de anulación
+
+                            </div>
+
+                            <div class="p-3 bg-light rounded">
+
+                                @Model.ObservacionAnulacion
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- PAGOS -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mt-4">
+
+        <div class="card-header bg-white py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-cash-coin me-2"></i>
+
+                    Pagos
+
+                </h5>
+
+                <span class="badge bg-secondary">
+
+                    @(Model.Pagos?.Count ?? 0)
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (Model.Pagos != null && Model.Pagos.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>
+                                    Fecha
+                                </th>
+
+                                <th>
+                                    Método
+                                </th>
+
+                                <th>
+                                    Moneda
+                                </th>
+
+                                <th>
+                                    Estado
+                                </th>
+
+                                <th class="text-end">
+                                    Monto
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var pago in Model.Pagos.OrderByDescending(p => p.FechaPago))
+                            {
+                                <tr>
+
+                                    <!-- FECHA -->
+
+                                    <td>
+
+                                        @pago.FechaPago.ToString("dd/MM/yyyy HH:mm")
+
+                                    </td>
+
+
+                                    <!-- MÉTODO -->
+
+                                    <td>
+
+                                        @(pago.IdMetodoPagoNavigation?.Nombre
+                                            ?? "No especificado")
+
+                                    </td>
+
+
+                                    <!-- MONEDA -->
+
+                                    <td>
+
+                                        @(pago.IdMonedaNavigation?.CodigoIso
+                                            ?? "")
+
+                                    </td>
+
+
+                                    <!-- ESTADO -->
+
+                                    <td>
+
+                                        <span class="badge bg-secondary">
+
+                                            @(pago.IdEstadoPagoNavigation?.Nombre
+                                                ?? "Sin estado")
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- MONTO -->
+
+                                    <td class="text-end fw-semibold">
+
+                                        @if (pago.IdMonedaNavigation != null)
+                                        {
+                                            @pago.IdMonedaNavigation.Simbolo
+                                        }
+
+                                        @pago.Monto.ToString("N2")
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-cash-stack fs-1 text-muted"></i>
+
+                    <p class="text-muted mt-3 mb-0">
+
+                        Esta factura todavía no tiene pagos registrados.
+
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- HISTORIAL -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mt-4">
+
+        <div class="card-header bg-white py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-clock-history me-2"></i>
+
+                    Historial reciente
+
+                </h5>
+
+                <a asp-action="Historial"
+                   asp-route-id="@Model.IdFactura"
+                   class="btn btn-sm btn-outline-primary">
+
+                    Ver historial completo
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (historial.Any())
+            {
+                <div class="list-group list-group-flush">
+
+                    @foreach (var item in historial.Take(5))
+                    {
+                        <div class="list-group-item py-3">
+
+                            <div class="d-flex justify-content-between align-items-start">
+
+                                <div>
+
+                                    <div class="fw-semibold">
+
+                                        @(item.IdEstadoFacturaNavigation?.Nombre
+                                            ?? "Estado no disponible")
+
+                                    </div>
+
+
+                                    @if (!string.IsNullOrWhiteSpace(item.Observacion))
+                                    {
+                                        <div class="text-muted small mt-1">
+
+                                            @item.Observacion
+
+                                        </div>
+                                    }
+
+
+                                    @if (item.IdUsuarioNavigation != null)
+                                    {
+                                        <div class="small text-muted mt-2">
+
+                                            <i class="bi bi-person me-1"></i>
+
+                                            @item.IdUsuarioNavigation.Nombres
+                                            @item.IdUsuarioNavigation.Apellidos
+
+                                            <span class="ms-1">
+
+                                                (@item.IdUsuarioNavigation.Usuario1)
+
+                                            </span>
+
+                                        </div>
+                                    }
+
+                                </div>
+
+
+                                <div class="text-muted small text-nowrap ms-3">
+
+                                    @item.Fecha.ToString("dd/MM/yyyy HH:mm")
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-clock-history fs-1 text-muted"></i>
+
+                    <p class="text-muted mt-3 mb-0">
+
+                        No hay movimientos registrados.
+
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- PIE -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Volver a facturas
+
+        </a>
+
+
+        <div class="text-muted small">
+
+            ID factura: @Model.IdFactura
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,484 @@
+﻿@model IEnumerable<WebApplication1.Models.Pago>
+
+@{
+    ViewData["Title"] = "Buscar pago";
+
+    var pagos = Model?.ToList()
+        ?? new List<WebApplication1.Models.Pago>();
+}
+
+<div class="container-fluid">
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="mb-1">
+                <i class="bi bi-search me-2"></i>
+                Buscar pago
+            </h2>
+
+            <p class="text-muted mb-0">
+                Busca un pago registrado para asociarlo a una caja.
+            </p>
+
+        </div>
+
+        <div>
+
+            <a asp-controller="Caja"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+                Volver a caja
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJES -->
+    <!-- ========================================================= -->
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- FORMULARIO DE BÚSQUEDA -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-funnel me-2"></i>
+                Filtros de búsqueda
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-controller="Caja"
+                  asp-action="BuscarPago"
+                  method="get">
+
+                <div class="row g-3 align-items-end">
+
+                    <!-- REFERENCIA -->
+
+                    <div class="col-md-6">
+
+                        <label for="referencia"
+                               class="form-label">
+
+                            Referencia
+
+                        </label>
+
+                        <input type="text"
+                               id="referencia"
+                               name="referencia"
+                               class="form-control"
+                               placeholder="Ingrese número o referencia del pago"
+                               value="@Context.Request.Query["referencia"]" />
+
+                    </div>
+
+
+                    <!-- ID FACTURA -->
+
+                    <div class="col-md-4">
+
+                        <label for="idFactura"
+                               class="form-label">
+
+                            ID de factura
+
+                        </label>
+
+                        <input type="number"
+                               id="idFactura"
+                               name="idFactura"
+                               class="form-control"
+                               placeholder="Ej. 123"
+                               value="@Context.Request.Query["idFactura"]" />
+
+                    </div>
+
+
+                    <!-- BUSCAR -->
+
+                    <div class="col-md-2">
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+
+                            <i class="bi bi-search me-1"></i>
+                            Buscar
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- RESULTADOS -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    <i class="bi bi-credit-card me-2"></i>
+                    Pagos encontrados
+
+                </h5>
+
+                <span class="badge bg-secondary">
+
+                    @pagos.Count pago(s)
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (!pagos.Any())
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-search fs-1 text-muted"></i>
+
+                    <h5 class="mt-3">
+                        No se encontraron pagos
+                    </h5>
+
+                    <p class="text-muted mb-0">
+
+                        No existen pagos que coincidan
+                        con los criterios de búsqueda.
+
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>
+                                    #
+                                </th>
+
+                                <th>
+                                    Factura
+                                </th>
+
+                                <th>
+                                    Referencia
+                                </th>
+
+                                <th>
+                                    Fecha
+                                </th>
+
+                                <th>
+                                    Método
+                                </th>
+
+                                <th>
+                                    Moneda
+                                </th>
+
+                                <th class="text-end">
+                                    Monto
+                                </th>
+
+                                <th>
+                                    Estado
+                                </th>
+
+                                <th class="text-center">
+                                    Acción
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var pago in pagos)
+                            {
+                                <tr>
+
+                                    <!-- ================================= -->
+                                    <!-- ID PAGO -->
+                                    <!-- ================================= -->
+
+                                    <td class="fw-semibold">
+
+                                        @pago.IdPago
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- FACTURA -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        @if (pago.IdFacturaNavigation != null)
+                                        {
+                                            <span class="fw-semibold">
+
+                                                #@pago.IdFactura
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- REFERENCIA -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            pago.Referencia))
+                                        {
+                                            <span>
+                                                @pago.Referencia
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Sin referencia
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- FECHA -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        @pago.FechaPago.ToString(
+                                            "dd/MM/yyyy")
+
+                                        <br />
+
+                                        <small class="text-muted">
+
+                                            @pago.FechaPago.ToString(
+                                                "HH:mm")
+
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- MÉTODO -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        @if (pago.IdMetodoPagoNavigation != null)
+                                        {
+                                            @pago.IdMetodoPagoNavigation.Nombre
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- MONEDA -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        @if (pago.IdMonedaNavigation != null)
+                                        {
+                                            <span class="fw-semibold">
+
+                                                @pago.IdMonedaNavigation.Simbolo
+
+                                                @pago.IdMonedaNavigation.CodigoIso
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- MONTO -->
+                                    <!-- ================================= -->
+
+                                    <td class="text-end">
+
+                                        <span class="fw-bold">
+
+                                            @if (pago.IdMonedaNavigation != null)
+                                            {
+                                                @pago.IdMonedaNavigation.Simbolo
+                                            }
+
+                                            @pago.Monto.ToString("N2")
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- ESTADO -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        @if (pago.IdEstadoPagoNavigation != null)
+                                        {
+                                            <span class="badge bg-success">
+
+                                                @pago.IdEstadoPagoNavigation.Nombre
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Sin estado
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- ACCIÓN -->
+                                    <!-- ================================= -->
+
+                                    <td class="text-center">
+
+                                        <a asp-controller="Pago"
+                                           asp-action="Details"
+                                           asp-route-id="@pago.IdPago"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Ver pago">
+
+                                            <i class="bi bi-eye"></i>
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

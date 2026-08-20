@@ -1,0 +1,1938 @@
+﻿@model IEnumerable<WebApplication1.Models.Pedido>
+
+@{
+    ViewData["Title"] = "Pedidos";
+
+    var rolUsuario = User.IsInRole("Administrador")
+        ? "Administrador"
+        : User.IsInRole("Gerente")
+            ? "Gerente"
+            : User.IsInRole("Cajero")
+                ? "Cajero"
+                : User.IsInRole("Mesero")
+                    ? "Mesero"
+                    : User.IsInRole("Cocina")
+                        ? "Cocina"
+                        : "";
+
+    bool puedeCancelar =
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente");
+
+    var buscar = Context.Request.Query["buscar"].ToString();
+    var criterio = Context.Request.Query["criterio"].ToString();
+
+    if (string.IsNullOrWhiteSpace(criterio))
+    {
+        criterio = "general";
+    }
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-receipt-cutoff me-2"></i>
+                Pedidos
+            </h2>
+
+            <p class="text-muted mb-0">
+                Gestión y seguimiento de los pedidos del restaurante.
+            </p>
+        </div>
+
+        <div>
+            <a asp-action="Create"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-circle me-1"></i>
+
+                Nuevo pedido
+
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJES -->
+    <!-- ========================================================= -->
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Mensaje"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN DEL USUARIO -->
+    <!-- ========================================================= -->
+
+    <div class="mb-4">
+
+        <span class="badge bg-secondary">
+
+            <i class="bi bi-person-badge me-1"></i>
+
+            Rol: @rolUsuario
+
+        </span>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- DASHBOARD -->
+    <!-- ========================================================= -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- VENTAS DEL MES -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Ventas del mes
+                            </p>
+
+                            <h3 class="fw-bold text-success mb-0">
+
+                                C$
+                                @(((decimal)(ViewBag.TotalVendidoMes ?? 0m))
+                                    .ToString("N2"))
+
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-success-subtle p-3">
+
+                            <i class="bi bi-cash-stack text-success fs-4"></i>
+
+                        </div>
+
+                    </div>
+
+                    <div class="mt-3">
+
+                        <small class="text-muted">
+
+                            @((int)(ViewBag.CantidadPedidosMes ?? 0))
+                            pedido(s) activos
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- VENTAS DE HOY -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Ventas de hoy
+                            </p>
+
+                            <h3 class="fw-bold text-primary mb-0">
+
+                                C$
+                                @(((decimal)(ViewBag.TotalVendidoHoy ?? 0m))
+                                    .ToString("N2"))
+
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-primary-subtle p-3">
+
+                            <i class="bi bi-calendar-day text-primary fs-4"></i>
+
+                        </div>
+
+                    </div>
+
+                    <div class="mt-3">
+
+                        <small class="text-muted">
+
+                            @((int)(ViewBag.CantidadPedidosHoy ?? 0))
+                            pedido(s) activos
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TICKET PROMEDIO -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Ticket promedio
+                            </p>
+
+                            <h3 class="fw-bold text-info mb-0">
+
+                                C$
+                                @(((decimal)(ViewBag.TicketPromedioMes ?? 0m))
+                                    .ToString("N2"))
+
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-info-subtle p-3">
+
+                            <i class="bi bi-graph-up-arrow text-info fs-4"></i>
+
+                        </div>
+
+                    </div>
+
+                    <div class="mt-3">
+
+                        <small class="text-muted">
+                            Promedio por pedido del mes
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CANCELADOS -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Cancelados del mes
+                            </p>
+
+                            <h3 class="fw-bold text-danger mb-0">
+
+                                @((int)(ViewBag.PedidosCanceladosMes ?? 0))
+
+                            </h3>
+
+                        </div>
+
+                        <div class="rounded-circle bg-danger-subtle p-3">
+
+                            <i class="bi bi-x-circle text-danger fs-4"></i>
+
+                        </div>
+
+                    </div>
+
+                    <div class="mt-3">
+
+                        <small class="text-muted">
+
+                            @((int)(ViewBag.PedidosCanceladosHoy ?? 0))
+                            cancelado(s) hoy
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- ESTADOS DE LOS PEDIDOS -->
+    <!-- ========================================================= -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- PENDIENTES -->
+
+        <div class="col-xl-2 col-md-4 col-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-clock-history text-warning fs-2"></i>
+                    </div>
+
+                    <h4 class="fw-bold mb-1">
+                        @((int)(ViewBag.PedidosPendientes ?? 0))
+                    </h4>
+
+                    <small class="text-muted">
+                        Pendientes
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- EN COCINA -->
+
+        <div class="col-xl-2 col-md-4 col-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-fire text-info fs-2"></i>
+                    </div>
+
+                    <h4 class="fw-bold mb-1">
+                        @((int)(ViewBag.PedidosEnCocina ?? 0))
+                    </h4>
+
+                    <small class="text-muted">
+                        En cocina
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PREPARÁNDOSE -->
+
+        <div class="col-xl-2 col-md-4 col-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-gear text-primary fs-2"></i>
+                    </div>
+
+                    <h4 class="fw-bold mb-1">
+                        @((int)(ViewBag.PedidosPreparandose ?? 0))
+                    </h4>
+
+                    <small class="text-muted">
+                        Preparándose
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- LISTOS -->
+
+        <div class="col-xl-2 col-md-4 col-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-check2-circle text-primary fs-2"></i>
+                    </div>
+
+                    <h4 class="fw-bold mb-1">
+                        @((int)(ViewBag.PedidosListos ?? 0))
+                    </h4>
+
+                    <small class="text-muted">
+                        Listos
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ENTREGADOS -->
+
+        <div class="col-xl-2 col-md-4 col-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-box-seam text-success fs-2"></i>
+                    </div>
+
+                    <h4 class="fw-bold mb-1">
+                        @((int)(ViewBag.PedidosEntregados ?? 0))
+                    </h4>
+
+                    <small class="text-muted">
+                        Entregados
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- FACTURADOS -->
+
+        <div class="col-xl-2 col-md-4 col-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-cash-coin text-success fs-2"></i>
+                    </div>
+
+                    <h4 class="fw-bold mb-1">
+                        @((int)(ViewBag.PedidosFacturados ?? 0))
+                    </h4>
+
+                    <small class="text-muted">
+                        Facturados
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- RESUMEN DEL DÍA -->
+    <!-- ========================================================= -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-4">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="rounded-circle bg-primary-subtle p-3 me-3">
+
+                            <i class="bi bi-calendar-check text-primary fs-4"></i>
+
+                        </div>
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Pedidos de hoy
+                            </div>
+
+                            <div class="fw-bold fs-4">
+
+                                @((int)(ViewBag.CantidadPedidosHoy ?? 0))
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="rounded-circle bg-success-subtle p-3 me-3">
+
+                            <i class="bi bi-currency-dollar text-success fs-4"></i>
+
+                        </div>
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Total vendido hoy
+                            </div>
+
+                            <div class="fw-bold fs-4 text-success">
+
+                                C$
+                                @(((decimal)(ViewBag.TotalVendidoHoy ?? 0m))
+                                    .ToString("N2"))
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="rounded-circle bg-info-subtle p-3 me-3">
+
+                            <i class="bi bi-bar-chart text-info fs-4"></i>
+
+                        </div>
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Ticket promedio de hoy
+                            </div>
+
+                            <div class="fw-bold fs-4 text-info">
+
+                                C$
+                                @(((decimal)(ViewBag.TicketPromedioHoy ?? 0m))
+                                    .ToString("N2"))
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- TABLA DE PEDIDOS -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white py-3">
+
+            <!-- ===================================================== -->
+            <!-- TÍTULO + CONTADOR -->
+            <!-- ===================================================== -->
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <h5 class="mb-0 fw-semibold">
+
+                    <i class="bi bi-list-ul me-2"></i>
+
+                    Lista de pedidos
+
+                </h5>
+
+                <span class="text-muted small">
+
+                    @Model.Count() pedido(s)
+
+                </span>
+
+            </div>
+
+
+            <!-- ===================================================== -->
+            <!-- BUSCADOR MEJORADO -->
+            <!-- ===================================================== -->
+
+            <form asp-action="Index"
+                  method="get"
+                  id="formBusquedaPedidos">
+
+                <div class="row g-2">
+
+                    <!-- CRITERIO -->
+
+                    <div class="col-lg-3 col-md-4">
+
+                        <select name="criterio"
+                                id="criterioBusqueda"
+                                class="form-select">
+
+                            <option value="general"
+                                    selected="@(criterio == "general")">
+
+                                🔎 Buscar en todo
+
+                            </option>
+
+                            <option value="pedido"
+                                    selected="@(criterio == "pedido")">
+
+                                🧾 Número de pedido
+
+                            </option>
+
+                            <option value="cliente"
+                                    selected="@(criterio == "cliente")">
+
+                                👤 Cliente
+
+                            </option>
+
+                            <option value="mesa"
+                                    selected="@(criterio == "mesa")">
+
+                                🪑 Mesa
+
+                            </option>
+
+                            <option value="estado"
+                                    selected="@(criterio == "estado")">
+
+                                📌 Estado
+
+                            </option>
+
+                            <option value="tipo"
+                                    selected="@(criterio == "tipo")">
+
+                                🍽️ Tipo de pedido
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- BUSQUEDA -->
+
+                    <div class="col-lg-7 col-md-5">
+
+                        <div class="input-group">
+
+                            <span class="input-group-text bg-white">
+
+                                <i class="bi bi-search"></i>
+
+                            </span>
+
+                            <input type="text"
+                                   name="buscar"
+                                   id="campoBusqueda"
+                                   value="@buscar"
+                                   class="form-control"
+                                   autocomplete="off"
+                                   placeholder="Escribe para buscar..." />
+
+                            <button type="button"
+                                    class="btn btn-outline-secondary d-none"
+                                    id="limpiarCampo"
+                                    title="Limpiar">
+
+                                <i class="bi bi-x-lg"></i>
+
+                            </button>
+
+                        </div>
+
+                        <!-- SUGERENCIAS -->
+
+                        <div id="sugerenciasBusqueda"
+                             class="list-group position-absolute shadow-sm d-none"
+                             style="z-index: 1050; max-height: 280px; overflow-y: auto; min-width: 300px;">
+                        </div>
+
+                    </div>
+
+
+                    <!-- BOTONES -->
+
+                    <div class="col-lg-2 col-md-3 d-flex gap-2">
+
+                        <button type="submit"
+                                class="btn btn-primary flex-grow-1">
+
+                            <i class="bi bi-search me-1"></i>
+
+                            Buscar
+
+                        </button>
+
+                        @if (!string.IsNullOrWhiteSpace(buscar))
+                        {
+                            <a asp-action="Index"
+                               class="btn btn-outline-secondary"
+                               title="Limpiar búsqueda">
+
+                                <i class="bi bi-arrow-counterclockwise"></i>
+
+                            </a>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- AYUDA -->
+
+                <div class="mt-2">
+
+                    <small class="text-muted"
+                           id="ayudaBusqueda">
+
+                        <i class="bi bi-info-circle me-1"></i>
+
+                        Selecciona un criterio y escribe para obtener sugerencias.
+
+                    </small>
+
+                </div>
+
+            </form>
+
+
+            @if (!string.IsNullOrWhiteSpace(buscar))
+            {
+                <div class="mt-3">
+
+                    <span class="text-muted small">
+
+                        <i class="bi bi-funnel me-1"></i>
+
+                        Resultados para:
+
+                        <strong>
+                            "@buscar"
+                        </strong>
+
+                        @if (criterio != "general")
+                        {
+                            <span>
+                                en
+                                <strong>
+                                    @(criterio switch
+                                    {
+                                        "pedido" => "Número de pedido",
+                                        "cliente" => "Cliente",
+                                        "mesa" => "Mesa",
+                                        "estado" => "Estado",
+                                        "tipo" => "Tipo de pedido",
+                                        _ => "Todo"
+                                    })
+                                </strong>
+                            </span>
+                        }
+
+                    </span>
+
+                </div>
+            }
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-receipt display-4 text-muted"></i>
+
+                    @if (!string.IsNullOrWhiteSpace(buscar))
+                    {
+                        <h5 class="mt-3">
+                            No se encontraron pedidos
+                        </h5>
+
+                        <p class="text-muted">
+
+                            No existen pedidos que coincidan con
+                            "<strong>@buscar</strong>".
+
+                        </p>
+
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>
+
+                            Ver todos los pedidos
+
+                        </a>
+                    }
+                    else
+                    {
+                        <h5 class="mt-3">
+                            No hay pedidos registrados
+                        </h5>
+
+                        <p class="text-muted">
+
+                            Puedes crear el primer pedido utilizando
+                            el botón "Nuevo pedido".
+
+                        </p>
+
+                        <a asp-action="Create"
+                           class="btn btn-primary">
+
+                            <i class="bi bi-plus-circle me-1"></i>
+
+                            Crear pedido
+
+                        </a>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>
+                                    Pedido
+                                </th>
+
+                                <th>
+                                    Fecha
+                                </th>
+
+                                <th>
+                                    Cliente
+                                </th>
+
+                                <th>
+                                    Mesa
+                                </th>
+
+                                <th>
+                                    Tipo
+                                </th>
+
+                                <th>
+                                    Estado
+                                </th>
+
+                                <th class="text-end">
+                                    Subtotal
+                                </th>
+
+                                <th class="text-end">
+                                    Descuento
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+
+                                <th class="text-center">
+                                    Acciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var pedido in Model)
+                            {
+                                var estado =
+                                    pedido.IdEstadoPedidoNavigation?.Nombre
+                                    ?? "Sin estado";
+
+                                var estaCancelado =
+                                    estado.Trim().Equals(
+                                        "Cancelado",
+                                        StringComparison.OrdinalIgnoreCase);
+
+                                var estaFacturado =
+                                    estado.Trim().Equals(
+                                        "Facturado",
+                                        StringComparison.OrdinalIgnoreCase);
+
+                                <tr class="@(estaCancelado
+                                    ? "table-secondary"
+                                    : "")">
+
+                                    <!-- NÚMERO -->
+
+                                    <td>
+
+                                        <strong>
+
+                                            @(pedido.NumeroPedido
+                                                ?? $"#{pedido.IdPedido}")
+
+                                        </strong>
+
+                                    </td>
+
+
+                                    <!-- FECHA -->
+
+                                    <td>
+
+                                        <div>
+
+                                            @pedido.FechaPedido.ToString(
+                                                "dd/MM/yyyy")
+
+                                        </div>
+
+                                        <small class="text-muted">
+
+                                            @pedido.FechaPedido.ToString(
+                                                "HH:mm:ss")
+
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- CLIENTE -->
+
+                                    <td>
+
+                                        @if (pedido.IdClienteNavigation != null)
+                                        {
+                                            <span>
+
+                                                @pedido.IdClienteNavigation.Nombres
+                                                @pedido.IdClienteNavigation.Apellidos
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Sin cliente
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- MESA -->
+
+                                    <td>
+
+                                        @if (pedido.IdMesaNavigation != null)
+                                        {
+                                            <span class="badge bg-light text-dark border">
+
+                                                <i class="bi bi-grid-3x3-gap me-1"></i>
+
+                                                Mesa
+                                                @pedido.IdMesaNavigation.NumeroMesa
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- TIPO -->
+
+                                    <td>
+
+                                        @if (pedido.IdTipoPedidoNavigation != null)
+                                        {
+                                            @pedido.IdTipoPedidoNavigation.Nombre
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ESTADO -->
+
+                                    <td>
+
+                                        @if (estaCancelado)
+                                        {
+                                            <span class="badge bg-danger">
+
+                                                <i class="bi bi-x-circle me-1"></i>
+
+                                                Cancelado
+
+                                            </span>
+                                        }
+                                        else if (estaFacturado)
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="bi bi-cash-coin me-1"></i>
+
+                                                Facturado
+
+                                            </span>
+                                        }
+                                        else if (estado.Equals(
+                                            "Pendiente",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-warning text-dark">
+
+                                                <i class="bi bi-clock me-1"></i>
+
+                                                Pendiente
+
+                                            </span>
+                                        }
+                                        else if (estado.Equals(
+                                            "En cocina",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-info text-dark">
+
+                                                <i class="bi bi-fire me-1"></i>
+
+                                                En cocina
+
+                                            </span>
+                                        }
+                                        else if (estado.Equals(
+                                            "Preparándose",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-primary">
+
+                                                <i class="bi bi-gear me-1"></i>
+
+                                                Preparándose
+
+                                            </span>
+                                        }
+                                        else if (estado.Equals(
+                                            "Listo",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-primary">
+
+                                                <i class="bi bi-check2-circle me-1"></i>
+
+                                                Listo
+
+                                            </span>
+                                        }
+                                        else if (estado.Equals(
+                                            "Entregado",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="bi bi-box-seam me-1"></i>
+
+                                                Entregado
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+
+                                                @estado
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- SUBTOTAL -->
+
+                                    <td class="text-end">
+
+                                        C$
+                                        @pedido.Subtotal.ToString("N2")
+
+                                    </td>
+
+
+                                    <!-- DESCUENTO -->
+
+                                    <td class="text-end">
+
+                                        @if (pedido.Descuento > 0)
+                                        {
+                                            <span class="text-danger">
+
+                                                - C$
+                                                @pedido.Descuento.ToString("N2")
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                C$ 0.00
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- TOTAL -->
+
+                                    <td class="text-end">
+
+                                        <strong class="@(estaCancelado
+                                            ? "text-muted text-decoration-line-through"
+                                            : "text-success")">
+
+                                            C$
+                                            @pedido.Total.ToString("N2")
+
+                                        </strong>
+
+                                    </td>
+
+
+                                    <!-- ACCIONES -->
+
+                                    <td>
+
+                                        <div class="d-flex justify-content-center gap-1">
+
+                                            <!-- DETALLES -->
+
+                                            <a asp-action="Details"
+                                               asp-route-id="@pedido.IdPedido"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver detalles">
+
+                                                <i class="bi bi-eye"></i>
+
+                                            </a>
+
+
+                                            <!-- EDITAR -->
+
+                                            @if (!estaCancelado &&
+                                                 !estaFacturado)
+                                            {
+                                                <a asp-action="Edit"
+                                                   asp-route-id="@pedido.IdPedido"
+                                                   class="btn btn-sm btn-outline-warning"
+                                                   title="Editar pedido">
+
+                                                    <i class="bi bi-pencil"></i>
+
+                                                </a>
+                                            }
+
+
+                                            <!-- CANCELAR -->
+
+                                            @if (puedeCancelar &&
+                                                 !estaCancelado &&
+                                                 !estaFacturado)
+                                            {
+                                                <form asp-action="Anular"
+                                                      asp-route-id="@pedido.IdPedido"
+                                                      method="post"
+                                                      class="d-inline">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-outline-danger"
+                                                            title="Cancelar pedido"
+                                                            onclick="return confirmarCancelacion('@pedido.NumeroPedido');">
+
+                                                        <i class="bi bi-x-circle"></i>
+
+                                                    </button>
+
+                                                </form>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- LEYENDA -->
+    <!-- ========================================================= -->
+
+    <div class="mt-3">
+
+        <small class="text-muted">
+
+            <i class="bi bi-info-circle me-1"></i>
+
+            Los pedidos cancelados no se consideran ventas activas.
+
+            @if (puedeCancelar)
+            {
+                <span class="ms-2">
+
+                    Usted tiene permisos para cancelar pedidos.
+
+                </span>
+            }
+
+        </small>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================= -->
+<!-- CONFIRMACIÓN + BUSCADOR -->
+<!-- ============================================================= -->
+
+@section Scripts {
+
+    <script>
+
+        // =========================================================
+        // DATOS PARA AUTOCOMPLETADO
+        // =========================================================
+
+        const datosPedidos = [
+
+            @foreach (var pedido in Model)
+            {
+                var cliente =
+                    pedido.IdClienteNavigation != null
+                        ? $"{pedido.IdClienteNavigation.Nombres} {pedido.IdClienteNavigation.Apellidos}".Trim()
+                        : "";
+
+                var mesa =
+                    pedido.IdMesaNavigation != null
+                        ? $"Mesa {pedido.IdMesaNavigation.NumeroMesa}"
+                        : "";
+
+                var estado =
+                    pedido.IdEstadoPedidoNavigation?.Nombre ?? "";
+
+                var tipo =
+                    pedido.IdTipoPedidoNavigation?.Nombre ?? "";
+
+                var numero =
+                    pedido.NumeroPedido ?? $"#{pedido.IdPedido}";
+
+                <text>
+                {
+                    pedido: "@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(numero))",
+                    cliente: "@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(cliente))",
+                    mesa: "@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(mesa))",
+                    estado: "@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(estado))",
+                    tipo: "@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(tipo))"
+                },
+                </text>
+            }
+
+        ];
+
+
+        // =========================================================
+        // ELEMENTOS
+        // =========================================================
+
+        const criterioBusqueda =
+            document.getElementById("criterioBusqueda");
+
+        const campoBusqueda =
+            document.getElementById("campoBusqueda");
+
+        const sugerencias =
+            document.getElementById("sugerenciasBusqueda");
+
+        const limpiarCampo =
+            document.getElementById("limpiarCampo");
+
+        const ayudaBusqueda =
+            document.getElementById("ayudaBusqueda");
+
+
+        // =========================================================
+        // NORMALIZAR TEXTO
+        // QUITA ACENTOS Y CONVIERTE A MINÚSCULAS
+        // =========================================================
+
+        function normalizarTexto(texto) {
+
+            return (texto || "")
+                .toString()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
+                .trim();
+
+        }
+
+
+        // =========================================================
+        // DISTANCIA DE LEVENSHTEIN
+        // PERMITE DETECTAR ERRORES DE ESCRITURA
+        // =========================================================
+
+        function distanciaLevenshtein(a, b) {
+
+            a = normalizarTexto(a);
+            b = normalizarTexto(b);
+
+            const matriz = [];
+
+            for (let i = 0; i <= b.length; i++) {
+                matriz[i] = [i];
+            }
+
+            for (let j = 0; j <= a.length; j++) {
+                matriz[0][j] = j;
+            }
+
+            for (let i = 1; i <= b.length; i++) {
+
+                for (let j = 1; j <= a.length; j++) {
+
+                    if (b.charAt(i - 1) ===
+                        a.charAt(j - 1)) {
+
+                        matriz[i][j] =
+                            matriz[i - 1][j - 1];
+
+                    }
+                    else {
+
+                        matriz[i][j] =
+                            Math.min(
+                                matriz[i - 1][j - 1] + 1,
+                                matriz[i][j - 1] + 1,
+                                matriz[i - 1][j] + 1
+                            );
+                    }
+                }
+            }
+
+            return matriz[b.length][a.length];
+        }
+
+
+        // =========================================================
+        // COMPROBAR COINCIDENCIA
+        // =========================================================
+
+        function coincideTexto(texto, busqueda) {
+
+            const valor =
+                normalizarTexto(texto);
+
+            const termino =
+                normalizarTexto(busqueda);
+
+            if (!valor || !termino) {
+                return false;
+            }
+
+            // Coincidencia normal
+            if (valor.includes(termino)) {
+                return true;
+            }
+
+            // Coincidencia por palabras
+            const palabras =
+                valor.split(/\s+/);
+
+            if (palabras.some(palabra =>
+                palabra.startsWith(termino))) {
+
+                return true;
+            }
+
+            // Tolerancia para errores de escritura
+            if (termino.length >= 3) {
+
+                const distancia =
+                    distanciaLevenshtein(
+                        valor,
+                        termino);
+
+                const maxErrores =
+                    termino.length >= 7
+                        ? 2
+                        : 1;
+
+                if (distancia <= maxErrores) {
+                    return true;
+                }
+
+                return palabras.some(palabra =>
+                    palabra.length >= 3 &&
+                    distanciaLevenshtein(
+                        palabra,
+                        termino) <= maxErrores);
+            }
+
+            return false;
+        }
+
+
+        // =========================================================
+        // OBTENER CAMPOS SEGÚN CRITERIO
+        // =========================================================
+
+        function obtenerCampos(item) {
+
+            const criterio =
+                criterioBusqueda.value;
+
+            switch (criterio) {
+
+                case "pedido":
+                    return [item.pedido];
+
+                case "cliente":
+                    return [item.cliente];
+
+                case "mesa":
+                    return [item.mesa];
+
+                case "estado":
+                    return [item.estado];
+
+                case "tipo":
+                    return [item.tipo];
+
+                default:
+                    return [
+                        item.pedido,
+                        item.cliente,
+                        item.mesa,
+                        item.estado,
+                        item.tipo
+                    ];
+            }
+        }
+
+
+        // =========================================================
+        // ACTUALIZAR AYUDA
+        // =========================================================
+
+        function actualizarAyuda() {
+
+            const criterio =
+                criterioBusqueda.value;
+
+            const mensajes = {
+
+                general:
+                    "Busca por número, cliente, mesa, estado o tipo de pedido.",
+
+                pedido:
+                    "Escribe el número del pedido, por ejemplo PED-000001.",
+
+                cliente:
+                    "Empieza a escribir el nombre o apellido del cliente.",
+
+                mesa:
+                    "Escribe el número de mesa o selecciona una sugerencia.",
+
+                estado:
+                    "Selecciona un estado como Pendiente, En cocina o Listo.",
+
+                tipo:
+                    "Selecciona el tipo de pedido disponible."
+
+            };
+
+            ayudaBusqueda.innerHTML =
+                '<i class="bi bi-info-circle me-1"></i>' +
+                mensajes[criterio];
+
+        }
+
+
+        // =========================================================
+        // MOSTRAR SUGERENCIAS
+        // =========================================================
+
+        function mostrarSugerencias() {
+
+            const termino =
+                campoBusqueda.value.trim();
+
+            sugerencias.innerHTML = "";
+
+            if (!termino) {
+
+                sugerencias.classList.add("d-none");
+
+                return;
+            }
+
+            const resultados = [];
+
+            datosPedidos.forEach(item => {
+
+                const campos =
+                    obtenerCampos(item);
+
+                const coincide =
+                    campos.some(campo =>
+                        coincideTexto(
+                            campo,
+                            termino));
+
+                if (coincide) {
+
+                    let textoPrincipal = "";
+                    let textoSecundario = "";
+
+                    switch (criterioBusqueda.value) {
+
+                        case "pedido":
+
+                            textoPrincipal =
+                                item.pedido;
+
+                            textoSecundario =
+                                item.cliente;
+
+                            break;
+
+                        case "cliente":
+
+                            textoPrincipal =
+                                item.cliente;
+
+                            textoSecundario =
+                                item.pedido;
+
+                            break;
+
+                        case "mesa":
+
+                            textoPrincipal =
+                                item.mesa;
+
+                            textoSecundario =
+                                item.pedido;
+
+                            break;
+
+                        case "estado":
+
+                            textoPrincipal =
+                                item.estado;
+
+                            textoSecundario =
+                                item.pedido;
+
+                            break;
+
+                        case "tipo":
+
+                            textoPrincipal =
+                                item.tipo;
+
+                            textoSecundario =
+                                item.pedido;
+
+                            break;
+
+                        default:
+
+                            textoPrincipal =
+                                item.pedido;
+
+                            textoSecundario =
+                                [
+                                    item.cliente,
+                                    item.mesa,
+                                    item.estado
+                                ]
+                                .filter(Boolean)
+                                .join(" • ");
+
+                            break;
+                    }
+
+                    resultados.push({
+                        principal:
+                            textoPrincipal,
+                        secundario:
+                            textoSecundario
+                    });
+                }
+
+            });
+
+
+            // Eliminar duplicados
+
+            const unicos = [];
+
+            const existentes =
+                new Set();
+
+            resultados.forEach(resultado => {
+
+                const clave =
+                    normalizarTexto(
+                        resultado.principal);
+
+                if (clave &&
+                    !existentes.has(clave)) {
+
+                    existentes.add(clave);
+
+                    unicos.push(resultado);
+                }
+
+            });
+
+
+            if (!unicos.length) {
+
+                sugerencias.classList.add("d-none");
+
+                return;
+            }
+
+
+            // Máximo 8 sugerencias
+
+            unicos
+                .slice(0, 8)
+                .forEach(resultado => {
+
+                    const boton =
+                        document.createElement("button");
+
+                    boton.type = "button";
+
+                    boton.className =
+                        "list-group-item list-group-item-action";
+
+                    boton.innerHTML =
+
+                        '<div class="fw-semibold">' +
+                        escaparHtml(
+                            resultado.principal) +
+                        '</div>' +
+
+                        (
+                            resultado.secundario
+                                ? '<small class="text-muted">' +
+                                  escaparHtml(
+                                      resultado.secundario) +
+                                  '</small>'
+                                : ""
+                        );
+
+
+                    boton.addEventListener(
+                        "click",
+                        function () {
+
+                            campoBusqueda.value =
+                                resultado.principal;
+
+                            sugerencias.classList.add(
+                                "d-none");
+
+                            actualizarBotonLimpiar();
+
+                            document
+                                .getElementById(
+                                    "formBusquedaPedidos")
+                                .submit();
+
+                        });
+
+
+                    sugerencias.appendChild(
+                        boton);
+
+                });
+
+
+            sugerencias.classList.remove(
+                "d-none");
+        }
+
+
+        // =========================================================
+        // ESCAPAR HTML
+        // =========================================================
+
+        function escaparHtml(texto) {
+
+            return String(texto || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+
+        // =========================================================
+        // BOTÓN LIMPIAR CAMPO
+        // =========================================================
+
+        function actualizarBotonLimpiar() {
+
+            if (campoBusqueda.value.trim()) {
+
+                limpiarCampo.classList.remove(
+                    "d-none");
+
+            }
+            else {
+
+                limpiarCampo.classList.add(
+                    "d-none");
+            }
+        }
+
+
+        // =========================================================
+        // EVENTOS
+        // =========================================================
+
+        campoBusqueda.addEventListener(
+            "input",
+            function () {
+
+                actualizarBotonLimpiar();
+
+                mostrarSugerencias();
+
+            });
+
+
+        criterioBusqueda.addEventListener(
+            "change",
+            function () {
+
+                actualizarAyuda();
+
+                mostrarSugerencias();
+
+            });
+
+
+        limpiarCampo.addEventListener(
+            "click",
+            function () {
+
+                campoBusqueda.value = "";
+
+                sugerencias.innerHTML = "";
+
+                sugerencias.classList.add(
+                    "d-none");
+
+                actualizarBotonLimpiar();
+
+                campoBusqueda.focus();
+
+            });
+
+
+        // =========================================================
+        // CERRAR SUGERENCIAS AL HACER CLICK AFUERA
+        // =========================================================
+
+        document.addEventListener(
+            "click",
+            function (evento) {
+
+                if (!campoBusqueda.contains(evento.target) &&
+                    !sugerencias.contains(evento.target)) {
+
+                    sugerencias.classList.add(
+                        "d-none");
+                }
+
+            });
+
+
+        // =========================================================
+        // TECLADO
+        // =========================================================
+
+        campoBusqueda.addEventListener(
+            "keydown",
+            function (evento) {
+
+                if (evento.key === "Escape") {
+
+                    sugerencias.classList.add(
+                        "d-none");
+                }
+
+            });
+
+
+        // =========================================================
+        // INICIALIZACIÓN
+        // =========================================================
+
+        actualizarAyuda();
+
+        actualizarBotonLimpiar();
+
+
+        // =========================================================
+        // CONFIRMAR CANCELACIÓN
+        // =========================================================
+
+        function confirmarCancelacion(numeroPedido) {
+
+            let mensaje =
+                "¿Está seguro de cancelar el pedido " +
+                numeroPedido +
+                "?\n\n" +
+                "Esta acción cambiará el estado del pedido a Cancelado " +
+                "y dejará de considerarlo como una venta activa.";
+
+            return confirm(mensaje);
+        }
+
+    </script>
+
+}
