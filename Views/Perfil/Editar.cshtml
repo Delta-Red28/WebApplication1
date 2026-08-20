@@ -1,0 +1,326 @@
+﻿@model WebApplication1.Models.Usuario
+
+@{
+    ViewData["Title"] = "Editar mi perfil";
+
+    var nombreCompleto =
+        $"{Model.Nombres} {Model.Apellidos}".Trim();
+
+    var rol =
+        Model.IdRolNavigation?.Nombre ?? "Usuario";
+}
+
+<div class="container-fluid">
+
+    <!-- ===================================================== -->
+    <!-- ENCABEZADO -->
+    <!-- ===================================================== -->
+
+    <div class="mb-4">
+
+        <h2 class="fw-bold mb-1">
+            Editar mi perfil
+        </h2>
+
+        <p class="text-muted mb-0">
+            Actualiza tu información personal.
+        </p>
+
+    </div>
+
+
+    <div class="row">
+
+        <div class="col-xl-8 col-lg-10">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-white border-0 p-4">
+
+                    <h5 class="fw-bold mb-1">
+
+                        <i class="bi bi-person-gear
+                        text-primary me-2"></i>
+
+                        Información personal
+
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Puedes modificar únicamente tu información personal.
+                    </p>
+
+                </div>
+
+
+                <div class="card-body p-4">
+
+                    <form asp-controller="Perfil"
+                          asp-action="Editar"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+
+                        <!-- ================================================= -->
+                        <!-- ERRORES GENERALES -->
+                        <!-- ================================================= -->
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="alert alert-danger"
+                             role="alert">
+                        </div>
+
+
+                        <div class="row g-4">
+
+                            <!-- NOMBRES -->
+
+                            <div class="col-md-6">
+
+                                <label class="form-label fw-semibold">
+                                    Nombres
+                                </label>
+
+                                <input type="text"
+                                       name="nombres"
+                                       value="@Model.Nombres"
+                                       class="form-control"
+                                       maxlength="100"
+                                       required />
+
+                                <span asp-validation-for="Nombres"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- APELLIDOS -->
+
+                            <div class="col-md-6">
+
+                                <label class="form-label fw-semibold">
+                                    Apellidos
+                                </label>
+
+                                <input type="text"
+                                       name="apellidos"
+                                       value="@Model.Apellidos"
+                                       class="form-control"
+                                       maxlength="100"
+                                       required />
+
+                                <span asp-validation-for="Apellidos"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- CORREO -->
+
+                            <div class="col-md-6">
+
+                                <label class="form-label fw-semibold">
+                                    Correo electrónico
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text">
+
+                                        <i class="bi bi-envelope"></i>
+
+                                    </span>
+
+                                    <input type="email"
+                                           name="correo"
+                                           value="@Model.Correo"
+                                           class="form-control"
+                                           maxlength="150"
+                                           required />
+
+                                </div>
+
+                                <span asp-validation-for="Correo"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- TELÉFONO -->
+
+                            <div class="col-md-6">
+
+                                <label class="form-label fw-semibold">
+                                    Teléfono
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text">
+
+                                        <i class="bi bi-telephone"></i>
+
+                                    </span>
+
+                                    <input type="text"
+                                           name="telefono"
+                                           value="@Model.Telefono"
+                                           class="form-control"
+                                           maxlength="30" />
+
+                                </div>
+
+                                <span asp-validation-for="Telefono"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- DATOS BLOQUEADOS -->
+                        <!-- ================================================= -->
+
+                        <hr class="my-4" />
+
+
+                        <h6 class="fw-bold mb-3">
+
+                            <i class="bi bi-lock me-2 text-secondary"></i>
+
+                            Información administrada por el sistema
+
+                        </h6>
+
+
+                        <div class="row g-4">
+
+                            <!-- USUARIO -->
+
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Nombre de usuario
+                                </label>
+
+                                <input type="text"
+                                       class="form-control bg-light"
+                                       value="@Model.Usuario1"
+                                       readonly />
+
+                                <small class="text-muted">
+                                    El nombre de usuario solo puede ser
+                                    modificado por un administrador.
+                                </small>
+
+                            </div>
+
+
+                            <!-- ROL -->
+
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Rol
+                                </label>
+
+                                <input type="text"
+                                       class="form-control bg-light"
+                                       value="@rol"
+                                       readonly />
+
+                                <small class="text-muted">
+                                    El rol es administrado por el sistema.
+                                </small>
+
+                            </div>
+
+
+                            <!-- ESTADO -->
+
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Estado de la cuenta
+                                </label>
+
+                                <input type="text"
+                                       class="form-control bg-light"
+                                       value="@(Model.Estado ? "Activa" : "Inactiva")"
+                                       readonly />
+
+                            </div>
+
+
+                            <!-- FECHA REGISTRO -->
+
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Fecha de registro
+                                </label>
+
+                                <input type="text"
+                                       class="form-control bg-light"
+                                       value="@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")"
+                                       readonly />
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- BOTONES -->
+                        <!-- ================================================= -->
+
+                        <div class="d-flex
+                            justify-content-end
+                            gap-2
+                            mt-4">
+
+                            <a asp-controller="Perfil"
+                               asp-action="Index"
+                               class="btn btn-light">
+
+                                <i class="bi bi-x-lg me-2"></i>
+
+                                Cancelar
+
+                            </a>
+
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+
+                                <i class="bi bi-check-lg me-2"></i>
+
+                                Guardar cambios
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

@@ -78,7 +78,7 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
-            // SI HAY ERRORES DE VALIDACIÓN
+            // SI HAY ERRORES
             // ========================================================
 
             if (!ModelState.IsValid)
@@ -88,10 +88,10 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
-            // LIMPIAR ESPACIOS DEL USUARIO
+            // LIMPIAR USUARIO
             // ========================================================
 
-            usuario = usuario!.Trim();
+            usuario = usuario.Trim();
 
 
             // ========================================================
@@ -101,7 +101,8 @@ namespace WebApplication1.Controllers
             var usuarioDb = await _context.Usuarios
                 .Include(u => u.IdRolNavigation)
                 .FirstOrDefaultAsync(u =>
-                    u.Usuario1 == usuario);
+                    u.Usuario1 == usuario
+                );
 
 
             // ========================================================
@@ -144,7 +145,7 @@ namespace WebApplication1.Controllers
             {
                 passwordCorrecta =
                     BCrypt.Net.BCrypt.Verify(
-                        password!,
+                        password,
                         usuarioDb.PasswordHash
                     );
             }
@@ -160,14 +161,9 @@ namespace WebApplication1.Controllers
 
             if (!passwordCorrecta)
             {
-                // Aumentar contador de intentos fallidos
-
                 usuarioDb.IntentosFallidos++;
 
                 await _context.SaveChangesAsync();
-
-
-                // Mostrar error en el login
 
                 ModelState.AddModelError(
                     "",
@@ -194,8 +190,37 @@ namespace WebApplication1.Controllers
             // ========================================================
 
             string nombreRol =
-                usuarioDb.IdRolNavigation?.Nombre
-                ?? "";
+                usuarioDb.IdRolNavigation?.Nombre ?? "Usuario";
+
+
+            // ========================================================
+            // OBTENER DATOS DEL USUARIO
+            // ========================================================
+
+            string nombres =
+                usuarioDb.Nombres ?? "";
+
+            string apellidos =
+                usuarioDb.Apellidos ?? "";
+
+            string nombreUsuario =
+                usuarioDb.Usuario1 ?? "";
+
+            string correo =
+                usuarioDb.Correo ?? "";
+
+            string nombreCompleto =
+                $"{nombres} {apellidos}".Trim();
+
+
+            // ========================================================
+            // SI NO HAY NOMBRE COMPLETO
+            // ========================================================
+
+            if (string.IsNullOrWhiteSpace(nombreCompleto))
+            {
+                nombreCompleto = nombreUsuario;
+            }
 
 
             // ========================================================
@@ -204,25 +229,55 @@ namespace WebApplication1.Controllers
 
             var claims = new List<Claim>
             {
+                // ID DEL USUARIO
+
                 new Claim(
                     ClaimTypes.NameIdentifier,
                     usuarioDb.IdUsuario.ToString()
                 ),
 
+
+                // NOMBRE DE USUARIO
+
                 new Claim(
                     ClaimTypes.Name,
-                    usuarioDb.Usuario1
+                    nombreUsuario
                 ),
+
+
+                // NOMBRES
+
+                new Claim(
+                    ClaimTypes.GivenName,
+                    nombres
+                ),
+
+
+                // APELLIDOS
+
+                new Claim(
+                    ClaimTypes.Surname,
+                    apellidos
+                ),
+
+
+                // NOMBRE COMPLETO
 
                 new Claim(
                     "NombreCompleto",
-                    $"{usuarioDb.Nombres} {usuarioDb.Apellidos}"
+                    nombreCompleto
                 ),
+
+
+                // CORREO
 
                 new Claim(
                     ClaimTypes.Email,
-                    usuarioDb.Correo ?? ""
+                    correo
                 ),
+
+
+                // ROL
 
                 new Claim(
                     ClaimTypes.Role,
@@ -271,7 +326,7 @@ namespace WebApplication1.Controllers
             if (usuarioDb.DebeCambiarPassword)
             {
                 return RedirectToAction(
-                    "CambiarPassword",
+                    nameof(CambiarPassword),
                     "Account"
                 );
             }
@@ -418,7 +473,7 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
-            // OBTENER ID DEL USUARIO LOGUEADO
+            // OBTENER ID DEL USUARIO ACTUAL
             // ========================================================
 
             var claimId =
@@ -448,6 +503,10 @@ namespace WebApplication1.Controllers
                     );
 
 
+            // ========================================================
+            // USUARIO NO EXISTE
+            // ========================================================
+
             if (usuarioDb == null)
             {
                 return NotFound();
@@ -464,7 +523,7 @@ namespace WebApplication1.Controllers
             {
                 passwordCorrecta =
                     BCrypt.Net.BCrypt.Verify(
-                        passwordActual!,
+                        passwordActual,
                         usuarioDb.PasswordHash
                     );
             }
@@ -490,7 +549,7 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
-            // EVITAR MISMA CONTRASEÑA
+            // EVITAR MISMA PASSWORD
             // ========================================================
 
             bool mismaPassword = false;
@@ -499,7 +558,7 @@ namespace WebApplication1.Controllers
             {
                 mismaPassword =
                     BCrypt.Net.BCrypt.Verify(
-                        nuevaPassword!,
+                        nuevaPassword,
                         usuarioDb.PasswordHash
                     );
             }
@@ -526,12 +585,12 @@ namespace WebApplication1.Controllers
 
             usuarioDb.PasswordHash =
                 BCrypt.Net.BCrypt.HashPassword(
-                    nuevaPassword!
+                    nuevaPassword
                 );
 
 
             // ========================================================
-            // ACTUALIZAR DATOS
+            // ACTUALIZAR ESTADO DE CONTRASEÑA
             // ========================================================
 
             usuarioDb.DebeCambiarPassword = false;
