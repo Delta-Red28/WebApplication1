@@ -13,7 +13,6 @@ namespace WebApplication1.Controllers
             _context = context;
         }
 
-
         // ============================================================
         // GET: Categorias
         // ============================================================
@@ -26,7 +25,6 @@ namespace WebApplication1.Controllers
 
             return View(categorias);
         }
-
 
         // ============================================================
         // GET: Categorias/Details/5
@@ -51,7 +49,6 @@ namespace WebApplication1.Controllers
             return View(categoria);
         }
 
-
         // ============================================================
         // GET: Categorias/Create
         // ============================================================
@@ -60,7 +57,6 @@ namespace WebApplication1.Controllers
         {
             return View();
         }
-
 
         // ============================================================
         // POST: Categorias/Create
@@ -71,7 +67,29 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Create(
             [Bind("Nombre,Descripcion")] Categorium categoria)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+            {
+                return View(categoria);
+            }
+
+            // --------------------------------------------------------
+            // Verificar si ya existe una categoría con ese nombre
+            // --------------------------------------------------------
+
+            bool existe = await _context.Categoria
+                .AnyAsync(c => c.Nombre == categoria.Nombre);
+
+            if (existe)
+            {
+                ModelState.AddModelError(
+                    "Nombre",
+                    "Ya existe una categoría con ese nombre."
+                );
+
+                return View(categoria);
+            }
+
+            try
             {
                 categoria.FechaRegistro = DateTime.Now;
                 categoria.Estado = true;
@@ -85,10 +103,22 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
+            catch (DbUpdateException ex)
+            {
+                // ----------------------------------------------------
+                // Mostrar el error real de SQL Server
+                // ----------------------------------------------------
 
-            return View(categoria);
+                var mensaje = ex.InnerException?.Message ?? ex.Message;
+
+                ModelState.AddModelError(
+                    "",
+                    "Error al guardar la categoría: " + mensaje
+                );
+
+                return View(categoria);
+            }
         }
-
 
         // ============================================================
         // GET: Categorias/Edit/5
@@ -112,7 +142,6 @@ namespace WebApplication1.Controllers
             return View(categoria);
         }
 
-
         // ============================================================
         // POST: Categorias/Edit/5
         // ============================================================
@@ -133,25 +162,57 @@ namespace WebApplication1.Controllers
                 return View(categoria);
             }
 
-            var categoriaExistente = await _context.Categoria
-                .FindAsync(id);
+            // --------------------------------------------------------
+            // Verificar nombre duplicado
+            // --------------------------------------------------------
 
-            if (categoriaExistente == null)
+            bool existe = await _context.Categoria
+                .AnyAsync(c =>
+                    c.Nombre == categoria.Nombre &&
+                    c.IdCategoria != id);
+
+            if (existe)
             {
-                return NotFound();
+                ModelState.AddModelError(
+                    "Nombre",
+                    "Ya existe otra categoría con ese nombre."
+                );
+
+                return View(categoria);
             }
 
-            categoriaExistente.Nombre = categoria.Nombre;
-            categoriaExistente.Descripcion = categoria.Descripcion;
+            try
+            {
+                var categoriaExistente = await _context.Categoria
+                    .FindAsync(id);
 
-            await _context.SaveChangesAsync();
+                if (categoriaExistente == null)
+                {
+                    return NotFound();
+                }
 
-            TempData["Mensaje"] =
-                "La categoría fue actualizada correctamente.";
+                categoriaExistente.Nombre = categoria.Nombre;
+                categoriaExistente.Descripcion = categoria.Descripcion;
 
-            return RedirectToAction(nameof(Index));
+                await _context.SaveChangesAsync();
+
+                TempData["Mensaje"] =
+                    "La categoría fue actualizada correctamente.";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException ex)
+            {
+                var mensaje = ex.InnerException?.Message ?? ex.Message;
+
+                ModelState.AddModelError(
+                    "",
+                    "Error al actualizar la categoría: " + mensaje
+                );
+
+                return View(categoria);
+            }
         }
-
 
         // ============================================================
         // POST: Categorias/Desactivar/5
@@ -177,16 +238,24 @@ namespace WebApplication1.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            categoria.Estado = false;
+            try
+            {
+                categoria.Estado = false;
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            TempData["Mensaje"] =
-                "La categoría fue desactivada correctamente.";
+                TempData["Mensaje"] =
+                    "La categoría fue desactivada correctamente.";
+            }
+            catch (DbUpdateException ex)
+            {
+                TempData["Error"] =
+                    "Error al desactivar: " +
+                    (ex.InnerException?.Message ?? ex.Message);
+            }
 
             return RedirectToAction(nameof(Index));
         }
-
 
         // ============================================================
         // POST: Categorias/Activar/5
@@ -212,16 +281,24 @@ namespace WebApplication1.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            categoria.Estado = true;
+            try
+            {
+                categoria.Estado = true;
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            TempData["Mensaje"] =
-                "La categoría fue activada correctamente.";
+                TempData["Mensaje"] =
+                    "La categoría fue activada correctamente.";
+            }
+            catch (DbUpdateException ex)
+            {
+                TempData["Error"] =
+                    "Error al activar: " +
+                    (ex.InnerException?.Message ?? ex.Message);
+            }
 
             return RedirectToAction(nameof(Index));
         }
-
 
         // ============================================================
         // MÉTODO AUXILIAR

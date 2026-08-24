@@ -14,9 +14,6 @@
         "Facturado",
         StringComparison.OrdinalIgnoreCase);
 
-    var tieneFactura = ViewBag.TieneFactura != null &&
-                       (bool)ViewBag.TieneFactura;
-
     var puedeCancelar =
         User.IsInRole("Administrador") ||
         User.IsInRole("Gerente");
@@ -59,8 +56,6 @@
 
         <div class="d-flex gap-2">
 
-            <!-- REGRESAR -->
-
             <a asp-action="Index"
                class="btn btn-outline-secondary">
 
@@ -71,8 +66,7 @@
             </a>
 
 
-            <!-- EDITAR -->
-            @if (!estaCancelado && !tieneFactura)
+            @if (!estaCancelado && !estaFacturado)
             {
                 <a asp-action="Edit"
                    asp-route-id="@Model.IdPedido"
@@ -95,8 +89,7 @@
     <!-- ========================================================= -->
     @if (TempData["Mensaje"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show"
-             role="alert">
+        <div class="alert alert-success alert-dismissible fade show">
 
             <i class="bi bi-check-circle me-2"></i>
 
@@ -113,8 +106,7 @@
 
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show"
-             role="alert">
+        <div class="alert alert-danger alert-dismissible fade show">
 
             <i class="bi bi-exclamation-triangle me-2"></i>
 
@@ -158,8 +150,6 @@
 
                     <div class="row g-4">
 
-                        <!-- NÚMERO -->
-
                         <div class="col-md-4">
 
                             <label class="text-muted small">
@@ -175,8 +165,6 @@
 
                         </div>
 
-
-                        <!-- FECHA -->
 
                         <div class="col-md-4">
 
@@ -200,8 +188,6 @@
 
                         </div>
 
-
-                        <!-- ESTADO -->
 
                         <div class="col-md-4">
 
@@ -301,8 +287,6 @@
                         </div>
 
 
-                        <!-- CLIENTE -->
-
                         <div class="col-md-6">
 
                             <label class="text-muted small">
@@ -340,8 +324,6 @@
                         </div>
 
 
-                        <!-- MESA -->
-
                         <div class="col-md-3">
 
                             <label class="text-muted small">
@@ -373,8 +355,6 @@
                         </div>
 
 
-                        <!-- TIPO -->
-
                         <div class="col-md-3">
 
                             <label class="text-muted small">
@@ -390,8 +370,6 @@
 
                         </div>
 
-
-                        <!-- USUARIO -->
 
                         <div class="col-md-6">
 
@@ -425,8 +403,6 @@
 
                         </div>
 
-
-                        <!-- OBSERVACIÓN -->
 
                         <div class="col-12">
 
@@ -568,7 +544,7 @@
 
                         </div>
                     }
-                    else if (tieneFactura || estaFacturado)
+                    else if (estaFacturado)
                     {
                         <div class="alert alert-success mt-4 mb-0">
 
@@ -591,7 +567,9 @@
     <!-- ========================================================= -->
     <!-- CAMBIO DE ESTADO -->
     <!-- ========================================================= -->
-    @if (!estaCancelado && !tieneFactura && puedeCambiarEstado)
+    @if (!estaCancelado &&
+             !estaFacturado &&
+             puedeCambiarEstado)
     {
         <div class="card shadow-sm border-0 mb-4">
 
@@ -620,6 +598,7 @@
                            name="id"
                            value="@Model.IdPedido" />
 
+
                     <div class="col-md-6">
 
                         <label class="form-label">
@@ -634,22 +613,25 @@
                                 -- Seleccione un estado --
                             </option>
 
-                            @foreach (var item in
-                                ViewBag.EstadosPedido as
-                                IEnumerable<SelectListItem>
-                                ?? Enumerable.Empty<SelectListItem>())
+                            @if (ViewBag.EstadosPedido != null)
                             {
-                                if (item.Text != null &&
-                                    !item.Text.Trim().Equals(
-                                        "Cancelado",
-                                        StringComparison.OrdinalIgnoreCase))
+                                foreach (var item in
+                                    ViewBag.EstadosPedido as
+                                    IEnumerable<SelectListItem>
+                                    ?? Enumerable.Empty<SelectListItem>())
                                 {
-                                    <option value="@item.Value"
-                                            selected="@(item.Value == Model.IdEstadoPedido.ToString())">
+                                    if (!string.IsNullOrWhiteSpace(item.Text) &&
+                                        !item.Text.Trim().Equals(
+                                            "Cancelado",
+                                            StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <option value="@item.Value"
+                                                selected="@(item.Value == Model.IdEstadoPedido.ToString())">
 
-                                        @item.Text
+                                            @item.Text
 
-                                    </option>
+                                        </option>
+                                    }
                                 }
                             }
 
@@ -680,7 +662,7 @@
 
 
     <!-- ========================================================= -->
-    <!-- DETALLES DE PRODUCTOS -->
+    <!-- PRODUCTOS -->
     <!-- ========================================================= -->
 
     <div class="card shadow-sm border-0 mb-4">
@@ -771,8 +753,6 @@
                             {
                                 <tr>
 
-                                    <!-- PRODUCTO -->
-
                                     <td>
 
                                         @if (detalle.IdProductoNavigation != null)
@@ -793,7 +773,7 @@
                                         @if (!string.IsNullOrWhiteSpace(
                                             detalle.Observacion))
                                         {
-                                            <small class="text-muted">
+                                            <small class="text-muted d-block">
 
                                                 <i class="bi bi-chat-left-text me-1"></i>
 
@@ -804,8 +784,6 @@
 
                                     </td>
 
-
-                                    <!-- CANTIDAD -->
 
                                     <td class="text-center">
 
@@ -818,8 +796,6 @@
                                     </td>
 
 
-                                    <!-- PRECIO -->
-
                                     <td class="text-end">
 
                                         C$
@@ -827,8 +803,6 @@
 
                                     </td>
 
-
-                                    <!-- DESCUENTO -->
 
                                     <td class="text-end">
 
@@ -851,8 +825,6 @@
                                     </td>
 
 
-                                    <!-- SUBTOTAL -->
-
                                     <td class="text-end">
 
                                         C$
@@ -860,8 +832,6 @@
 
                                     </td>
 
-
-                                    <!-- TOTAL -->
 
                                     <td class="text-end fw-semibold">
 
@@ -909,11 +879,10 @@
 
 
     <!-- ========================================================= -->
-    <!-- CANCELAR PEDIDO -->
+    <!-- CANCELAR -->
     <!-- ========================================================= -->
     @if (puedeCancelar &&
              !estaCancelado &&
-             !tieneFactura &&
              !estaFacturado)
     {
         <div class="card border-danger shadow-sm mb-4">
@@ -947,8 +916,7 @@
                             a <strong>Cancelado</strong>.
 
                             El total original se conservará como
-                            histórico, pero el pedido dejará de
-                            considerarse una venta activa.
+                            histórico.
 
                         </p>
 
@@ -1016,9 +984,6 @@
 </div>
 
 
-<!-- ============================================================= -->
-<!-- SCRIPTS -->
-<!-- ============================================================= -->
 @section Scripts {
 
     <script>

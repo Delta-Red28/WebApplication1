@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Nuevo pedido";
+
+    var detalles = Model.Detalles
+        ?? new List<WebApplication1.ViewModels.DetallePedidoViewModel>();
 }
 
 <div class="container-fluid py-4">
@@ -13,42 +16,57 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
+
             <h2 class="fw-bold mb-1">
-                <i class="bi bi-receipt-cutoff me-2"></i>
+
+                <i class="bi bi-plus-circle me-2"></i>
+
                 Nuevo pedido
+
             </h2>
 
             <p class="text-muted mb-0">
-                Registra un nuevo pedido del restaurante.
+
+                Registre un nuevo pedido.
+
             </p>
+
         </div>
 
-        <div>
-            <a asp-action="Index"
-               class="btn btn-outline-secondary">
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
 
-                <i class="bi bi-arrow-left me-1"></i>
-                Volver a pedidos
+            <i class="bi bi-arrow-left me-1"></i>
 
-            </a>
-        </div>
+            Regresar a pedidos
+
+        </a>
 
     </div>
 
 
     <!-- ========================================================= -->
-    <!-- ERRORES GENERALES -->
+    <!-- VALIDACIONES -->
     <!-- ========================================================= -->
 
-    <div asp-validation-summary="ModelOnly"
-         class="alert alert-danger"
-         role="alert"
-         style="@(ViewData.ModelState.IsValid ? "display:none;" : "")">
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
 
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        Revise los datos ingresados.
+            <div class="fw-bold mb-2">
 
-    </div>
+                <i class="bi bi-exclamation-triangle me-2"></i>
+
+                Revise los siguientes errores:
+
+            </div>
+
+            <div asp-validation-summary="All"
+                 class="mb-0">
+            </div>
+
+        </div>
+    }
 
 
     <!-- ========================================================= -->
@@ -56,14 +74,16 @@
     <!-- ========================================================= -->
 
     <form asp-action="Create"
-          method="post"
-          id="pedidoForm">
+          method="post">
 
         @Html.AntiForgeryToken()
 
+        <input type="hidden"
+               asp-for="FechaPedido" />
+
 
         <!-- ===================================================== -->
-        <!-- INFORMACIÓN GENERAL -->
+        <!-- INFORMACIÓN -->
         <!-- ===================================================== -->
 
         <div class="card shadow-sm border-0 mb-4">
@@ -71,31 +91,35 @@
             <div class="card-header bg-white py-3">
 
                 <h5 class="mb-0 fw-semibold">
+
                     <i class="bi bi-info-circle me-2"></i>
+
                     Información del pedido
+
                 </h5>
 
             </div>
 
+
             <div class="card-body">
 
-                <div class="row g-3">
+                <div class="row g-4">
 
                     <!-- CLIENTE -->
 
-                    <div class="col-md-4">
+                    <div class="col-md-6">
 
                         <label asp-for="IdCliente"
-                               class="form-label fw-semibold">
+                               class="form-label">
 
                             Cliente
-                            <span class="text-danger">*</span>
 
                         </label>
 
                         <select asp-for="IdCliente"
                                 asp-items="Model.Clientes"
-                                class="form-select">
+                                class="form-select"
+                                required>
 
                             <option value="">
                                 -- Seleccione un cliente --
@@ -112,10 +136,10 @@
 
                     <!-- MESA -->
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
 
                         <label asp-for="IdMesa"
-                               class="form-label fw-semibold">
+                               class="form-label">
 
                             Mesa
 
@@ -138,24 +162,24 @@
                     </div>
 
 
-                    <!-- TIPO PEDIDO -->
+                    <!-- TIPO -->
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
 
                         <label asp-for="IdTipoPedido"
-                               class="form-label fw-semibold">
+                               class="form-label">
 
                             Tipo de pedido
-                            <span class="text-danger">*</span>
 
                         </label>
 
                         <select asp-for="IdTipoPedido"
                                 asp-items="Model.TiposPedido"
-                                class="form-select">
+                                class="form-select"
+                                required>
 
                             <option value="">
-                                -- Seleccione un tipo --
+                                -- Seleccione --
                             </option>
 
                         </select>
@@ -167,34 +191,12 @@
                     </div>
 
 
-                    <!-- FECHA -->
-
-                    <div class="col-md-4">
-
-                        <label asp-for="FechaPedido"
-                               class="form-label fw-semibold">
-
-                            Fecha del pedido
-
-                        </label>
-
-                        <input asp-for="FechaPedido"
-                               class="form-control"
-                               type="datetime-local" />
-
-                        <span asp-validation-for="FechaPedido"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-
                     <!-- OBSERVACIÓN -->
 
-                    <div class="col-md-8">
+                    <div class="col-12">
 
                         <label asp-for="Observacion"
-                               class="form-label fw-semibold">
+                               class="form-label">
 
                             Observación
 
@@ -202,9 +204,14 @@
 
                         <textarea asp-for="Observacion"
                                   class="form-control"
-                                  rows="2"
-                                  placeholder="Observaciones generales del pedido...">
+                                  rows="3"
+                                  maxlength="400"
+                                  placeholder="Escriba una observación si es necesario...">
                         </textarea>
+
+                        <div class="form-text">
+                            Máximo 400 caracteres.
+                        </div>
 
                         <span asp-validation-for="Observacion"
                               class="text-danger">
@@ -231,14 +238,14 @@
 
                     <h5 class="mb-0 fw-semibold">
 
-                        <i class="bi bi-basket2 me-2"></i>
+                        <i class="bi bi-basket me-2"></i>
 
-                        Productos del pedido
+                        Productos
 
                     </h5>
 
                     <button type="button"
-                            class="btn btn-sm btn-outline-primary"
+                            class="btn btn-primary btn-sm"
                             id="btnAgregarProducto">
 
                         <i class="bi bi-plus-circle me-1"></i>
@@ -254,217 +261,141 @@
 
             <div class="card-body">
 
-                <div class="table-responsive">
+                <div id="detallesContainer">
 
-                    <table class="table table-bordered align-middle mb-0">
+                    @for (int i = 0; i < detalles.Count; i++)
+                    {
+                        <div class="detalle-producto border rounded p-3 mb-3">
 
-                        <thead class="table-light">
+                            <div class="row g-3 align-items-end">
 
-                            <tr>
+                                <!-- PRODUCTO -->
 
-                                <th style="min-width:280px;">
-                                    Producto
-                                </th>
+                                <div class="col-lg-4">
 
-                                <th style="width:120px;"
-                                    class="text-center">
+                                    <label class="form-label">
+                                        Producto
+                                    </label>
 
-                                    Cantidad
+                                    <select name="Detalles[@i].IdProducto"
+                                            class="form-select producto-select"
+                                            required>
 
-                                </th>
+                                        <option value="">
+                                            -- Seleccione un producto --
+                                        </option>
 
-                                <th style="width:150px;"
-                                    class="text-end">
+                                        @foreach (var producto in
+                                            detalles[i].Productos
+                                            ?? Enumerable.Empty<SelectListItem>())
+                                        {
+                                            <option value="@producto.Value">
 
-                                    Precio
+                                                @producto.Text
 
-                                </th>
+                                            </option>
+                                        }
 
-                                <th style="width:150px;"
-                                    class="text-end">
+                                    </select>
 
-                                    Descuento
+                                </div>
 
-                                </th>
 
-                                <th style="width:160px;"
-                                    class="text-end">
+                                <!-- CANTIDAD -->
 
-                                    Total
+                                <div class="col-lg-2">
 
-                                </th>
+                                    <label class="form-label">
+                                        Cantidad
+                                    </label>
 
-                                <th style="width:70px;"
-                                    class="text-center">
+                                    <input name="Detalles[@i].Cantidad"
+                                           type="number"
+                                           class="form-control cantidad"
+                                           min="1"
+                                           step="1"
+                                           value="@(detalles[i].Cantidad > 0
+                                               ? detalles[i].Cantidad.ToString("0")
+                                               : "1")"
+                                           required />
 
-                                    Acción
+                                </div>
 
-                                </th>
 
-                            </tr>
+                                <!-- DESCUENTO -->
 
-                        </thead>
+                                <div class="col-lg-2">
 
+                                    <label class="form-label">
+                                        Descuento
+                                    </label>
 
-                        <tbody id="detallesContainer">
+                                    <div class="input-group">
 
-                            @if (Model.Detalles != null &&
-                                 Model.Detalles.Any())
-                            {
-                                for (int i = 0;
-                                     i < Model.Detalles.Count;
-                                     i++)
-                                {
-                                    <tr class="detalle-row">
+                                        <span class="input-group-text">
+                                            C$
+                                        </span>
 
-                                        <!-- ================================= -->
-                                        <!-- PRODUCTO -->
-                                        <!-- ================================= -->
+                                        <input name="Detalles[@i].Descuento"
+                                               type="number"
+                                               class="form-control descuento"
+                                               min="0"
+                                               step="0.01"
+                                               value="0" />
 
-                                        <td>
+                                    </div>
 
-                                            <select asp-for="Detalles[i].IdProducto"
-                                                    asp-items="Model.Detalles[i].Productos"
-                                                    class="form-select producto-select">
+                                </div>
 
-                                                <option value="">
-                                                    -- Seleccione producto --
-                                                </option>
 
-                                            </select>
+                                <!-- OBSERVACIÓN -->
 
-                                            <span asp-validation-for="Detalles[i].IdProducto"
-                                                  class="text-danger small">
-                                            </span>
+                                <div class="col-lg-3">
 
-                                        </td>
+                                    <label class="form-label">
+                                        Observación
+                                    </label>
 
+                                    <input name="Detalles[@i].Observacion"
+                                           type="text"
+                                           class="form-control"
+                                           maxlength="400" />
 
-                                        <!-- ================================= -->
-                                        <!-- CANTIDAD -->
-                                        <!-- ================================= -->
+                                </div>
 
-                                        <td>
 
-                                            <input asp-for="Detalles[i].Cantidad"
-                                                   class="form-control text-center cantidad-input"
-                                                   type="number"
-                                                   min="0"
-                                                   step="1" />
+                                <!-- ELIMINAR -->
 
-                                            <span asp-validation-for="Detalles[i].Cantidad"
-                                                  class="text-danger small">
-                                            </span>
+                                <div class="col-lg-1">
 
-                                        </td>
+                                    <button type="button"
+                                            class="btn btn-outline-danger btnEliminarProducto w-100">
 
+                                        <i class="bi bi-trash"></i>
 
-                                        <!-- ================================= -->
-                                        <!-- PRECIO -->
-                                        <!-- ================================= -->
+                                    </button>
 
-                                        <td class="text-end">
+                                </div>
 
-                                            <span class="precio-text">
-                                                C$ 0.00
-                                            </span>
+                            </div>
 
-                                            <input asp-for="Detalles[i].PrecioUnitario"
-                                                   type="hidden"
-                                                   class="precio-input" />
-
-                                        </td>
-
-
-                                        <!-- ================================= -->
-                                        <!-- DESCUENTO -->
-                                        <!-- ================================= -->
-
-                                        <td>
-
-                                            <input asp-for="Detalles[i].Descuento"
-                                                   class="form-control text-end descuento-input"
-                                                   type="number"
-                                                   min="0"
-                                                   step="0.01"
-                                                   value="0" />
-
-                                            <span asp-validation-for="Detalles[i].Descuento"
-                                                  class="text-danger small">
-                                            </span>
-
-                                        </td>
-
-
-                                        <!-- ================================= -->
-                                        <!-- TOTAL -->
-                                        <!-- ================================= -->
-
-                                        <td class="text-end">
-
-                                            <strong class="total-linea">
-                                                C$ 0.00
-                                            </strong>
-
-                                        </td>
-
-
-                                        <!-- ================================= -->
-                                        <!-- ELIMINAR -->
-                                        <!-- ================================= -->
-
-                                        <td class="text-center">
-
-                                            <button type="button"
-                                                    class="btn btn-sm btn-outline-danger btn-eliminar"
-                                                    title="Eliminar producto">
-
-                                                <i class="bi bi-trash"></i>
-
-                                            </button>
-
-                                        </td>
-
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-
-                                    <td colspan="6"
-                                        class="text-center text-muted py-4">
-
-                                        <i class="bi bi-basket display-6 d-block mb-2"></i>
-
-                                        No hay productos agregados.
-
-                                    </td>
-
-                                </tr>
-                            }
-
-                        </tbody>
-
-                    </table>
+                        </div>
+                    }
 
                 </div>
 
 
-                <!-- ================================================= -->
-                <!-- OBSERVACIÓN POR PRODUCTO -->
-                <!-- ================================================= -->
+                <div id="sinProductos"
+                     class="text-center text-muted py-4"
+                     style="display:none;">
 
-                <div class="mt-3">
+                    <i class="bi bi-basket display-6"></i>
 
-                    <small class="text-muted">
+                    <p class="mb-0 mt-2">
 
-                        <i class="bi bi-info-circle me-1"></i>
+                        Agregue al menos un producto.
 
-                        Puedes agregar observaciones específicas desde cada
-                        producto si deseas ampliar posteriormente el formulario.
-
-                    </small>
+                    </p>
 
                 </div>
 
@@ -477,52 +408,51 @@
         <!-- RESUMEN -->
         <!-- ===================================================== -->
 
-        <div class="row justify-content-end">
+        <div class="row justify-content-end mb-4">
 
-            <div class="col-md-5 col-lg-4">
+            <div class="col-lg-5">
 
                 <div class="card shadow-sm border-0">
 
-                    <div class="card-header bg-white">
+                    <div class="card-header bg-white py-3">
 
                         <h5 class="mb-0 fw-semibold">
 
                             <i class="bi bi-calculator me-2"></i>
 
-                            Resumen del pedido
+                            Resumen
 
                         </h5>
 
                     </div>
 
-
                     <div class="card-body">
 
-                        <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex justify-content-between mb-3">
 
-                            <span>
+                            <span class="text-muted">
                                 Subtotal
                             </span>
 
-                            <strong id="subtotalDisplay">
+                            <span id="resumenSubtotal">
                                 C$ 0.00
-                            </strong>
+                            </span>
 
                         </div>
 
 
-                        <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex justify-content-between mb-3">
 
-                            <span>
+                            <span class="text-muted">
                                 Descuento
                             </span>
 
-                            <strong class="text-danger"
-                                    id="descuentoDisplay">
+                            <span class="text-danger"
+                                  id="resumenDescuento">
 
-                                - C$ 0.00
+                                C$ 0.00
 
-                            </strong>
+                            </span>
 
                         </div>
 
@@ -530,18 +460,18 @@
                         <hr />
 
 
-                        <div class="d-flex justify-content-between">
+                        <div class="d-flex justify-content-between align-items-center">
 
                             <span class="fw-bold">
                                 Total
                             </span>
 
-                            <strong class="text-success fs-5"
-                                    id="totalDisplay">
+                            <span class="fs-4 fw-bold text-success"
+                                  id="resumenTotal">
 
                                 C$ 0.00
 
-                            </strong>
+                            </span>
 
                         </div>
 
@@ -558,7 +488,7 @@
         <!-- BOTONES -->
         <!-- ===================================================== -->
 
-        <div class="d-flex justify-content-end gap-2 mt-4">
+        <div class="d-flex justify-content-between">
 
             <a asp-action="Index"
                class="btn btn-outline-secondary">
@@ -571,12 +501,11 @@
 
 
             <button type="submit"
-                    class="btn btn-primary"
-                    id="btnGuardar">
+                    class="btn btn-success btn-lg">
 
                 <i class="bi bi-check-circle me-1"></i>
 
-                Guardar pedido
+                Crear pedido
 
             </button>
 
@@ -588,15 +517,121 @@
 
 
 <!-- ============================================================= -->
-<!-- JAVASCRIPT -->
+<!-- TEMPLATE -->
 <!-- ============================================================= -->
+
+<template id="detalleTemplate">
+
+    <div class="detalle-producto border rounded p-3 mb-3">
+
+        <div class="row g-3 align-items-end">
+
+            <div class="col-lg-4">
+
+                <label class="form-label">
+                    Producto
+                </label>
+
+                <select name="Detalles[__INDEX__].IdProducto"
+                        class="form-select producto-select"
+                        required>
+
+                    <option value="">
+                        -- Seleccione un producto --
+                    </option>
+
+                    @foreach (var producto in
+                        detalles.FirstOrDefault()?.Productos
+                        ?? Enumerable.Empty<SelectListItem>())
+                    {
+                        <option value="@producto.Value">
+
+                            @producto.Text
+
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+
+            <div class="col-lg-2">
+
+                <label class="form-label">
+                    Cantidad
+                </label>
+
+                <input name="Detalles[__INDEX__].Cantidad"
+                       type="number"
+                       class="form-control cantidad"
+                       min="1"
+                       step="1"
+                       value="1"
+                       required />
+
+            </div>
+
+
+            <div class="col-lg-2">
+
+                <label class="form-label">
+                    Descuento
+                </label>
+
+                <div class="input-group">
+
+                    <span class="input-group-text">
+                        C$
+                    </span>
+
+                    <input name="Detalles[__INDEX__].Descuento"
+                           type="number"
+                           class="form-control descuento"
+                           min="0"
+                           step="0.01"
+                           value="0" />
+
+                </div>
+
+            </div>
+
+
+            <div class="col-lg-3">
+
+                <label class="form-label">
+                    Observación
+                </label>
+
+                <input name="Detalles[__INDEX__].Observacion"
+                       type="text"
+                       class="form-control"
+                       maxlength="400" />
+
+            </div>
+
+
+            <div class="col-lg-1">
+
+                <button type="button"
+                        class="btn btn-outline-danger btnEliminarProducto w-100">
+
+                    <i class="bi bi-trash"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</template>
+
 
 @section Scripts {
 
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-
+    <partial name="_ValidationScriptsPartial" />
 
     <script>
 
@@ -605,556 +640,313 @@
             const container =
                 document.getElementById("detallesContainer");
 
+            const template =
+                document.getElementById("detalleTemplate");
+
             const btnAgregar =
                 document.getElementById("btnAgregarProducto");
 
-            const form =
-                document.getElementById("pedidoForm");
+            const sinProductos =
+                document.getElementById("sinProductos");
 
 
-            // =====================================================
-            // FORMATEAR MONEDA
-            // =====================================================
+            function obtenerSiguienteIndice() {
 
-            function moneda(valor) {
+                const elementos =
+                    container.querySelectorAll("[name]");
 
-                return "C$ " +
-                    Number(valor || 0).toLocaleString(
-                        "es-NI",
-                        {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        });
+                let maximo = -1;
+
+                elementos.forEach(function (elemento) {
+
+                    const match =
+                        elemento.name.match(
+                            /Detalles\[(\d+)\]/
+                        );
+
+                    if (match) {
+
+                        const indice =
+                            parseInt(match[1]);
+
+                        maximo =
+                            Math.max(
+                                maximo,
+                                indice
+                            );
+
+                    }
+
+                });
+
+                return maximo + 1;
+            }
+
+
+            function actualizarEstado() {
+
+                const cantidad =
+                    container.querySelectorAll(
+                        ".detalle-producto"
+                    ).length;
+
+                sinProductos.style.display =
+                    cantidad === 0
+                        ? "block"
+                        : "none";
 
             }
 
 
-            // =====================================================
-            // CALCULAR TOTALES
-            // =====================================================
+            function renumerar() {
+
+                const detalles =
+                    container.querySelectorAll(
+                        ".detalle-producto"
+                    );
+
+                detalles.forEach(function (
+                    detalle,
+                    index
+                ) {
+
+                    detalle
+                        .querySelectorAll("[name]")
+                        .forEach(function (elemento) {
+
+                            elemento.name =
+                                elemento.name.replace(
+                                    /Detalles\[\d+\]/,
+                                    "Detalles[" +
+                                    index +
+                                    "]"
+                                );
+
+                        });
+
+                });
+
+            }
+
+
+            btnAgregar.addEventListener(
+                "click",
+                function () {
+
+                    const indice =
+                        obtenerSiguienteIndice();
+
+                    const html =
+                        template.innerHTML.replace(
+                            /__INDEX__/g,
+                            indice
+                        );
+
+                    container.insertAdjacentHTML(
+                        "beforeend",
+                        html
+                    );
+
+                    actualizarEstado();
+
+                });
+
+
+            container.addEventListener(
+                "click",
+                function (event) {
+
+                    const boton =
+                        event.target.closest(
+                            ".btnEliminarProducto"
+                        );
+
+                    if (!boton)
+                        return;
+
+                    const detalle =
+                        boton.closest(
+                            ".detalle-producto"
+                        );
+
+                    if (detalle) {
+
+                        detalle.remove();
+
+                        renumerar();
+
+                        actualizarEstado();
+
+                        calcularTotales();
+
+                    }
+
+                });
+
 
             function calcularTotales() {
 
                 let subtotal = 0;
                 let descuento = 0;
 
-                const filas =
-                    container.querySelectorAll(".detalle-row");
+                const detalles =
+                    container.querySelectorAll(
+                        ".detalle-producto"
+                    );
 
-
-                filas.forEach(function (fila) {
-
-                    const cantidadInput =
-                        fila.querySelector(".cantidad-input");
-
-                    const precioInput =
-                        fila.querySelector(".precio-input");
-
-                    const descuentoInput =
-                        fila.querySelector(".descuento-input");
-
-                    const totalLinea =
-                        fila.querySelector(".total-linea");
-
+                detalles.forEach(function (detalle) {
 
                     const cantidad =
                         parseFloat(
-                            cantidadInput?.value) || 0;
+                            detalle.querySelector(
+                                ".cantidad"
+                            )?.value
+                        ) || 0;
+
+                    const descuentoLinea =
+                        parseFloat(
+                            detalle.querySelector(
+                                ".descuento"
+                            )?.value
+                        ) || 0;
+
+                    const select =
+                        detalle.querySelector(
+                            ".producto-select"
+                        );
+
+                    if (!select)
+                        return;
+
+                    const texto =
+                        select.options[
+                            select.selectedIndex
+                        ]?.text || "";
+
+                    const match =
+                        texto.match(
+                            /C\$\s*([\d,]+(?:\.\d{1,2})?)/
+                        );
+
+                    if (!match)
+                        return;
 
                     const precio =
                         parseFloat(
-                            precioInput?.value) || 0;
-
-                    let descuentoLinea =
-                        parseFloat(
-                            descuentoInput?.value) || 0;
-
+                            match[1].replace(
+                                /,/g,
+                                ""
+                            )
+                        ) || 0;
 
                     const subtotalLinea =
-                        cantidad * precio;
+                        precio * cantidad;
 
-
-                    if (descuentoLinea < 0) {
-                        descuentoLinea = 0;
-                    }
-
-
-                    if (descuentoLinea >
-                        subtotalLinea) {
-
-                        descuentoLinea =
-                            subtotalLinea;
-                    }
-
-
-                    const total =
-                        subtotalLinea -
-                        descuentoLinea;
-
+                    const descuentoAplicado =
+                        Math.min(
+                            Math.max(
+                                descuentoLinea,
+                                0
+                            ),
+                            subtotalLinea
+                        );
 
                     subtotal +=
                         subtotalLinea;
 
                     descuento +=
-                        descuentoLinea;
-
-
-                    if (totalLinea) {
-
-                        totalLinea.textContent =
-                            moneda(total);
-
-                    }
+                        descuentoAplicado;
 
                 });
 
 
                 const total =
-                    subtotal -
-                    descuento;
+                    subtotal - descuento;
 
 
                 document.getElementById(
-                    "subtotalDisplay")
-                    .textContent =
-                    moneda(subtotal);
-
-
-                document.getElementById(
-                    "descuentoDisplay")
-                    .textContent =
-                    "- " +
-                    moneda(descuento);
-
-
-                document.getElementById(
-                    "totalDisplay")
-                    .textContent =
-                    moneda(total);
-
-            }
-
-
-            // =====================================================
-            // EVENTOS DE CÁLCULO
-            // =====================================================
-
-            function registrarEventosFila(fila) {
-
-                const inputs =
-                    fila.querySelectorAll(
-                        ".cantidad-input, .descuento-input");
-
-                inputs.forEach(function (input) {
-
-                    input.addEventListener(
-                        "input",
-                        calcularTotales);
-
-                });
-
-            }
-
-
-            container
-                .querySelectorAll(".detalle-row")
-                .forEach(registrarEventosFila);
-
-
-            // =====================================================
-            // ELIMINAR FILA
-            // =====================================================
-
-            function registrarEliminar(fila) {
-
-                const boton =
-                    fila.querySelector(".btn-eliminar");
-
-                if (!boton)
-                    return;
-
-
-                boton.addEventListener(
-                    "click",
-                    function () {
-
-                        const filas =
-                            container.querySelectorAll(
-                                ".detalle-row");
-
-
-                        if (filas.length <= 1) {
-
-                            const cantidad =
-                                fila.querySelector(
-                                    ".cantidad-input");
-
-                            const producto =
-                                fila.querySelector(
-                                    ".producto-select");
-
-                            const descuento =
-                                fila.querySelector(
-                                    ".descuento-input");
-
-
-                            if (producto)
-                                producto.value = "";
-
-
-                            if (cantidad)
-                                cantidad.value = "0";
-
-
-                            if (descuento)
-                                descuento.value = "0";
-
-
-                            calcularTotales();
-
-                            return;
+                    "resumenSubtotal"
+                ).textContent =
+                    "C$ " +
+                    subtotal.toLocaleString(
+                        "es-NI",
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
                         }
+                    );
 
 
-                        fila.remove();
+                document.getElementById(
+                    "resumenDescuento"
+                ).textContent =
+                    "C$ " +
+                    descuento.toLocaleString(
+                        "es-NI",
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    );
 
-                        renumerarDetalles();
+
+                document.getElementById(
+                    "resumenTotal"
+                ).textContent =
+                    "C$ " +
+                    total.toLocaleString(
+                        "es-NI",
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    );
+
+            }
+
+
+            container.addEventListener(
+                "input",
+                function (event) {
+
+                    if (
+                        event.target.classList.contains(
+                            "cantidad"
+                        ) ||
+                        event.target.classList.contains(
+                            "descuento"
+                        )
+                    ) {
 
                         calcularTotales();
 
-                    });
-
-            }
-
-
-            container
-                .querySelectorAll(".detalle-row")
-                .forEach(registrarEliminar);
-
-
-            // =====================================================
-            // AGREGAR PRODUCTO
-            // =====================================================
-
-            btnAgregar.addEventListener(
-                "click",
-                function () {
-
-                    const filas =
-                        container.querySelectorAll(
-                            ".detalle-row");
-
-
-                    let indice =
-                        filas.length;
-
-
-                    const primeraFila =
-                        filas.length > 0
-                            ? filas[0]
-                            : null;
-
-
-                    if (!primeraFila) {
-
-                        return;
-
                     }
 
-
-                    const nuevaFila =
-                        primeraFila.cloneNode(true);
-
-
-                    // =============================================
-                    // LIMPIAR VALORES
-                    // =============================================
-
-                    const producto =
-                        nuevaFila.querySelector(
-                            ".producto-select");
-
-                    const cantidad =
-                        nuevaFila.querySelector(
-                            ".cantidad-input");
-
-                    const precio =
-                        nuevaFila.querySelector(
-                            ".precio-input");
-
-                    const descuento =
-                        nuevaFila.querySelector(
-                            ".descuento-input");
-
-                    const precioTexto =
-                        nuevaFila.querySelector(
-                            ".precio-text");
-
-                    const totalLinea =
-                        nuevaFila.querySelector(
-                            ".total-linea");
-
-
-                    if (producto)
-                        producto.selectedIndex = 0;
-
-
-                    if (cantidad)
-                        cantidad.value = "1";
-
-
-                    if (precio)
-                        precio.value = "0";
-
-
-                    if (descuento)
-                        descuento.value = "0";
-
-
-                    if (precioTexto)
-                        precioTexto.textContent =
-                            "C$ 0.00";
-
-
-                    if (totalLinea)
-                        totalLinea.textContent =
-                            "C$ 0.00";
-
-
-                    container.appendChild(
-                        nuevaFila);
-
-
-                    renumerarDetalles();
-
-
-                    registrarEventosFila(
-                        nuevaFila);
-
-                    registrarEliminar(
-                        nuevaFila);
-
-
-                    calcularTotales();
-
                 });
 
-
-            // =====================================================
-            // RENUMERAR DETALLES
-            // =====================================================
-
-            function renumerarDetalles() {
-
-                const filas =
-                    container.querySelectorAll(
-                        ".detalle-row");
-
-
-                filas.forEach(function (fila, index) {
-
-                    fila.querySelectorAll(
-                        "[name]").forEach(
-                            function (elemento) {
-
-                                const name =
-                                    elemento.getAttribute(
-                                        "name");
-
-                                if (!name)
-                                    return;
-
-
-                                const nuevoNombre =
-                                    name.replace(
-                                        /Detalles\[\d+\]/,
-                                        "Detalles[" +
-                                        index +
-                                        "]");
-
-
-                                elemento.setAttribute(
-                                    "name",
-                                    nuevoNombre);
-
-                            });
-
-
-                    fila.querySelectorAll(
-                        "[id]").forEach(
-                            function (elemento) {
-
-                                const id =
-                                    elemento.getAttribute(
-                                        "id");
-
-                                if (!id)
-                                    return;
-
-
-                                const nuevoId =
-                                    id.replace(
-                                        /Detalles_\d+__/,
-                                        "Detalles_" +
-                                        index +
-                                        "__");
-
-
-                                elemento.setAttribute(
-                                    "id",
-                                    nuevoId);
-
-                            });
-
-                });
-
-            }
-
-
-            // =====================================================
-            // CAMBIAR PRECIO AL SELECCIONAR PRODUCTO
-            // =====================================================
 
             container.addEventListener(
                 "change",
                 function (event) {
 
-                    if (!event.target.classList.contains(
-                        "producto-select")) {
-
-                        return;
-
-                    }
-
-
-                    /*
-                     * El precio real se vuelve a consultar
-                     * y validar en el controlador.
-                     *
-                     * Aquí solamente dejamos el valor visual.
-                     */
-
-                    const fila =
-                        event.target.closest(
-                            ".detalle-row");
-
-
-                    if (!fila)
-                        return;
-
-
-                    const precioInput =
-                        fila.querySelector(
-                            ".precio-input");
-
-
-                    const precioTexto =
-                        fila.querySelector(
-                            ".precio-text");
-
-
-                    /*
-                     * Como el select solamente contiene
-                     * el nombre y precio en el texto,
-                     * intentamos obtener el precio desde
-                     * el texto de la opción.
-                     */
-
-                    const opcion =
-                        event.target.options[
-                            event.target.selectedIndex];
-
-
-                    if (!opcion ||
-                        !opcion.value) {
-
-                        if (precioInput)
-                            precioInput.value = "0";
-
-
-                        if (precioTexto)
-                            precioTexto.textContent =
-                                "C$ 0.00";
-
+                    if (
+                        event.target.classList.contains(
+                            "producto-select"
+                        )
+                    ) {
 
                         calcularTotales();
 
-                        return;
-
-                    }
-
-
-                    const texto =
-                        opcion.textContent || "";
-
-
-                    const coincidencia =
-                        texto.match(
-                            /C\$\s*([\d,.]+)/);
-
-
-                    if (coincidencia) {
-
-                        let precio =
-                            coincidencia[1]
-                                .replace(/,/g, "");
-
-
-                        precio =
-                            parseFloat(precio) || 0;
-
-
-                        if (precioInput)
-                            precioInput.value =
-                                precio;
-
-
-                        if (precioTexto)
-                            precioTexto.textContent =
-                                moneda(precio);
-
-                    }
-
-
-                    calcularTotales();
-
-                });
-
-
-            // =====================================================
-            // EVITAR DOBLE ENVÍO
-            // =====================================================
-
-            form.addEventListener(
-                "submit",
-                function () {
-
-                    const boton =
-                        document.getElementById(
-                            "btnGuardar");
-
-
-                    if (boton) {
-
-                        boton.disabled = true;
-
-                        boton.innerHTML =
-                            '<span class="spinner-border spinner-border-sm me-1"></span>' +
-                            'Guardando...';
-
                     }
 
                 });
 
 
-            // =====================================================
-            // CÁLCULO INICIAL
-            // =====================================================
+            actualizarEstado();
 
             calcularTotales();
 
         });
 
     </script>
-
 }

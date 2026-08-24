@@ -42,15 +42,129 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
+
+            // --------------------------------------------------------
+            // Buscar producto
+            // --------------------------------------------------------
+
             var producto = await _context.Productos
                 .Include(p => p.IdCategoriaNavigation)
                 .Include(p => p.IdEstadoProductoNavigation)
+                .Include(p => p.Recetum!)
+                    .ThenInclude(r => r.IdEstadoRecetaNavigation)
+                .Include(p => p.Recetum!)
+                    .ThenInclude(r => r.DetalleReceta)
+                        .ThenInclude(d => d.IdInsumoNavigation)
+                .Include(p => p.Recetum!)
+                    .ThenInclude(r => r.DetalleReceta)
+                        .ThenInclude(d => d.IdUnidadMedidaNavigation)
                 .FirstOrDefaultAsync(p => p.IdProducto == id);
+
 
             if (producto == null)
             {
                 return NotFound();
             }
+
+
+            // ========================================================
+            // CARGAR EXISTENCIAS DE LOS INGREDIENTES
+            // ========================================================
+
+            if (producto.Recetum != null &&
+                producto.Recetum.DetalleReceta.Any())
+            {
+                var idsInsumos = producto.Recetum.DetalleReceta
+                    .Select(d => d.IdInsumo)
+                    .Distinct()
+                    .ToList();
+
+
+                var existencias = await _context.Existencia
+                    .Include(e => e.IdUbicacionNavigation)
+                    .Where(e => idsInsumos.Contains(e.IdInsumo))
+                    .ToListAsync();
+
+
+                // ----------------------------------------------------
+                // Guardamos las existencias en ViewBag
+                //
+                // Se utiliza un diccionario:
+                //
+                // IdInsumo -> lista de existencias
+                // ----------------------------------------------------
+
+                ViewBag.Existencias = existencias
+                    .GroupBy(e => e.IdInsumo)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.ToList());
+            }
+            else
+            {
+                ViewBag.Existencias =
+                    new Dictionary<int, List<Existencium>>();
+            }
+
+
+            // ========================================================
+            // CALCULAR CUÁNTOS PLATILLOS SE PUEDEN PREPARAR
+            // ========================================================
+
+            decimal? unidadesPreparables = null;
+
+
+            if (producto.Recetum != null &&
+                producto.Recetum.DetalleReceta.Any())
+            {
+                var cantidadesDisponibles =
+                    new List<decimal>();
+
+
+                foreach (var detalle in producto.Recetum.DetalleReceta)
+                {
+                    var existencias =
+                        ((Dictionary<int, List<Existencium>>)ViewBag.Existencias)
+                        .TryGetValue(
+                            detalle.IdInsumo,
+                            out var listaExistencias)
+                            ? listaExistencias
+                            : new List<Existencium>();
+
+
+                    // ------------------------------------------------
+                    // Sumar existencia de todas las ubicaciones
+                    // ------------------------------------------------
+
+                    var stockTotal = existencias
+                        .Sum(e => e.StockActual);
+
+
+                    // ------------------------------------------------
+                    // Evitar división entre cero
+                    // ------------------------------------------------
+
+                    if (detalle.Cantidad > 0)
+                    {
+                        var posibles =
+                            stockTotal / detalle.Cantidad;
+
+                        cantidadesDisponibles.Add(posibles);
+                    }
+                }
+
+
+                if (cantidadesDisponibles.Any())
+                {
+                    unidadesPreparables =
+                        Math.Floor(cantidadesDisponibles.Min());
+                }
+            }
+
+
+            ViewBag.UnidadesPreparables =
+                unidadesPreparables;
+
 
             return View(producto);
         }
@@ -64,13 +178,14 @@ namespace WebApplication1.Controllers
         {
             // --------------------------------------------------------
             // Si se está creando desde una categoría,
-            // comprobar que la categoría exista.
+            // comprobar que exista.
             // --------------------------------------------------------
 
             if (idCategoria.HasValue)
             {
                 var categoriaExiste = await _context.Categoria
-                    .AnyAsync(c => c.IdCategoria == idCategoria.Value);
+                    .AnyAsync(c =>
+                        c.IdCategoria == idCategoria.Value);
 
                 if (!categoriaExiste)
                 {
@@ -80,7 +195,7 @@ namespace WebApplication1.Controllers
 
 
             // --------------------------------------------------------
-            // Crear nuevo producto
+            // Crear producto
             // --------------------------------------------------------
 
             var producto = new Producto
@@ -92,7 +207,7 @@ namespace WebApplication1.Controllers
 
 
             // --------------------------------------------------------
-            // Mantener la categoría desde donde se abrió
+            // Mantener categoría
             // --------------------------------------------------------
 
             if (idCategoria.HasValue)
@@ -102,7 +217,7 @@ namespace WebApplication1.Controllers
 
 
             // --------------------------------------------------------
-            // Cargar categorías y estados
+            // Cargar listas
             // --------------------------------------------------------
 
             await CargarListas(
@@ -141,12 +256,13 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
-            // VALIDAR ESTADO DEL PRODUCTO
+            // VALIDAR ESTADO
             // ========================================================
 
             var estadoExiste = await _context.EstadoProductos
                 .AnyAsync(e =>
-                    e.IdEstadoProducto == producto.IdEstadoProducto);
+                    e.IdEstadoProducto ==
+                    producto.IdEstadoProducto);
 
             if (!estadoExiste)
             {
@@ -160,11 +276,13 @@ namespace WebApplication1.Controllers
             // VALIDAR CÓDIGO DUPLICADO
             // ========================================================
 
-            if (!string.IsNullOrWhiteSpace(producto.CodigoProducto))
+            if (!string.IsNullOrWhiteSpace(
+                producto.CodigoProducto))
             {
                 var codigoExiste = await _context.Productos
                     .AnyAsync(p =>
-                        p.CodigoProducto == producto.CodigoProducto);
+                        p.CodigoProducto ==
+                        producto.CodigoProducto);
 
                 if (codigoExiste)
                 {
@@ -176,22 +294,13 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
-            // SI TODO ES CORRECTO
+            // GUARDAR
             // ========================================================
 
             if (ModelState.IsValid)
             {
-                // ----------------------------------------------------
-                // Valores automáticos
-                // ----------------------------------------------------
-
                 producto.Estado = true;
                 producto.FechaRegistro = DateTime.Now;
-
-
-                // ----------------------------------------------------
-                // Guardar producto
-                // ----------------------------------------------------
 
                 _context.Productos.Add(producto);
 
@@ -201,13 +310,6 @@ namespace WebApplication1.Controllers
                 TempData["Mensaje"] =
                     "El platillo fue creado correctamente.";
 
-
-                // ====================================================
-                // IMPORTANTE
-                //
-                // Como el platillo fue creado desde una categoría,
-                // regresamos al detalle de ESA categoría.
-                // ====================================================
 
                 return RedirectToAction(
                     "Details",
@@ -220,13 +322,12 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
-            // SI HAY ERRORES
+            // ERRORES
             // ========================================================
 
             await CargarListas(
                 producto.IdCategoria,
                 producto.IdEstadoProducto);
-
 
             return View(producto);
         }
@@ -243,17 +344,21 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
+
             var producto = await _context.Productos
                 .FindAsync(id);
+
 
             if (producto == null)
             {
                 return NotFound();
             }
 
+
             await CargarListas(
                 producto.IdCategoria,
                 producto.IdEstadoProducto);
+
 
             return View(producto);
         }
@@ -281,12 +386,13 @@ namespace WebApplication1.Controllers
 
 
             // --------------------------------------------------------
-            // Verificar código duplicado
+            // Código duplicado
             // --------------------------------------------------------
 
             var codigoExiste = await _context.Productos
                 .AnyAsync(p =>
-                    p.CodigoProducto == producto.CodigoProducto &&
+                    p.CodigoProducto ==
+                    producto.CodigoProducto &&
                     p.IdProducto != producto.IdProducto);
 
             if (codigoExiste)
@@ -298,12 +404,13 @@ namespace WebApplication1.Controllers
 
 
             // --------------------------------------------------------
-            // Verificar categoría
+            // Categoría
             // --------------------------------------------------------
 
             var categoriaExiste = await _context.Categoria
                 .AnyAsync(c =>
-                    c.IdCategoria == producto.IdCategoria);
+                    c.IdCategoria ==
+                    producto.IdCategoria);
 
             if (!categoriaExiste)
             {
@@ -314,12 +421,13 @@ namespace WebApplication1.Controllers
 
 
             // --------------------------------------------------------
-            // Verificar estado
+            // Estado
             // --------------------------------------------------------
 
             var estadoExiste = await _context.EstadoProductos
                 .AnyAsync(e =>
-                    e.IdEstadoProducto == producto.IdEstadoProducto);
+                    e.IdEstadoProducto ==
+                    producto.IdEstadoProducto);
 
             if (!estadoExiste)
             {
@@ -344,11 +452,12 @@ namespace WebApplication1.Controllers
 
 
             // --------------------------------------------------------
-            // Buscar producto existente
+            // Buscar producto original
             // --------------------------------------------------------
 
-            var productoExistente = await _context.Productos
-                .FindAsync(id);
+            var productoExistente =
+                await _context.Productos.FindAsync(id);
+
 
             if (productoExistente == null)
             {
@@ -357,7 +466,7 @@ namespace WebApplication1.Controllers
 
 
             // --------------------------------------------------------
-            // Actualizar datos
+            // Actualizar
             // --------------------------------------------------------
 
             productoExistente.IdCategoria =
@@ -415,8 +524,9 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Desactivar(int id)
         {
-            var producto = await _context.Productos
-                .FindAsync(id);
+            var producto =
+                await _context.Productos.FindAsync(id);
+
 
             if (producto == null)
             {
@@ -458,8 +568,9 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Activar(int id)
         {
-            var producto = await _context.Productos
-                .FindAsync(id);
+            var producto =
+                await _context.Productos.FindAsync(id);
+
 
             if (producto == null)
             {
@@ -495,7 +606,6 @@ namespace WebApplication1.Controllers
 
         // ============================================================
         // MÉTODO AUXILIAR
-        // CARGAR CATEGORÍAS Y ESTADOS
         // ============================================================
 
         private async Task CargarListas(
@@ -510,7 +620,8 @@ namespace WebApplication1.Controllers
                 await _context.Categoria
                     .Where(c =>
                         c.Estado ||
-                        c.IdCategoria == categoriaSeleccionada)
+                        c.IdCategoria ==
+                        categoriaSeleccionada)
                     .OrderBy(c => c.Nombre)
                     .ToListAsync(),
                 "IdCategoria",
@@ -519,7 +630,7 @@ namespace WebApplication1.Controllers
 
 
             // --------------------------------------------------------
-            // Estados de producto
+            // Estados
             // --------------------------------------------------------
 
             ViewBag.EstadosProducto = new SelectList(

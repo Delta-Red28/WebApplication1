@@ -3,7 +3,8 @@
 @{
     ViewData["Title"] = "Editar pedido";
 
-    var estados = Model.EstadosPedido ?? new List<SelectListItem>();
+    var detalles = Model.Detalles
+        ?? new List<WebApplication1.ViewModels.DetallePedidoViewModel>();
 }
 
 <div class="container-fluid py-4">
@@ -15,14 +16,21 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
+
             <h2 class="fw-bold mb-1">
+
                 <i class="bi bi-pencil-square me-2"></i>
+
                 Editar pedido
+
             </h2>
 
             <p class="text-muted mb-0">
+
                 Modifique la información y los productos del pedido.
+
             </p>
+
         </div>
 
         <div>
@@ -32,7 +40,8 @@
                class="btn btn-outline-secondary">
 
                 <i class="bi bi-arrow-left me-1"></i>
-                Volver
+
+                Regresar al detalle
 
             </a>
 
@@ -45,11 +54,41 @@
     <!-- MENSAJES DE VALIDACIÓN -->
     <!-- ========================================================= -->
 
-    <div asp-validation-summary="ModelOnly"
-         class="alert alert-danger"
-         role="alert"
-         style="@(ViewData.ModelState.IsValid ? "display:none;" : "")">
-    </div>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+
+            <div class="fw-bold mb-2">
+
+                <i class="bi bi-exclamation-triangle me-2"></i>
+
+                Revise los siguientes errores:
+
+            </div>
+
+            <div asp-validation-summary="All"
+                 class="mb-0">
+            </div>
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
 
 
     <!-- ========================================================= -->
@@ -58,207 +97,207 @@
 
     <form asp-action="Edit"
           asp-route-id="@Model.IdPedido"
-          method="post"
-          id="pedidoForm">
+          method="post">
 
         @Html.AntiForgeryToken()
 
         <input type="hidden"
                asp-for="IdPedido" />
 
-        <div class="row g-4">
+        <input type="hidden"
+               asp-for="IdEstadoPedido" />
 
-            <!-- ================================================= -->
-            <!-- INFORMACIÓN GENERAL -->
-            <!-- ================================================= -->
+        <input type="hidden"
+               asp-for="FechaPedido" />
 
-            <div class="col-12">
 
-                <div class="card shadow-sm border-0">
+        <!-- ===================================================== -->
+        <!-- INFORMACIÓN DEL PEDIDO -->
+        <!-- ===================================================== -->
 
-                    <div class="card-header bg-white py-3">
+        <div class="card shadow-sm border-0 mb-4">
 
-                        <h5 class="mb-0 fw-semibold">
-                            <i class="bi bi-receipt me-2"></i>
-                            Información del pedido
-                        </h5>
+            <div class="card-header bg-white py-3">
+
+                <h5 class="mb-0 fw-semibold">
+
+                    <i class="bi bi-info-circle me-2"></i>
+
+                    Información del pedido
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- NÚMERO -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label text-muted">
+                            Número de pedido
+                        </label>
+
+                        <input type="text"
+                               class="form-control"
+                               value="@($"#{Model.IdPedido}")"
+                               readonly />
 
                     </div>
 
-                    <div class="card-body">
 
-                        <div class="row g-3">
+                    <!-- FECHA -->
 
-                            <!-- NÚMERO -->
+                    <div class="col-md-4">
 
-                            <div class="col-md-3">
+                        <label class="form-label text-muted">
+                            Fecha del pedido
+                        </label>
 
-                                <label class="form-label fw-semibold">
-                                    Número de pedido
-                                </label>
+                        <input type="text"
+                               class="form-control"
+                               value="@Model.FechaPedido.ToString("dd/MM/yyyy HH:mm:ss")"
+                               readonly />
 
-                                <input type="text"
-                                       class="form-control"
-                                       value="@(Model.IdPedido > 0 ? $"PED-{Model.IdPedido:000000}" : "")"
-                                       readonly />
-
-                            </div>
+                    </div>
 
 
-                            <!-- FECHA -->
+                    <!-- ESTADO -->
 
-                            <div class="col-md-3">
+                    <div class="col-md-4">
 
-                                <label asp-for="FechaPedido"
-                                       class="form-label fw-semibold">
-                                    Fecha
-                                </label>
+                        <label class="form-label text-muted">
+                            Estado actual
+                        </label>
 
-                                <input asp-for="FechaPedido"
-                                       type="datetime-local"
-                                       class="form-control" />
+                        @{
+                            var estadoActual = Model.EstadosPedido?
+                                .FirstOrDefault(x =>
+                                    x.Value == Model.IdEstadoPedido.ToString())
+                                ?.Text ?? "Sin estado";
+                        }
 
-                                <span asp-validation-for="FechaPedido"
-                                      class="text-danger">
-                                </span>
+                        <input type="text"
+                               class="form-control"
+                               value="@estadoActual"
+                               readonly />
 
-                            </div>
-
-
-                            <!-- CLIENTE -->
-
-                            <div class="col-md-3">
-
-                                <label asp-for="IdCliente"
-                                       class="form-label fw-semibold">
-
-                                    Cliente
-                                    <span class="text-danger">*</span>
-
-                                </label>
-
-                                <select asp-for="IdCliente"
-                                        asp-items="Model.Clientes"
-                                        class="form-select">
-
-                                    <option value="">
-                                        -- Seleccione un cliente --
-                                    </option>
-
-                                </select>
-
-                                <span asp-validation-for="IdCliente"
-                                      class="text-danger">
-                                </span>
-
-                            </div>
+                    </div>
 
 
-                            <!-- TIPO -->
+                    <!-- CLIENTE -->
 
-                            <div class="col-md-3">
+                    <div class="col-md-6">
 
-                                <label asp-for="IdTipoPedido"
-                                       class="form-label fw-semibold">
+                        <label asp-for="IdCliente"
+                               class="form-label">
 
-                                    Tipo de pedido
-                                    <span class="text-danger">*</span>
+                            Cliente
 
-                                </label>
+                        </label>
 
-                                <select asp-for="IdTipoPedido"
-                                        asp-items="Model.TiposPedido"
-                                        class="form-select">
+                        <select asp-for="IdCliente"
+                                asp-items="Model.Clientes"
+                                class="form-select">
 
-                                    <option value="">
-                                        -- Seleccione --
-                                    </option>
+                            <option value="">
+                                -- Seleccione un cliente --
+                            </option>
 
-                                </select>
+                        </select>
 
-                                <span asp-validation-for="IdTipoPedido"
-                                      class="text-danger">
-                                </span>
+                        <span asp-validation-for="IdCliente"
+                              class="text-danger">
+                        </span>
 
-                            </div>
-
-
-                            <!-- MESA -->
-
-                            <div class="col-md-4">
-
-                                <label asp-for="IdMesa"
-                                       class="form-label fw-semibold">
-
-                                    Mesa
-
-                                </label>
-
-                                <select asp-for="IdMesa"
-                                        asp-items="Model.Mesas"
-                                        class="form-select">
-
-                                    <option value="">
-                                        -- Sin mesa --
-                                    </option>
-
-                                </select>
-
-                                <span asp-validation-for="IdMesa"
-                                      class="text-danger">
-                                </span>
-
-                            </div>
+                    </div>
 
 
-                            <!-- ESTADO -->
+                    <!-- MESA -->
 
-                            <div class="col-md-4">
+                    <div class="col-md-3">
 
-                                <label class="form-label fw-semibold">
-                                    Estado actual
-                                </label>
+                        <label asp-for="IdMesa"
+                               class="form-label">
 
-                                <input type="text"
-                                       class="form-control"
-                                       value="@(Model.EstadosPedido?
-                                           .FirstOrDefault(e =>
-                                               e.Value == Model.IdEstadoPedido.ToString())?.Text
-                                           ?? "Sin estado")"
-                                       readonly />
+                            Mesa
 
-                                <small class="text-muted">
-                                    El estado se modifica desde la pantalla
-                                    de detalles.
-                                </small>
+                        </label>
 
-                            </div>
+                        <select asp-for="IdMesa"
+                                asp-items="Model.Mesas"
+                                class="form-select">
+
+                            <option value="">
+                                -- Sin mesa --
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="IdMesa"
+                              class="text-danger">
+                        </span>
+
+                    </div>
 
 
-                            <!-- OBSERVACIÓN -->
+                    <!-- TIPO -->
 
-                            <div class="col-md-4">
+                    <div class="col-md-3">
 
-                                <label asp-for="Observacion"
-                                       class="form-label fw-semibold">
+                        <label asp-for="IdTipoPedido"
+                               class="form-label">
 
-                                    Observación
+                            Tipo de pedido
 
-                                </label>
+                        </label>
 
-                                <textarea asp-for="Observacion"
-                                          class="form-control"
-                                          rows="3"
-                                          placeholder="Observaciones del pedido...">
-                                </textarea>
+                        <select asp-for="IdTipoPedido"
+                                asp-items="Model.TiposPedido"
+                                class="form-select"
+                                required>
 
-                                <span asp-validation-for="Observacion"
-                                      class="text-danger">
-                                </span>
+                            <option value="">
+                                -- Seleccione --
+                            </option>
 
-                            </div>
+                        </select>
 
+                        <span asp-validation-for="IdTipoPedido"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- OBSERVACIÓN -->
+
+                    <div class="col-12">
+
+                        <label asp-for="Observacion"
+                               class="form-label">
+
+                            Observación
+
+                        </label>
+
+                        <textarea asp-for="Observacion"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="400"
+                                  placeholder="Escriba una observación si es necesario...">
+                        </textarea>
+
+                        <div class="form-text">
+                            Máximo 400 caracteres.
                         </div>
+
+                        <span asp-validation-for="Observacion"
+                              class="text-danger">
+                        </span>
 
                     </div>
 
@@ -266,275 +305,251 @@
 
             </div>
 
+        </div>
 
-            <!-- ================================================= -->
-            <!-- PRODUCTOS -->
-            <!-- ================================================= -->
 
-            <div class="col-12">
+        <!-- ===================================================== -->
+        <!-- PRODUCTOS -->
+        <!-- ===================================================== -->
 
-                <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 mb-4">
 
-                    <div class="card-header bg-white py-3">
+            <div class="card-header bg-white py-3">
 
-                        <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center">
 
-                            <div>
+                    <h5 class="mb-0 fw-semibold">
 
-                                <h5 class="mb-0 fw-semibold">
+                        <i class="bi bi-basket me-2"></i>
 
-                                    <i class="bi bi-basket me-2"></i>
+                        Productos del pedido
 
-                                    Productos
+                    </h5>
 
-                                </h5>
+                    <button type="button"
+                            class="btn btn-sm btn-primary"
+                            id="btnAgregarProducto">
 
-                                <small class="text-muted">
-                                    Agregue o modifique los productos del pedido.
-                                </small>
+                        <i class="bi bi-plus-circle me-1"></i>
 
-                            </div>
+                        Agregar producto
 
-                            <button type="button"
-                                    class="btn btn-sm btn-primary"
-                                    id="btnAgregarProducto">
+                    </button>
 
-                                <i class="bi bi-plus-circle me-1"></i>
-                                Agregar producto
+                </div>
 
-                            </button>
+            </div>
 
-                        </div>
 
-                    </div>
+            <div class="card-body">
 
+                <div id="detallesContainer">
 
-                    <div class="card-body">
+                    @for (int i = 0; i < detalles.Count; i++)
+                    {
+                        <div class="detalle-producto border rounded p-3 mb-3">
 
-                        <div id="detallesContainer">
+                            <div class="row g-3 align-items-end">
 
-                            @if (Model.Detalles != null &&
-                                 Model.Detalles.Any())
-                            {
-                                @for (int i = 0;
-                                     i < Model.Detalles.Count;
-                                     i++)
-                                {
-                                    <div class="detalle-producto border rounded p-3 mb-3">
+                                <!-- PRODUCTO -->
 
-                                        <!-- CAMPOS OCULTOS -->
+                                <div class="col-lg-4">
 
-                                        <input type="hidden"
-                                               name="Detalles[@i].IdDetallePedido"
-                                               value="@Model.Detalles[i].IdDetallePedido" />
+                                    <label class="form-label">
+                                        Producto
+                                    </label>
 
-                                        <input type="hidden"
-                                               name="Detalles[@i].IdPedido"
-                                               value="@Model.IdPedido" />
+                                    <select name="Detalles[@i].IdProducto"
+                                            class="form-select producto-select"
+                                            required>
 
+                                        <option value="">
+                                            -- Seleccione un producto --
+                                        </option>
 
-                                        <div class="row g-3 align-items-end">
+                                        @foreach (var producto in
+                                            detalles[i].Productos
+                                            ?? Enumerable.Empty<SelectListItem>())
+                                        {
+                                            if (producto.Value ==
+                                                detalles[i].IdProducto.ToString())
+                                            {
+                                                <option value="@producto.Value"
+                                                        selected>
 
-                                            <!-- PRODUCTO -->
+                                                    @producto.Text
 
-                                            <div class="col-md-4">
+                                                </option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@producto.Value">
 
-                                                <label class="form-label fw-semibold">
-                                                    Producto
-                                                </label>
+                                                    @producto.Text
 
-                                                <select name="Detalles[@i].IdProducto"
-                                                        class="form-select producto-select">
+                                                </option>
+                                            }
+                                        }
 
-                                                    <option value="">
-                                                        -- Seleccione producto --
-                                                    </option>
-
-                                                    @foreach (var producto in
-                                                             Model.Detalles[i].Productos
-                                                             ?? new List<SelectListItem>())
-                                                    {
-                                                        <option value="@producto.Value"
-                                                                selected="@(producto.Value == Model.Detalles[i].IdProducto.ToString())">
-
-                                                            @producto.Text
-
-                                                        </option>
-                                                    }
-
-                                                </select>
-
-                                            </div>
-
-
-                                            <!-- CANTIDAD -->
-
-                                            <div class="col-md-2">
-
-                                                <label class="form-label fw-semibold">
-                                                    Cantidad
-                                                </label>
-
-                                                <input name="Detalles[@i].Cantidad"
-                                                       type="number"
-                                                       class="form-control cantidad"
-                                                       min="0"
-                                                       step="1"
-                                                       value="@Model.Detalles[i].Cantidad" />
-
-                                            </div>
-
-
-                                            <!-- PRECIO -->
-
-                                            <div class="col-md-2">
-
-                                                <label class="form-label fw-semibold">
-                                                    Precio unitario
-                                                </label>
-
-                                                <input type="text"
-                                                       class="form-control precio"
-                                                       value="C$ @Model.Detalles[i].PrecioUnitario.ToString("N2")"
-                                                       readonly />
-
-                                            </div>
-
-
-                                            <!-- DESCUENTO -->
-
-                                            <div class="col-md-2">
-
-                                                <label class="form-label fw-semibold">
-                                                    Descuento
-                                                </label>
-
-                                                <input name="Detalles[@i].Descuento"
-                                                       type="number"
-                                                       class="form-control descuento"
-                                                       min="0"
-                                                       step="0.01"
-                                                       value="@Model.Detalles[i].Descuento" />
-
-                                            </div>
-
-
-                                            <!-- ELIMINAR -->
-
-                                            <div class="col-md-2">
-
-                                                <button type="button"
-                                                        class="btn btn-outline-danger w-100 btnEliminarProducto">
-
-                                                    <i class="bi bi-trash me-1"></i>
-                                                    Eliminar
-
-                                                </button>
-
-                                            </div>
-
-
-                                            <!-- OBSERVACIÓN -->
-
-                                            <div class="col-12">
-
-                                                <label class="form-label">
-                                                    Observación del producto
-                                                </label>
-
-                                                <input name="Detalles[@i].Observacion"
-                                                       type="text"
-                                                       class="form-control"
-                                                       value="@Model.Detalles[i].Observacion"
-                                                       placeholder="Observación..." />
-
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                }
-                            }
-                            else
-                            {
-                                <div id="sinProductos"
-                                     class="text-center py-4 text-muted">
-
-                                    <i class="bi bi-basket display-6"></i>
-
-                                    <p class="mt-2 mb-0">
-                                        No hay productos agregados.
-                                    </p>
+                                    </select>
 
                                 </div>
-                            }
+
+
+                                <!-- CANTIDAD -->
+
+                                <div class="col-lg-2">
+
+                                    <label class="form-label">
+                                        Cantidad
+                                    </label>
+
+                                    <input name="Detalles[@i].Cantidad"
+                                           type="number"
+                                           class="form-control cantidad"
+                                           min="1"
+                                           step="1"
+                                           value="@detalles[i].Cantidad.ToString("0")"
+                                           required />
+
+                                </div>
+
+
+                                <!-- DESCUENTO -->
+
+                                <div class="col-lg-2">
+
+                                    <label class="form-label">
+                                        Descuento
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text">
+                                            C$
+                                        </span>
+
+                                        <input name="Detalles[@i].Descuento"
+                                               type="number"
+                                               class="form-control descuento"
+                                               min="0"
+                                               step="0.01"
+                                               value="@detalles[i].Descuento.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" />
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- OBSERVACIÓN -->
+
+                                <div class="col-lg-3">
+
+                                    <label class="form-label">
+                                        Observación
+                                    </label>
+
+                                    <input name="Detalles[@i].Observacion"
+                                           type="text"
+                                           class="form-control"
+                                           maxlength="400"
+                                           value="@detalles[i].Observacion" />
+
+                                </div>
+
+
+                                <!-- ELIMINAR -->
+
+                                <div class="col-lg-1">
+
+                                    <button type="button"
+                                            class="btn btn-outline-danger btnEliminarProducto w-100">
+
+                                        <i class="bi bi-trash"></i>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
 
                         </div>
+                    }
 
-                    </div>
+                </div>
+
+
+                <div id="sinProductos"
+                     class="text-center text-muted py-4"
+                     style="display:none;">
+
+                    <i class="bi bi-basket display-6"></i>
+
+                    <p class="mb-0 mt-2">
+
+                        Agregue al menos un producto.
+
+                    </p>
 
                 </div>
 
             </div>
 
+        </div>
 
-            <!-- ================================================= -->
-            <!-- TOTALES -->
-            <!-- ================================================= -->
 
-            <div class="col-md-5 ms-auto">
+        <!-- ===================================================== -->
+        <!-- RESUMEN -->
+        <!-- ===================================================== -->
+
+        <div class="row justify-content-end mb-4">
+
+            <div class="col-lg-5">
 
                 <div class="card shadow-sm border-0">
 
                     <div class="card-header bg-white py-3">
 
                         <h5 class="mb-0 fw-semibold">
+
                             <i class="bi bi-calculator me-2"></i>
+
                             Resumen
+
                         </h5>
 
                     </div>
 
                     <div class="card-body">
 
-                        <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex justify-content-between mb-3">
 
-                            <span>
+                            <span class="text-muted">
                                 Subtotal
                             </span>
 
-                            <strong id="subtotalVisual">
+                            <span class="fw-semibold"
+                                  id="resumenSubtotal">
+
                                 C$ @Model.Subtotal.ToString("N2")
-                            </strong>
+
+                            </span>
 
                         </div>
 
 
-                        <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex justify-content-between mb-3">
 
-                            <span>
+                            <span class="text-muted">
                                 Descuento
                             </span>
 
-                            <strong class="text-danger"
-                                    id="descuentoVisual">
+                            <span class="text-danger fw-semibold"
+                                  id="resumenDescuento">
 
-                                - C$ @Model.Descuento.ToString("N2")
+                                C$ @Model.Descuento.ToString("N2")
 
-                            </strong>
-
-                        </div>
-
-
-                        <div class="d-flex justify-content-between mb-2">
-
-                            <span>
-                                Impuesto
                             </span>
-
-                            <strong id="impuestoVisual">
-                                C$ @Model.Impuesto.ToString("N2")
-                            </strong>
 
                         </div>
 
@@ -544,16 +559,16 @@
 
                         <div class="d-flex justify-content-between">
 
-                            <span class="fw-bold fs-5">
+                            <span class="fw-bold">
                                 Total
                             </span>
 
-                            <strong class="text-success fs-5"
-                                    id="totalVisual">
+                            <span class="fs-4 fw-bold text-success"
+                                  id="resumenTotal">
 
                                 C$ @Model.Total.ToString("N2")
 
-                            </strong>
+                            </span>
 
                         </div>
 
@@ -563,35 +578,33 @@
 
             </div>
 
+        </div>
 
-            <!-- ================================================= -->
-            <!-- BOTONES -->
-            <!-- ================================================= -->
 
-            <div class="col-12">
+        <!-- ===================================================== -->
+        <!-- BOTONES -->
+        <!-- ===================================================== -->
 
-                <div class="d-flex justify-content-end gap-2">
+        <div class="d-flex justify-content-between align-items-center">
 
-                    <a asp-action="Details"
-                       asp-route-id="@Model.IdPedido"
-                       class="btn btn-outline-secondary">
+            <a asp-action="Details"
+               asp-route-id="@Model.IdPedido"
+               class="btn btn-outline-secondary">
 
-                        <i class="bi bi-x-circle me-1"></i>
-                        Cancelar
+                <i class="bi bi-x-circle me-1"></i>
 
-                    </a>
+                Cancelar
 
-                    <button type="submit"
-                            class="btn btn-primary">
+            </a>
 
-                        <i class="bi bi-save me-1"></i>
-                        Guardar cambios
+            <button type="submit"
+                    class="btn btn-success btn-lg">
 
-                    </button>
+                <i class="bi bi-check-circle me-1"></i>
 
-                </div>
+                Guardar cambios
 
-            </div>
+            </button>
 
         </div>
 
@@ -601,41 +614,32 @@
 
 
 <!-- ============================================================= -->
-<!-- TEMPLATE PRODUCTO -->
+<!-- TEMPLATE PARA NUEVOS PRODUCTOS -->
 <!-- ============================================================= -->
 
 <template id="detalleTemplate">
 
     <div class="detalle-producto border rounded p-3 mb-3">
 
-        <input type="hidden"
-               name="Detalles[INDEX].IdDetallePedido"
-               value="0" />
-
-        <input type="hidden"
-               name="Detalles[INDEX].IdPedido"
-               value="@Model.IdPedido" />
-
         <div class="row g-3 align-items-end">
 
-            <div class="col-md-4">
+            <div class="col-lg-4">
 
-                <label class="form-label fw-semibold">
+                <label class="form-label">
                     Producto
                 </label>
 
-                <select name="Detalles[INDEX].IdProducto"
-                        class="form-select producto-select">
+                <select name="Detalles[__INDEX__].IdProducto"
+                        class="form-select producto-select"
+                        required>
 
                     <option value="">
-                        -- Seleccione producto --
+                        -- Seleccione un producto --
                     </option>
 
                     @foreach (var producto in
-                             Model.Detalles?
-                                 .FirstOrDefault()?
-                                 .Productos
-                             ?? new List<SelectListItem>())
+                        detalles.FirstOrDefault()?.Productos
+                        ?? Enumerable.Empty<SelectListItem>())
                     {
                         <option value="@producto.Value">
                             @producto.Text
@@ -647,75 +651,69 @@
             </div>
 
 
-            <div class="col-md-2">
+            <div class="col-lg-2">
 
-                <label class="form-label fw-semibold">
+                <label class="form-label">
                     Cantidad
                 </label>
 
-                <input name="Detalles[INDEX].Cantidad"
+                <input name="Detalles[__INDEX__].Cantidad"
                        type="number"
                        class="form-control cantidad"
-                       min="0"
+                       min="1"
                        step="1"
-                       value="1" />
+                       value="1"
+                       required />
 
             </div>
 
 
-            <div class="col-md-2">
+            <div class="col-lg-2">
 
-                <label class="form-label fw-semibold">
-                    Precio unitario
-                </label>
-
-                <input type="text"
-                       class="form-control precio"
-                       value="C$ 0.00"
-                       readonly />
-
-            </div>
-
-
-            <div class="col-md-2">
-
-                <label class="form-label fw-semibold">
+                <label class="form-label">
                     Descuento
                 </label>
 
-                <input name="Detalles[INDEX].Descuento"
-                       type="number"
-                       class="form-control descuento"
-                       min="0"
-                       step="0.01"
-                       value="0" />
+                <div class="input-group">
+
+                    <span class="input-group-text">
+                        C$
+                    </span>
+
+                    <input name="Detalles[__INDEX__].Descuento"
+                           type="number"
+                           class="form-control descuento"
+                           min="0"
+                           step="0.01"
+                           value="0" />
+
+                </div>
 
             </div>
 
 
-            <div class="col-md-2">
-
-                <button type="button"
-                        class="btn btn-outline-danger w-100 btnEliminarProducto">
-
-                    <i class="bi bi-trash me-1"></i>
-                    Eliminar
-
-                </button>
-
-            </div>
-
-
-            <div class="col-12">
+            <div class="col-lg-3">
 
                 <label class="form-label">
-                    Observación del producto
+                    Observación
                 </label>
 
-                <input name="Detalles[INDEX].Observacion"
+                <input name="Detalles[__INDEX__].Observacion"
                        type="text"
                        class="form-control"
-                       placeholder="Observación..." />
+                       maxlength="400" />
+
+            </div>
+
+
+            <div class="col-lg-1">
+
+                <button type="button"
+                        class="btn btn-outline-danger btnEliminarProducto w-100">
+
+                    <i class="bi bi-trash"></i>
+
+                </button>
 
             </div>
 
@@ -725,10 +723,6 @@
 
 </template>
 
-
-<!-- ============================================================= -->
-<!-- SCRIPTS -->
-<!-- ============================================================= -->
 
 @section Scripts {
 
@@ -747,181 +741,225 @@
             const btnAgregar =
                 document.getElementById("btnAgregarProducto");
 
-
-            // =====================================================
-            // AGREGAR PRODUCTO
-            // =====================================================
-
-            btnAgregar.addEventListener("click", function () {
-
-                const index =
-                    container.querySelectorAll(".detalle-producto").length;
-
-                const html =
-                    template.innerHTML.replaceAll(
-                        "INDEX",
-                        index
-                    );
-
-                const sinProductos =
-                    document.getElementById("sinProductos");
-
-                if (sinProductos) {
-                    sinProductos.remove();
-                }
-
-                container.insertAdjacentHTML(
-                    "beforeend",
-                    html
-                );
-
-                actualizarEventos();
-
-            });
+            const sinProductos =
+                document.getElementById("sinProductos");
 
 
-            // =====================================================
-            // ELIMINAR PRODUCTO
-            // =====================================================
+            function actualizarEstadoProductos() {
 
-            function actualizarEventos() {
+                const detalles =
+                    container.querySelectorAll(".detalle-producto");
 
-                document
-                    .querySelectorAll(".btnEliminarProducto")
-                    .forEach(function (button) {
-
-                        button.onclick = function () {
-
-                            const detalle =
-                                button.closest(".detalle-producto");
-
-                            if (detalle) {
-
-                                detalle.remove();
-
-                                recalcularTotales();
-
-                            }
-
-                            if (
-                                container.querySelectorAll(
-                                    ".detalle-producto"
-                                ).length === 0
-                            ) {
-
-                                container.innerHTML = `
-                                    <div id="sinProductos"
-                                         class="text-center py-4 text-muted">
-
-                                        <i class="bi bi-basket display-6"></i>
-
-                                        <p class="mt-2 mb-0">
-                                            No hay productos agregados.
-                                        </p>
-
-                                    </div>
-                                `;
-
-                            }
-
-                        };
-
-                    });
-
-
-                document
-                    .querySelectorAll(".cantidad, .descuento")
-                    .forEach(function (input) {
-
-                        input.addEventListener(
-                            "input",
-                            recalcularTotales
-                        );
-
-                    });
+                sinProductos.style.display =
+                    detalles.length === 0
+                        ? "block"
+                        : "none";
 
             }
 
 
-            // =====================================================
-            // RECALCULAR TOTALES VISUALES
-            // =====================================================
+            function obtenerSiguienteIndice() {
 
-            function recalcularTotales() {
+                const inputs =
+                    container.querySelectorAll(
+                        "[name^='Detalles[']");
+
+                let max = -1;
+
+                inputs.forEach(function (input) {
+
+                    const match =
+                        input.name.match(
+                            /Detalles\[(\d+)\]/
+                        );
+
+                    if (match) {
+
+                        const indice =
+                            parseInt(match[1]);
+
+                        if (indice > max) {
+                            max = indice;
+                        }
+
+                    }
+
+                });
+
+                return max + 1;
+            }
+
+
+            btnAgregar.addEventListener(
+                "click",
+                function () {
+
+                    const indice =
+                        obtenerSiguienteIndice();
+
+                    const html =
+                        template.innerHTML.replace(
+                            /__INDEX__/g,
+                            indice
+                        );
+
+                    container.insertAdjacentHTML(
+                        "beforeend",
+                        html
+                    );
+
+                    actualizarEstadoProductos();
+
+                });
+
+
+            container.addEventListener(
+                "click",
+                function (event) {
+
+                    const boton =
+                        event.target.closest(
+                            ".btnEliminarProducto");
+
+                    if (!boton)
+                        return;
+
+                    const detalle =
+                        boton.closest(
+                            ".detalle-producto");
+
+                    if (detalle) {
+
+                        detalle.remove();
+
+                        renumerarDetalles();
+
+                        actualizarEstadoProductos();
+
+                        calcularTotales();
+
+                    }
+
+                });
+
+
+            function renumerarDetalles() {
+
+                const detalles =
+                    container.querySelectorAll(
+                        ".detalle-producto");
+
+                detalles.forEach(function (detalle, index) {
+
+                    detalle
+                        .querySelectorAll(
+                            "[name]"
+                        )
+                        .forEach(function (elemento) {
+
+                            elemento.name =
+                                elemento.name.replace(
+                                    /Detalles\[\d+\]/,
+                                    "Detalles[" +
+                                    index +
+                                    "]"
+                                );
+
+                        });
+
+                });
+
+            }
+
+
+            function calcularTotales() {
 
                 let subtotal = 0;
                 let descuento = 0;
 
-                document
-                    .querySelectorAll(".detalle-producto")
-                    .forEach(function (detalle) {
+                const detalles =
+                    container.querySelectorAll(
+                        ".detalle-producto");
 
-                        const cantidadInput =
-                            detalle.querySelector(".cantidad");
+                detalles.forEach(function (detalle) {
 
-                        const precioInput =
-                            detalle.querySelector(".precio");
+                    const cantidad =
+                        parseFloat(
+                            detalle.querySelector(
+                                ".cantidad"
+                            )?.value
+                        ) || 0;
 
-                        const descuentoInput =
-                            detalle.querySelector(".descuento");
+                    const descuentoLinea =
+                        parseFloat(
+                            detalle.querySelector(
+                                ".descuento"
+                            )?.value
+                        ) || 0;
 
+                    /*
+                     * El precio real lo calcula
+                     * nuevamente el controlador.
+                     *
+                     * Aquí solamente dejamos
+                     * el resumen visual.
+                     */
 
-                        const cantidad =
-                            parseFloat(
-                                cantidadInput?.value
-                            ) || 0;
+                    const select =
+                        detalle.querySelector(
+                            ".producto-select");
 
+                    if (!select)
+                        return;
 
-                        let precioTexto =
-                            precioInput?.value || "0";
+                    const texto =
+                        select.options[
+                            select.selectedIndex
+                        ]?.text || "";
 
-                        precioTexto =
-                            precioTexto
-                                .replace("C$", "")
-                                .replace(/\s/g, "")
-                                .replace(/,/g, "");
+                    const match =
+                        texto.match(
+                            /C\$\s*([\d,]+(?:\.\d{1,2})?)/
+                        );
 
+                    if (!match)
+                        return;
 
-                        const precio =
-                            parseFloat(precioTexto) || 0;
+                    const precio =
+                        parseFloat(
+                            match[1].replace(
+                                /,/g,
+                                ""
+                            )
+                        ) || 0;
 
+                    const subtotalLinea =
+                        precio * cantidad;
 
-                        const descuentoLinea =
-                            parseFloat(
-                                descuentoInput?.value
-                            ) || 0;
+                    const descuentoAplicado =
+                        Math.min(
+                            Math.max(
+                                descuentoLinea,
+                                0
+                            ),
+                            subtotalLinea
+                        );
 
+                    subtotal +=
+                        subtotalLinea;
 
-                        const subtotalLinea =
-                            cantidad * precio;
+                    descuento +=
+                        descuentoAplicado;
 
+                });
 
-                        subtotal +=
-                            subtotalLinea;
-
-
-                        descuento +=
-                            Math.min(
-                                Math.max(
-                                    descuentoLinea,
-                                    0
-                                ),
-                                subtotalLinea
-                            );
-
-                    });
-
-
-                const impuesto = 0;
 
                 const total =
-                    subtotal -
-                    descuento +
-                    impuesto;
+                    subtotal - descuento;
 
 
                 document.getElementById(
-                    "subtotalVisual"
+                    "resumenSubtotal"
                 ).textContent =
                     "C$ " +
                     subtotal.toLocaleString(
@@ -934,9 +972,9 @@
 
 
                 document.getElementById(
-                    "descuentoVisual"
+                    "resumenDescuento"
                 ).textContent =
-                    "- C$ " +
+                    "C$ " +
                     descuento.toLocaleString(
                         "es-NI",
                         {
@@ -947,20 +985,7 @@
 
 
                 document.getElementById(
-                    "impuestoVisual"
-                ).textContent =
-                    "C$ " +
-                    impuesto.toLocaleString(
-                        "es-NI",
-                        {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }
-                    );
-
-
-                document.getElementById(
-                    "totalVisual"
+                    "resumenTotal"
                 ).textContent =
                     "C$ " +
                     total.toLocaleString(
@@ -974,11 +999,46 @@
             }
 
 
-            // =====================================================
-            // INICIALIZAR
-            // =====================================================
+            container.addEventListener(
+                "input",
+                function (event) {
 
-            actualizarEventos();
+                    if (
+                        event.target.classList.contains(
+                            "cantidad"
+                        ) ||
+                        event.target.classList.contains(
+                            "descuento"
+                        )
+                    ) {
+
+                        calcularTotales();
+
+                    }
+
+                });
+
+
+            container.addEventListener(
+                "change",
+                function (event) {
+
+                    if (
+                        event.target.classList.contains(
+                            "producto-select"
+                        )
+                    ) {
+
+                        calcularTotales();
+
+                    }
+
+                });
+
+
+            actualizarEstadoProductos();
+
+            calcularTotales();
 
         });
 

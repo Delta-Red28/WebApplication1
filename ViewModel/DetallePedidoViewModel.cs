@@ -18,7 +18,8 @@ namespace WebApplication1.ViewModels
         // PRODUCTO
         // =========================================================
 
-        [Required(ErrorMessage = "Debe seleccionar un producto.")]
+        [Required(
+            ErrorMessage = "Debe seleccionar un producto.")]
         [Display(Name = "Producto")]
         public int IdProducto { get; set; }
 
@@ -27,7 +28,8 @@ namespace WebApplication1.ViewModels
         // CANTIDAD
         // =========================================================
 
-        [Required(ErrorMessage = "La cantidad es obligatoria.")]
+        [Required(
+            ErrorMessage = "La cantidad es obligatoria.")]
         [Range(
             0.01,
             999999,
@@ -37,11 +39,14 @@ namespace WebApplication1.ViewModels
 
 
         // =========================================================
-        // PRECIO
+        // PRECIO UNITARIO
         // =========================================================
         //
-        // Este valor se muestra en pantalla, pero el controlador
-        // obtiene el precio real directamente desde Producto.
+        // El precio mostrado en pantalla es únicamente
+        // informativo.
+        //
+        // El controlador obtiene nuevamente el precio real
+        // desde la tabla Productos antes de guardar.
         //
 
         [Display(Name = "Precio unitario")]
@@ -64,9 +69,10 @@ namespace WebApplication1.ViewModels
         // IMPUESTO
         // =========================================================
         //
-        // Por ahora permanece en cero.
-        // Posteriormente lo conectaremos con el módulo de
-        // facturación/impuestos.
+        // Actualmente permanece en cero.
+        //
+        // Posteriormente se puede conectar con el módulo
+        // de impuestos/facturación.
         //
 
         [Display(Name = "Impuesto")]
@@ -95,7 +101,8 @@ namespace WebApplication1.ViewModels
 
         [StringLength(
             250,
-            ErrorMessage = "La observación no puede superar los 250 caracteres.")]
+            ErrorMessage =
+                "La observación no puede superar los 250 caracteres.")]
         [Display(Name = "Observación")]
         public string? Observacion { get; set; }
 
@@ -104,8 +111,8 @@ namespace WebApplication1.ViewModels
         // LISTA DE PRODUCTOS
         // =========================================================
         //
-        // Se utiliza para llenar el <select> de productos en
-        // Create.cshtml y Edit.cshtml.
+        // Se utiliza para llenar el select de productos
+        // en Create.cshtml y Edit.cshtml.
         //
 
         public IEnumerable<SelectListItem> Productos { get; set; }

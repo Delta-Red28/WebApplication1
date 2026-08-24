@@ -1,0 +1,127 @@
+﻿@model IEnumerable<WebApplication1.ViewModels.MovimientoInventarioViewModel>
+
+@{
+    ViewData["Title"] = "Movimientos de inventario";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h1 class="h3">
+                Movimientos de inventario
+            </h1>
+
+            <p class="text-muted">
+                Historial de entradas y salidas.
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Fecha</th>
+                            <th>Código</th>
+                            <th>Insumo</th>
+                            <th>Tipo</th>
+                            <th>Ubicación</th>
+                            <th>Lote</th>
+                            <th>Cantidad</th>
+                            <th>Costo</th>
+                            <th>Referencia</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Model)
+                        {
+                            var esEntrada =
+                                item.TipoMovimiento
+                                    .ToLower()
+                                    .Contains("entrada");
+
+                            <tr>
+
+                                <td>
+                                    @item.FechaMovimiento
+                                    .ToString("dd/MM/yyyy HH:mm")
+                                </td>
+
+                                <td>
+                                    @item.CodigoInsumo
+                                </td>
+
+                                <td>
+                                    @item.NombreInsumo
+                                </td>
+
+                                <td>
+
+                                    @if (esEntrada)
+                                    {
+                                        <span class="badge bg-success">
+                                            @item.TipoMovimiento
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            @item.TipoMovimiento
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+                                    @item.Ubicacion
+                                </td>
+
+                                <td>
+                                    @(item.CodigoLote ?? "-")
+                                </td>
+
+                                <td>
+                                    @item.Cantidad.ToString("N2")
+                                    @item.Cantidad
+                                </td>
+
+                                <td>
+                                    @(item.CostoUnitario
+                                        ?.ToString("C2") ?? "-")
+                                </td>
+
+                                <td>
+                                    @(item.Referencia ?? "-")
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

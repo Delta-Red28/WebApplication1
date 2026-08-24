@@ -88,10 +88,13 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
-            // LIMPIAR USUARIO
+            // DATOS VALIDADOS
             // ========================================================
 
-            usuario = usuario.Trim();
+            // En este punto ya validamos que no sean null ni vacíos.
+            string usuarioIngresado = usuario!.Trim();
+
+            string passwordIngresada = password!;
 
 
             // ========================================================
@@ -101,7 +104,7 @@ namespace WebApplication1.Controllers
             var usuarioDb = await _context.Usuarios
                 .Include(u => u.IdRolNavigation)
                 .FirstOrDefaultAsync(u =>
-                    u.Usuario1 == usuario
+                    u.Usuario1 == usuarioIngresado
                 );
 
 
@@ -145,7 +148,7 @@ namespace WebApplication1.Controllers
             {
                 passwordCorrecta =
                     BCrypt.Net.BCrypt.Verify(
-                        password,
+                        passwordIngresada,
                         usuarioDb.PasswordHash
                     );
             }
@@ -473,6 +476,17 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
+            // DATOS VALIDADOS
+            // ========================================================
+
+            string passwordActualIngresada =
+                passwordActual!;
+
+            string nuevaPasswordIngresada =
+                nuevaPassword!;
+
+
+            // ========================================================
             // OBTENER ID DEL USUARIO ACTUAL
             // ========================================================
 
@@ -523,7 +537,7 @@ namespace WebApplication1.Controllers
             {
                 passwordCorrecta =
                     BCrypt.Net.BCrypt.Verify(
-                        passwordActual,
+                        passwordActualIngresada,
                         usuarioDb.PasswordHash
                     );
             }
@@ -558,7 +572,7 @@ namespace WebApplication1.Controllers
             {
                 mismaPassword =
                     BCrypt.Net.BCrypt.Verify(
-                        nuevaPassword,
+                        nuevaPasswordIngresada,
                         usuarioDb.PasswordHash
                     );
             }
@@ -585,7 +599,7 @@ namespace WebApplication1.Controllers
 
             usuarioDb.PasswordHash =
                 BCrypt.Net.BCrypt.HashPassword(
-                    nuevaPassword
+                    nuevaPasswordIngresada
                 );
 
 

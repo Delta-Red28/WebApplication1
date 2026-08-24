@@ -13,10 +13,11 @@ public partial class Categorium
     [Key]
     public int IdCategoria { get; set; }
 
-    [StringLength(160)]
+    [Required(ErrorMessage = "El nombre de la categoría es obligatorio.")]
+    [StringLength(80, ErrorMessage = "El nombre no puede superar los 80 caracteres.")]
     public string Nombre { get; set; } = null!;
 
-    [StringLength(500)]
+    [StringLength(250, ErrorMessage = "La descripción no puede superar los 250 caracteres.")]
     public string? Descripcion { get; set; }
 
     public bool Estado { get; set; }

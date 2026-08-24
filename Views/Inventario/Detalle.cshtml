@@ -1,0 +1,105 @@
+﻿@model IEnumerable<WebApplication1.Models.Existencium>
+
+@{
+    var insumo =
+        ViewBag.Insumo as WebApplication1.Models.Insumo;
+
+    ViewData["Title"] = "Detalle de inventario";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h1 class="h3">
+                @insumo?.Nombre
+            </h1>
+
+            <p class="text-muted">
+                Código:
+                <strong>@insumo?.CodigoInsumo</strong>
+            </p>
+
+        </div>
+
+        <a asp-action="Movimientos"
+           asp-route-idInsumo="@insumo?.IdInsumo"
+           class="btn btn-outline-primary">
+
+            Ver movimientos
+
+        </a>
+
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+            Existencias por ubicación
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+
+                        <tr>
+                            <th>Ubicación</th>
+                            <th>Stock actual</th>
+                            <th>Mínimo</th>
+                            <th>Máximo</th>
+                            <th>Actualización</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <td>
+                                    @item.IdUbicacionNavigation.Nombre
+                                </td>
+
+                                <td>
+
+                                    <strong>
+                                        @item.StockActual.ToString("N2")
+                                    </strong>
+
+                                </td>
+
+                                <td>
+                                    @item.StockMinimo.ToString("N2")
+                                </td>
+
+                                <td>
+                                    @(item.StockMaximo?.ToString("N2") ?? "-")
+                                </td>
+
+                                <td>
+                                    @item.UltimaActualizacion
+                                    .ToString("dd/MM/yyyy HH:mm")
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

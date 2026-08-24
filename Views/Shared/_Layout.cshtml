@@ -37,6 +37,9 @@
 
     var controladorActual =
         ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
+
+    var accionActual =
+        ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
 }
 
 <!DOCTYPE html>
@@ -86,953 +89,524 @@
 
     <style>
 
-        /* =========================================================
-           VARIABLES
-        ========================================================= */
-
-        :root {
-
-            --sidebar-width: 270px;
-
-            --topbar-height: 74px;
-
-            --primary: #2563eb;
-
-            --primary-dark: #1d4ed8;
-
-            --sidebar-bg: #111827;
-
-            --sidebar-hover: #1f2937;
-
-            --sidebar-active: #2563eb;
-
-            --text-dark: #1f2937;
-
-            --text-muted: #6b7280;
-
-            --border-color: #e5e7eb;
-
-            --background: #f5f7fb;
-
-            --white: #ffffff;
-
-        }
-
-
-        /* =========================================================
-           GENERAL
-        ========================================================= */
-
-        html,
-        body {
-
-            min-height: 100%;
-
-        }
-
-
-        body {
-
-            margin: 0;
-
-            background:
-                var(--background);
-
-            color:
-                var(--text-dark);
-
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                Roboto,
-                Helvetica,
-                Arial,
-                sans-serif;
-
-            font-size: 16px;
-
-        }
-
-
-        /* =========================================================
-           SIDEBAR
-        ========================================================= */
-
-        .sidebar {
-
-            position: fixed;
-
-            top: 0;
-
-            left: 0;
-
-            bottom: 0;
-
-            width: var(--sidebar-width);
-
-            background:
-                var(--sidebar-bg);
-
-            color: white;
-
-            z-index: 1050;
-
-            display: flex;
-
-            flex-direction: column;
-
-            overflow-y: auto;
-
-            overflow-x: hidden;
-
-            box-shadow:
-                4px 0 20px rgba(0, 0, 0, 0.08);
-
-            scrollbar-width: thin;
-
-            scrollbar-color:
-                #374151
-                transparent;
-
-        }
-
-
-        /* =========================================================
-           LOGO
-        ========================================================= */
-
-        .sidebar-brand {
-
-            min-height: 74px;
-
-            padding:
-                0 24px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 13px;
-
-            font-size: 21px;
-
-            font-weight: 700;
-
-            letter-spacing: -0.3px;
-
-            border-bottom:
-                1px solid rgba(255,255,255,0.08);
-
-            flex-shrink: 0;
-
-        }
-
-
-        .sidebar-brand i {
-
-            width: 38px;
-
-            height: 38px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #3b82f6,
-                    #1d4ed8
-                );
-
-            border-radius: 10px;
-
-            font-size: 20px;
-
-            box-shadow:
-                0 5px 15px rgba(37,99,235,0.35);
-
-        }
-
-
-        /* =========================================================
-           USUARIO SIDEBAR
-        ========================================================= */
-
-        .sidebar-user {
-
-            padding:
-                22px 24px;
-
-            border-bottom:
-                1px solid rgba(255,255,255,0.08);
-
-        }
-
-
-        .sidebar-user-name {
-
-            font-size: 16px;
-
-            font-weight: 600;
-
-            color: #ffffff;
-
-            white-space: nowrap;
-
-            overflow: hidden;
-
-            text-overflow: ellipsis;
-
-        }
-
-
-        .sidebar-user-role {
-
-            margin-top: 5px;
-
-            font-size: 14px;
-
-            color: #9ca3af;
-
-        }
-
-
-        /* =========================================================
-           SECCIONES
-        ========================================================= */
-
-        .sidebar-section {
-
-            padding:
-                22px 24px 9px;
-
-            color:
-                #6b7280;
-
-            font-size: 12px;
-
-            font-weight: 700;
-
-            text-transform: uppercase;
-
-            letter-spacing: 0.8px;
-
-        }
-
-
-        /* =========================================================
-           MENU
-        ========================================================= */
-
-        .sidebar-menu {
-
-            list-style: none;
-
-            padding:
-                0 12px;
-
-            margin:
-                0;
-
-        }
-
-
-        .sidebar-menu li {
-
-            margin-bottom: 4px;
-
-        }
-
-
-        .sidebar-menu a {
-
-            min-height: 46px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 13px;
-
-            padding:
-                11px 14px;
-
-            border-radius: 9px;
-
-            color:
-                #d1d5db;
-
-            text-decoration: none;
-
-            font-size: 15px;
-
-            font-weight: 500;
-
-            transition:
-                background 0.18s ease,
-                color 0.18s ease,
-                transform 0.18s ease;
-
-        }
-
-
-        .sidebar-menu a i {
-
-            width: 22px;
-
-            min-width: 22px;
-
-            text-align: center;
-
-            font-size: 19px;
-
-        }
-
-
-        .sidebar-menu a:hover {
-
-            background:
-                var(--sidebar-hover);
-
-            color:
-                #ffffff;
-
-            transform:
-                translateX(2px);
-
-        }
-
-
-        .sidebar-menu a.active {
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #2563eb,
-                    #1d4ed8
-                );
-
-            color:
-                #ffffff;
-
-            box-shadow:
-                0 5px 14px rgba(37,99,235,0.28);
-
-        }
-
-
-        .sidebar-menu a.active i {
-
-            color:
-                #ffffff;
-
-        }
-
-
-        /* =========================================================
-           CONTENEDOR PRINCIPAL
-        ========================================================= */
-
-        .main-wrapper {
-
-            margin-left:
-                var(--sidebar-width);
-
-            min-height:
-                100vh;
-
-            display:
-                flex;
-
-            flex-direction:
-                column;
-
-        }
-
-
-        /* =========================================================
-           TOPBAR
-        ========================================================= */
-
-        .topbar {
-
-            height:
-                var(--topbar-height);
-
-            min-height:
-                var(--topbar-height);
-
-            background:
-                var(--white);
-
-            border-bottom:
-                1px solid var(--border-color);
-
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            justify-content:
-                space-between;
-
-            padding:
-                0 30px;
-
-            position:
-                sticky;
-
-            top:
-                0;
-
-            z-index:
-                1000;
-
-            box-shadow:
-                0 2px 10px rgba(15,23,42,0.04);
-
-        }
-
-
-        .topbar-left {
-
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            gap:
-                18px;
-
-            min-width:
-                0;
-
-        }
-
-
-        .topbar-title {
-
-            font-size:
-                22px;
-
-            font-weight:
-                700;
-
-            color:
-                #111827;
-
-            white-space:
-                nowrap;
-
-        }
-
-
-        /* =========================================================
-           BOTON MENU MOVIL
-        ========================================================= */
-
-        .mobile-menu-button {
-
-            width:
-                44px;
-
-            height:
-                44px;
-
-            border:
-                1px solid var(--border-color);
-
-            background:
-                #ffffff;
-
-            border-radius:
-                9px;
-
-            display:
-                none;
-
-            align-items:
-                center;
-
-            justify-content:
-                center;
-
-            color:
-                #374151;
-
-            font-size:
-                22px;
-
-            cursor:
-                pointer;
-
-        }
-
-
-        .mobile-menu-button:hover {
-
-            background:
-                #f3f4f6;
-
-        }
-
-
-        /* =========================================================
-           USUARIO TOPBAR
-        ========================================================= */
-
-        .user-button {
-
-            border:
-                0;
-
-            background:
-                transparent;
-
-            padding:
-                6px 8px;
-
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            gap:
-                11px;
-
-            border-radius:
-                10px;
-
-        }
-
-
-        .user-button:hover {
-
-            background:
-                #f3f4f6;
-
-        }
-
-
-        .user-avatar {
-
-            width:
-                42px;
-
-            height:
-                42px;
-
-            min-width:
-                42px;
-
-            border-radius:
-                50%;
-
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            justify-content:
-                center;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #2563eb,
-                    #1d4ed8
-                );
-
-            color:
-                #ffffff;
-
-            font-size:
-                14px;
-
-            font-weight:
-                700;
-
-            box-shadow:
-                0 4px 10px rgba(37,99,235,0.25);
-
-        }
-
-
-        .user-info {
-
-            text-align:
-                left;
-
-            max-width:
-                180px;
-
-        }
-
-
-        .user-name {
-
-            font-size:
-                15px;
-
-            font-weight:
-                600;
-
-            color:
-                #1f2937;
-
-            white-space:
-                nowrap;
-
-            overflow:
-                hidden;
-
-            text-overflow:
-                ellipsis;
-
-        }
-
-
-        .user-role {
-
-            margin-top:
-                2px;
-
-            font-size:
-                13px;
-
-            color:
-                #6b7280;
-
-        }
-
-
-        /* =========================================================
-           DROPDOWN
-        ========================================================= */
-
-        .dropdown-menu {
-
-            min-width:
-                245px;
-
-            padding:
-                8px;
-
-            border:
-                1px solid var(--border-color);
-
-            border-radius:
-                12px;
-
-        }
-
-
-        .dropdown-header {
-
-            padding:
-                10px 12px;
-
-            font-size:
-                15px;
-
-            color:
-                #1f2937;
-
-        }
-
-
-        .dropdown-item {
-
-            min-height:
-                43px;
-
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            border-radius:
-                8px;
-
-            padding:
-                9px 12px;
-
-            font-size:
-                15px;
-
-        }
-
-
-        .dropdown-item:hover {
-
-            background:
-                #f3f4f6;
-
-        }
-
-
-        .dropdown-item.text-danger:hover {
-
-            background:
-                #fef2f2;
-
-        }
-
-
-        /* =========================================================
-           CONTENIDO
-        ========================================================= */
-
-        .content {
-
-            flex:
-                1;
-
-            width:
-                100%;
-
-            padding:
-                30px;
-
-        }
-
-
-        /* =========================================================
-           OVERLAY
-        ========================================================= */
-
-        .sidebar-overlay {
-
-            display:
-                none;
-
-            position:
-                fixed;
-
-            inset:
-                0;
-
-            background:
-                rgba(0,0,0,0.45);
-
-            z-index:
-                1040;
-
-        }
-
-
-        .sidebar-overlay.show {
-
-            display:
-                block;
-
-        }
-
-
-        /* =========================================================
-           TABLET
-        ========================================================= */
-
-        @@media (max-width: 1100px) {
+            /* =========================================================
+                       VARIABLES
+                    ========================================================= */
 
             :root {
-
-                --sidebar-width: 250px;
-
+                --sidebar-width: 270px;
+                --topbar-height: 74px;
+                --primary: #2563eb;
+                --primary-dark: #1d4ed8;
+                --sidebar-bg: #111827;
+                --sidebar-hover: #1f2937;
+                --sidebar-active: #2563eb;
+                --text-dark: #1f2937;
+                --text-muted: #6b7280;
+                --border-color: #e5e7eb;
+                --background: #f5f7fb;
+                --white: #ffffff;
             }
 
-            .content {
 
-                padding:
-                    25px;
+            /* =========================================================
+                       GENERAL
+                    ========================================================= */
 
+            html,
+            body {
+                min-height: 100%;
             }
 
-            .topbar {
 
-                padding:
-                    0 24px;
-
+            body {
+                margin: 0;
+                background: var(--background);
+                color: var(--text-dark);
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                font-size: 16px;
             }
 
-        }
 
-
-        /* =========================================================
-           TABLET PEQUEÑA
-        ========================================================= */
-
-        @@media (max-width: 900px) {
+            /* =========================================================
+                       SIDEBAR
+                    ========================================================= */
 
             .sidebar {
-
-                transform:
-                    translateX(-100%);
-
-                transition:
-                    transform 0.25s ease;
-
-                width:
-                    280px;
-
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: var(--sidebar-width);
+                background: var(--sidebar-bg);
+                color: white;
+                z-index: 1050;
+                display: flex;
+                flex-direction: column;
+                overflow-y: auto;
+                overflow-x: hidden;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+                scrollbar-width: thin;
+                scrollbar-color: #374151 transparent;
             }
 
 
-            .sidebar.show {
+            /* =========================================================
+                       LOGO
+                    ========================================================= */
 
-                transform:
-                    translateX(0);
-
+            .sidebar-brand {
+                min-height: 74px;
+                padding: 0 24px;
+                display: flex;
+                align-items: center;
+                gap: 13px;
+                font-size: 21px;
+                font-weight: 700;
+                letter-spacing: -0.3px;
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+                flex-shrink: 0;
             }
 
+
+                .sidebar-brand i {
+                    width: 38px;
+                    height: 38px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: linear-gradient( 135deg, #3b82f6, #1d4ed8 );
+                    border-radius: 10px;
+                    font-size: 20px;
+                    box-shadow: 0 5px 15px rgba(37,99,235,0.35);
+                }
+
+
+            /* =========================================================
+                       USUARIO SIDEBAR
+                    ========================================================= */
+
+            .sidebar-user {
+                padding: 22px 24px;
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+            }
+
+
+            .sidebar-user-name {
+                font-size: 16px;
+                font-weight: 600;
+                color: #ffffff;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+
+            .sidebar-user-role {
+                margin-top: 5px;
+                font-size: 14px;
+                color: #9ca3af;
+            }
+
+
+            /* =========================================================
+                       SECCIONES
+                    ========================================================= */
+
+            .sidebar-section {
+                padding: 22px 24px 9px;
+                color: #6b7280;
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+            }
+
+
+            /* =========================================================
+                       MENU
+                    ========================================================= */
+
+            .sidebar-menu {
+                list-style: none;
+                padding: 0 12px;
+                margin: 0;
+            }
+
+
+                .sidebar-menu li {
+                    margin-bottom: 4px;
+                }
+
+
+                .sidebar-menu a {
+                    min-height: 46px;
+                    display: flex;
+                    align-items: center;
+                    gap: 13px;
+                    padding: 11px 14px;
+                    border-radius: 9px;
+                    color: #d1d5db;
+                    text-decoration: none;
+                    font-size: 15px;
+                    font-weight: 500;
+                    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+                }
+
+
+                    .sidebar-menu a i {
+                        width: 22px;
+                        min-width: 22px;
+                        text-align: center;
+                        font-size: 19px;
+                    }
+
+
+                    .sidebar-menu a:hover {
+                        background: var(--sidebar-hover);
+                        color: #ffffff;
+                        transform: translateX(2px);
+                    }
+
+
+                    .sidebar-menu a.active {
+                        background: linear-gradient( 135deg, #2563eb, #1d4ed8 );
+                        color: #ffffff;
+                        box-shadow: 0 5px 14px rgba(37,99,235,0.28);
+                    }
+
+
+                        .sidebar-menu a.active i {
+                            color: #ffffff;
+                        }
+
+
+            /* =========================================================
+                       CONTENEDOR PRINCIPAL
+                    ========================================================= */
 
             .main-wrapper {
-
-                margin-left:
-                    0;
-
+                margin-left: var(--sidebar-width);
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
             }
 
 
-            .mobile-menu-button {
-
-                display:
-                    flex;
-
-            }
-
+            /* =========================================================
+                       TOPBAR
+                    ========================================================= */
 
             .topbar {
-
-                padding:
-                    0 20px;
-
+                height: var(--topbar-height);
+                min-height: var(--topbar-height);
+                background: var(--white);
+                border-bottom: 1px solid var(--border-color);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 30px;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+                box-shadow: 0 2px 10px rgba(15,23,42,0.04);
             }
 
 
-            .content {
-
-                padding:
-                    24px;
-
-            }
-
-        }
-
-
-        /* =========================================================
-           MOVIL
-        ========================================================= */
-
-        @@media (max-width: 600px) {
-
-            :root {
-
-                --topbar-height: 68px;
-
-            }
-
-
-            .topbar {
-
-                padding:
-                    0 14px;
-
+            .topbar-left {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                min-width: 0;
             }
 
 
             .topbar-title {
+                font-size: 22px;
+                font-weight: 700;
+                color: #111827;
+                white-space: nowrap;
+            }
 
-                font-size:
-                    20px;
 
+            /* =========================================================
+                       BOTON MENU MOVIL
+                    ========================================================= */
+
+            .mobile-menu-button {
+                width: 44px;
+                height: 44px;
+                border: 1px solid var(--border-color);
+                background: #ffffff;
+                border-radius: 9px;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                color: #374151;
+                font-size: 22px;
+                cursor: pointer;
+            }
+
+
+                .mobile-menu-button:hover {
+                    background: #f3f4f6;
+                }
+
+
+            /* =========================================================
+                       USUARIO TOPBAR
+                    ========================================================= */
+
+            .user-button {
+                border: 0;
+                background: transparent;
+                padding: 6px 8px;
+                display: flex;
+                align-items: center;
+                gap: 11px;
+                border-radius: 10px;
+            }
+
+
+                .user-button:hover {
+                    background: #f3f4f6;
+                }
+
+
+            .user-avatar {
+                width: 42px;
+                height: 42px;
+                min-width: 42px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient( 135deg, #2563eb, #1d4ed8 );
+                color: #ffffff;
+                font-size: 14px;
+                font-weight: 700;
+                box-shadow: 0 4px 10px rgba(37,99,235,0.25);
             }
 
 
             .user-info {
-
-                display:
-                    none;
-
+                text-align: left;
+                max-width: 180px;
             }
 
 
-            .user-button {
-
-                padding:
-                    4px;
-
+            .user-name {
+                font-size: 15px;
+                font-weight: 600;
+                color: #1f2937;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
 
-            .user-button::after {
-
-                display:
-                    none;
-
+            .user-role {
+                margin-top: 2px;
+                font-size: 13px;
+                color: #6b7280;
             }
 
 
-            .user-avatar {
-
-                width:
-                    42px;
-
-                height:
-                    42px;
-
-            }
-
-
-            .content {
-
-                padding:
-                    18px 14px;
-
-            }
-
+            /* =========================================================
+                       DROPDOWN
+                    ========================================================= */
 
             .dropdown-menu {
-
-                min-width:
-                    230px;
-
+                min-width: 245px;
+                padding: 8px;
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
             }
 
-        }
 
-
-        /* =========================================================
-           MOVIL MUY PEQUEÑO
-        ========================================================= */
-
-        @@media (max-width: 380px) {
-
-            .topbar-title {
-
-                font-size:
-                    18px;
-
+            .dropdown-header {
+                padding: 10px 12px;
+                font-size: 15px;
+                color: #1f2937;
             }
 
+
+            .dropdown-item {
+                min-height: 43px;
+                display: flex;
+                align-items: center;
+                border-radius: 8px;
+                padding: 9px 12px;
+                font-size: 15px;
+            }
+
+
+                .dropdown-item:hover {
+                    background: #f3f4f6;
+                }
+
+
+                .dropdown-item.text-danger:hover {
+                    background: #fef2f2;
+                }
+
+
+            /* =========================================================
+                       CONTENIDO
+                    ========================================================= */
 
             .content {
-
-                padding:
-                    16px 12px;
-
+                flex: 1;
+                width: 100%;
+                padding: 30px;
             }
 
-        }
+
+            /* =========================================================
+                       OVERLAY
+                    ========================================================= */
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.45);
+                z-index: 1040;
+            }
+
+
+                .sidebar-overlay.show {
+                    display: block;
+                }
+
+
+            /* =========================================================
+                       TABLET
+                    ========================================================= */
+
+            @@media (max-width: 1100px) {
+
+                :root {
+                    --sidebar-width: 250px;
+                }
+
+                .content {
+                    padding: 25px;
+                }
+
+                .topbar {
+                    padding: 0 24px;
+                }
+            }
+
+
+            /* =========================================================
+                       TABLET PEQUEÑA
+                    ========================================================= */
+
+            @@media (max-width: 900px) {
+
+                .sidebar {
+                    transform: translateX(-100%);
+                    transition: transform 0.25s ease;
+                    width: 280px;
+                }
+
+
+                    .sidebar.show {
+                        transform: translateX(0);
+                    }
+
+
+                .main-wrapper {
+                    margin-left: 0;
+                }
+
+
+                .mobile-menu-button {
+                    display: flex;
+                }
+
+
+                .topbar {
+                    padding: 0 20px;
+                }
+
+
+                .content {
+                    padding: 24px;
+                }
+            }
+
+
+            /* =========================================================
+                       MOVIL
+                    ========================================================= */
+
+            @@media (max-width: 600px) {
+
+                :root {
+                    --topbar-height: 68px;
+                }
+
+
+                .topbar {
+                    padding: 0 14px;
+                }
+
+
+                .topbar-title {
+                    font-size: 20px;
+                }
+
+
+                .user-info {
+                    display: none;
+                }
+
+
+                .user-button {
+                    padding: 4px;
+                }
+
+
+                    .user-button::after {
+                        display: none;
+                    }
+
+
+                .user-avatar {
+                    width: 42px;
+                    height: 42px;
+                }
+
+
+                .content {
+                    padding: 18px 14px;
+                }
+
+
+                .dropdown-menu {
+                    min-width: 230px;
+                }
+            }
+
+
+            /* =========================================================
+                       MOVIL MUY PEQUEÑO
+                    ========================================================= */
+
+            @@media (max-width: 380px) {
+
+                .topbar-title {
+                    font-size: 18px;
+                }
+
+
+                .content {
+                    padding: 16px 12px;
+                }
+            }
 
     </style>
 
@@ -1141,7 +715,6 @@
             <!-- ================================================= -->
             <!-- ADMINISTRADOR -->
             <!-- ================================================= -->
-
             @if (User.IsInRole("Administrador"))
             {
 
@@ -1248,6 +821,40 @@
                 </li>
 
 
+                <!-- ================================================= -->
+                <!-- INVENTARIO -->
+                <!-- ================================================= -->
+
+                <li>
+
+                    <a asp-controller="Inventario"
+                       asp-action="Index"
+                       class="@(controladorActual == "Inventario" && accionActual == "Index" ? "active" : "")">
+
+                        <i class="bi bi-box-seam-fill"></i>
+
+                        <span>Inventario</span>
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a asp-controller="Inventario"
+                       asp-action="Movimientos"
+                       class="@(controladorActual == "Inventario" && accionActual == "Movimientos" ? "active" : "")">
+
+                        <i class="bi bi-arrow-left-right"></i>
+
+                        <span>Movimientos</span>
+
+                    </a>
+
+                </li>
+
+
                 <li>
 
                     <a href="#">
@@ -1309,7 +916,6 @@
             <!-- ================================================= -->
             <!-- GERENTE -->
             <!-- ================================================= -->
-
             @if (User.IsInRole("Gerente"))
             {
 
@@ -1352,6 +958,40 @@
                         <i class="bi bi-receipt"></i>
 
                         <span>Pedidos</span>
+
+                    </a>
+
+                </li>
+
+
+                <!-- ================================================= -->
+                <!-- INVENTARIO -->
+                <!-- ================================================= -->
+
+                <li>
+
+                    <a asp-controller="Inventario"
+                       asp-action="Index"
+                       class="@(controladorActual == "Inventario" && accionActual == "Index" ? "active" : "")">
+
+                        <i class="bi bi-box-seam-fill"></i>
+
+                        <span>Inventario</span>
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a asp-controller="Inventario"
+                       asp-action="Movimientos"
+                       class="@(controladorActual == "Inventario" && accionActual == "Movimientos" ? "active" : "")">
+
+                        <i class="bi bi-arrow-left-right"></i>
+
+                        <span>Movimientos</span>
 
                     </a>
 
@@ -1436,7 +1076,6 @@
             <!-- ================================================= -->
             <!-- CAJERO -->
             <!-- ================================================= -->
-
             @if (User.IsInRole("Cajero"))
             {
 
@@ -1505,7 +1144,6 @@
             <!-- ================================================= -->
             <!-- MESERO -->
             <!-- ================================================= -->
-
             @if (User.IsInRole("Mesero"))
             {
 
@@ -1557,7 +1195,6 @@
             <!-- ================================================= -->
             <!-- COCINA -->
             <!-- ================================================= -->
-
             @if (User.IsInRole("Cocina"))
             {
 
@@ -1791,72 +1428,72 @@
 
     <script>
 
-        function toggleSidebar() {
+            function toggleSidebar() {
 
-            const sidebar =
-                document.getElementById("sidebar");
+                const sidebar =
+                    document.getElementById("sidebar");
 
-            const overlay =
-                document.getElementById("sidebarOverlay");
+                const overlay =
+                    document.getElementById("sidebarOverlay");
 
-            sidebar.classList.toggle("show");
+                sidebar.classList.toggle("show");
 
-            overlay.classList.toggle("show");
-
-        }
-
-
-        function closeSidebar() {
-
-            const sidebar =
-                document.getElementById("sidebar");
-
-            const overlay =
-                document.getElementById("sidebarOverlay");
-
-            sidebar.classList.remove("show");
-
-            overlay.classList.remove("show");
-
-        }
-
-
-        document.addEventListener(
-            "click",
-            function (event) {
-
-                const link =
-                    event.target.closest(".sidebar-menu a");
-
-                if (!link) {
-
-                    return;
-
-                }
-
-
-                if (window.innerWidth <= 900) {
-
-                    closeSidebar();
-
-                }
+                overlay.classList.toggle("show");
 
             }
-        );
 
 
-        window.addEventListener(
-            "resize",
-            function () {
+            function closeSidebar() {
 
-                if (window.innerWidth > 900) {
+                const sidebar =
+                    document.getElementById("sidebar");
 
-                    closeSidebar();
+                const overlay =
+                    document.getElementById("sidebarOverlay");
 
-                }
+                sidebar.classList.remove("show");
+
+                overlay.classList.remove("show");
 
             }
-        );
+
+
+            document.addEventListener(
+                "click",
+                function(event) {
+
+                    const link =
+                        event.target.closest(".sidebar-menu a");
+
+                    if (!link) {
+
+                        return;
+
+                    }
+
+
+                    if (window.innerWidth <= 900) {
+
+                        closeSidebar();
+
+                    }
+
+                }
+            );
+
+
+            window.addEventListener(
+                "resize",
+                function() {
+
+                    if (window.innerWidth > 900) {
+
+                        closeSidebar();
+
+                    }
+
+                }
+            );
 
     </script>
 

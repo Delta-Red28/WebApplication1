@@ -11,6 +11,7 @@ namespace WebApplication1.ViewModels
 
         public int IdPedido { get; set; }
 
+
         // =========================================================
         // INFORMACIÓN DEL PEDIDO
         // =========================================================
@@ -34,6 +35,7 @@ namespace WebApplication1.ViewModels
         [Display(Name = "Observación")]
         public string? Observacion { get; set; }
 
+
         // =========================================================
         // TOTALES
         // =========================================================
@@ -45,6 +47,7 @@ namespace WebApplication1.ViewModels
         public decimal Impuesto { get; set; }
 
         public decimal Total { get; set; }
+
 
         // =========================================================
         // COMBOS
@@ -61,6 +64,7 @@ namespace WebApplication1.ViewModels
 
         public IEnumerable<SelectListItem> EstadosPedido { get; set; }
             = new List<SelectListItem>();
+
 
         // =========================================================
         // DETALLES

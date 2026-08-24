@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,13 @@ builder.Services.AddDbContext<RestauranteContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
+
+
+// ============================================================
+// SERVICIOS DE LA APLICACIÓN
+// ============================================================
+
+builder.Services.AddScoped<InventarioService>();
 
 
 // ============================================================
