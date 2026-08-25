@@ -3,8 +3,9 @@
 @{
     ViewData["Title"] = "Anular Factura";
 
-    var motivoAnulacion =
-        ViewBag.MotivosAnulacion as IEnumerable<WebApplication1.Models.MotivoAnulacion>;
+    var motivosAnulacion =
+        ViewBag.MotivosAnulacion as IEnumerable<WebApplication1.Models.MotivoAnulacion>
+        ?? Enumerable.Empty<WebApplication1.Models.MotivoAnulacion>();
 
     var pedido = Model.IdPedidoNavigation;
     var moneda = Model.IdMonedaNavigation;
@@ -26,49 +27,94 @@
             </h2>
 
             <p class="text-muted mb-0">
-                Confirme la anulación de la factura antes de continuar.
+                Revise la información y confirme la anulación de la factura.
             </p>
         </div>
 
-        <a asp-controller="Factura"
-           asp-action="Details"
-           asp-route-id="@Model.IdFactura"
-           class="btn btn-secondary">
+        <div>
+            <a asp-controller="Factura"
+               asp-action="Details"
+               asp-route-id="@Model.IdFactura"
+               class="btn btn-secondary">
 
-            <i class="bi bi-arrow-left"></i>
-            Volver
-        </a>
+                <i class="bi bi-arrow-left"></i>
+                Volver
+            </a>
+        </div>
 
     </div>
 
 
     <!-- ============================================================
-         MENSAJE DE ADVERTENCIA
+         MENSAJE TEMPORAL
+    ============================================================ -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger shadow-sm">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            <strong>Error:</strong>
+
+            @TempData["Error"]
+
+        </div>
+    }
+
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success shadow-sm">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["Success"]
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         ADVERTENCIA PRINCIPAL
     ============================================================ -->
 
     <div class="alert alert-danger shadow-sm">
 
-        <div class="d-flex">
+        <div class="d-flex align-items-start">
 
             <div class="me-3">
+
                 <i class="bi bi-exclamation-triangle-fill fs-2"></i>
+
             </div>
 
             <div>
 
-                <h5 class="alert-heading">
+                <h5 class="alert-heading mb-2">
                     ¿Está seguro de anular esta factura?
                 </h5>
 
-                <p class="mb-1">
-                    Esta acción cambiará el estado de la factura a
-                    <strong>Anulada</strong>.
+                <p class="mb-2">
+
+                    La factura
+
+                    <strong>
+                        @Model.NumeroFactura
+                    </strong>
+
+                    cambiará al estado
+
+                    <strong>
+                        Anulada
+                    </strong>.
+
                 </p>
 
                 <p class="mb-0">
-                    La operación quedará registrada en el historial
-                    de la factura junto con el usuario, fecha y motivo
-                    de anulación.
+
+                    La anulación quedará registrada en el historial
+                    con el usuario, fecha, motivo y observación.
+
                 </p>
 
             </div>
@@ -79,7 +125,7 @@
 
 
     <!-- ============================================================
-         INFORMACIÓN DE LA FACTURA
+         INFORMACIÓN GENERAL
     ============================================================ -->
 
     <div class="card shadow-sm mb-4">
@@ -88,7 +134,8 @@
 
             <h5 class="mb-0">
 
-                <i class="bi bi-receipt"></i>
+                <i class="bi bi-receipt me-2"></i>
+
                 Información de la factura
 
             </h5>
@@ -99,7 +146,9 @@
 
             <div class="row">
 
-                <!-- NÚMERO -->
+                <!-- ==================================================
+                     NÚMERO
+                ================================================== -->
 
                 <div class="col-md-4 mb-3">
 
@@ -109,14 +158,25 @@
 
                     <div class="fw-bold fs-5">
 
-                        @Model.NumeroFactura
+                        @if (!string.IsNullOrWhiteSpace(Model.NumeroFactura))
+                        {
+                            @Model.NumeroFactura
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                Sin número
+                            </span>
+                        }
 
                     </div>
 
                 </div>
 
 
-                <!-- ID -->
+                <!-- ==================================================
+                     ID FACTURA
+                ================================================== -->
 
                 <div class="col-md-4 mb-3">
 
@@ -133,12 +193,14 @@
                 </div>
 
 
-                <!-- FECHA -->
+                <!-- ==================================================
+                     FECHA
+                ================================================== -->
 
                 <div class="col-md-4 mb-3">
 
                     <label class="text-muted">
-                        Fecha
+                        Fecha de factura
                     </label>
 
                     <div class="fw-bold">
@@ -150,7 +212,9 @@
                 </div>
 
 
-                <!-- PEDIDO -->
+                <!-- ==================================================
+                     PEDIDO
+                ================================================== -->
 
                 <div class="col-md-4 mb-3">
 
@@ -185,7 +249,9 @@
                 </div>
 
 
-                <!-- ESTADO -->
+                <!-- ==================================================
+                     ESTADO
+                ================================================== -->
 
                 <div class="col-md-4 mb-3">
 
@@ -197,13 +263,46 @@
 
                         @if (estado != null)
                         {
-                            <span class="badge bg-warning text-dark">
+                            if (Model.IdEstadoFactura == 1)
+                            {
+                                <span class="badge bg-warning text-dark">
 
-                                <i class="bi bi-info-circle"></i>
+                                    <i class="bi bi-clock me-1"></i>
 
-                                @estado.Nombre
+                                    @estado.Nombre
 
-                            </span>
+                                </span>
+                            }
+                            else if (Model.IdEstadoFactura == 2)
+                            {
+                                <span class="badge bg-success">
+
+                                    <i class="bi bi-check-circle me-1"></i>
+
+                                    @estado.Nombre
+
+                                </span>
+                            }
+                            else if (Model.IdEstadoFactura == 4)
+                            {
+                                <span class="badge bg-info text-dark">
+
+                                    <i class="bi bi-hourglass-split me-1"></i>
+
+                                    @estado.Nombre
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+
+                                    <i class="bi bi-info-circle me-1"></i>
+
+                                    @estado.Nombre
+
+                                </span>
+                            }
                         }
                         else
                         {
@@ -217,7 +316,9 @@
                 </div>
 
 
-                <!-- MONEDA -->
+                <!-- ==================================================
+                     MONEDA
+                ================================================== -->
 
                 <div class="col-md-4 mb-3">
 
@@ -231,9 +332,19 @@
                         {
                             @moneda.Nombre
 
-                            <span class="text-muted">
-                                (@moneda.CodigoIso)
-                            </span>
+                            @if (!string.IsNullOrWhiteSpace(moneda.CodigoIso))
+                            {
+                                <span class="text-muted">
+                                    (@moneda.CodigoIso)
+                                </span>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(moneda.Simbolo))
+                            {
+                                <span class="text-muted">
+                                    - @moneda.Simbolo
+                                </span>
+                            }
                         }
                         else
                         {
@@ -263,8 +374,9 @@
 
             <h5 class="mb-0">
 
-                <i class="bi bi-calculator"></i>
-                Resumen de factura
+                <i class="bi bi-calculator me-2"></i>
+
+                Resumen de la factura
 
             </h5>
 
@@ -274,7 +386,9 @@
 
             <div class="row">
 
-                <!-- SUBTOTAL -->
+                <!-- ==================================================
+                     SUBTOTAL
+                ================================================== -->
 
                 <div class="col-md-3 mb-3">
 
@@ -282,7 +396,7 @@
                         Subtotal
                     </label>
 
-                    <div class="fw-bold">
+                    <div class="fw-bold fs-5">
 
                         @Model.Subtotal.ToString("N2")
 
@@ -291,7 +405,9 @@
                 </div>
 
 
-                <!-- DESCUENTO -->
+                <!-- ==================================================
+                     DESCUENTO
+                ================================================== -->
 
                 <div class="col-md-3 mb-3">
 
@@ -299,7 +415,7 @@
                         Descuento
                     </label>
 
-                    <div class="fw-bold">
+                    <div class="fw-bold fs-5">
 
                         @Model.Descuento.ToString("N2")
 
@@ -308,7 +424,9 @@
                 </div>
 
 
-                <!-- IMPUESTO -->
+                <!-- ==================================================
+                     IMPUESTO
+                ================================================== -->
 
                 <div class="col-md-3 mb-3">
 
@@ -316,7 +434,7 @@
                         Impuesto
                     </label>
 
-                    <div class="fw-bold">
+                    <div class="fw-bold fs-5 text-primary">
 
                         @Model.Impuesto.ToString("N2")
 
@@ -325,7 +443,9 @@
                 </div>
 
 
-                <!-- TOTAL -->
+                <!-- ==================================================
+                     TOTAL
+                ================================================== -->
 
                 <div class="col-md-3 mb-3">
 
@@ -333,7 +453,7 @@
                         Total
                     </label>
 
-                    <div class="fw-bold fs-4 text-primary">
+                    <div class="fw-bold fs-4 text-success">
 
                         @Model.Total.ToString("N2")
 
@@ -347,9 +467,11 @@
             <hr />
 
 
-            <div class="row">
+            <div class="row align-items-center">
 
-                <!-- SALDO -->
+                <!-- ==================================================
+                     SALDO PENDIENTE
+                ================================================== -->
 
                 <div class="col-md-6">
 
@@ -357,7 +479,7 @@
                         Saldo pendiente
                     </label>
 
-                    <div class="fw-bold fs-5
+                    <div class="fw-bold fs-4
                         @(Model.SaldoPendiente > 0
                             ? "text-danger"
                             : "text-success")">
@@ -368,13 +490,19 @@
 
                 </div>
 
+
+                <!-- ==================================================
+                     ESTADO DE PAGO
+                ================================================== -->
+
                 <div class="col-md-6 text-md-end">
 
                     @if (Model.SaldoPendiente <= 0)
                     {
                         <span class="badge bg-success fs-6">
 
-                            <i class="bi bi-check-circle"></i>
+                            <i class="bi bi-check-circle me-1"></i>
+
                             Factura pagada
 
                         </span>
@@ -383,7 +511,8 @@
                     {
                         <span class="badge bg-warning text-dark fs-6">
 
-                            <i class="bi bi-hourglass-split"></i>
+                            <i class="bi bi-hourglass-split me-1"></i>
+
                             Pago parcial
 
                         </span>
@@ -392,7 +521,8 @@
                     {
                         <span class="badge bg-danger fs-6">
 
-                            <i class="bi bi-clock"></i>
+                            <i class="bi bi-clock me-1"></i>
+
                             Pendiente de pago
 
                         </span>
@@ -401,6 +531,62 @@
                 </div>
 
             </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         REGLAS DE ANULACIÓN
+    ============================================================ -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-warning text-dark">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-info-circle me-2"></i>
+
+                Consideraciones antes de anular
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <ul class="mb-0">
+
+                <li class="mb-2">
+                    La factura pasará al estado
+                    <strong>Anulada</strong>.
+                </li>
+
+                <li class="mb-2">
+                    Se registrará la fecha de anulación.
+                </li>
+
+                <li class="mb-2">
+                    Se registrará el usuario que realizó la anulación.
+                </li>
+
+                <li class="mb-2">
+                    Debe seleccionar un motivo de anulación activo.
+                </li>
+
+                <li class="mb-2">
+                    Puede agregar una observación adicional.
+                </li>
+
+                <li>
+                    <strong>
+                        No se puede anular una factura que tenga pagos confirmados.
+                    </strong>
+                </li>
+
+            </ul>
 
         </div>
 
@@ -417,7 +603,8 @@
 
             <h5 class="mb-0">
 
-                <i class="bi bi-x-octagon"></i>
+                <i class="bi bi-x-octagon me-2"></i>
+
                 Datos de anulación
 
             </h5>
@@ -426,19 +613,26 @@
 
         <div class="card-body">
 
-            <form asp-action="Delete"
-                  method="post">
+            <form asp-controller="Factura"
+                  asp-action="Delete"
+                  method="post"
+                  id="formAnulacion">
 
                 @Html.AntiForgeryToken()
+
+
+                <!-- ==================================================
+                     ID FACTURA
+                ================================================== -->
 
                 <input type="hidden"
                        name="id"
                        value="@Model.IdFactura" />
 
 
-                <!-- ====================================================
+                <!-- ==================================================
                      MOTIVO
-                ==================================================== -->
+                ================================================== -->
 
                 <div class="mb-4">
 
@@ -446,6 +640,7 @@
                            class="form-label fw-bold">
 
                         Motivo de anulación
+
                         <span class="text-danger">*</span>
 
                     </label>
@@ -455,35 +650,41 @@
                             class="form-select"
                             required>
 
-                        <option value="">
+                        <option value="0">
                             -- Seleccione un motivo --
                         </option>
 
-                        @if (motivoAnulacion != null)
+                        @foreach (var motivo in motivosAnulacion)
                         {
-                            foreach (var motivo in motivoAnulacion)
-                            {
-                                <option value="@motivo.IdMotivoAnulacion">
+                            <option value="@motivo.IdMotivoAnulacion">
 
-                                    @motivo.Nombre
+                                @motivo.Nombre
 
-                                </option>
-                            }
+                            </option>
                         }
 
                     </select>
 
                     <div class="form-text">
-                        Seleccione el motivo por el cual se está anulando
-                        la factura.
+
+                        Seleccione el motivo que corresponde
+                        a la anulación de esta factura.
+
+                    </div>
+
+                    <div id="errorMotivo"
+                         class="text-danger mt-1 d-none">
+
+                        Debe seleccionar un motivo de anulación.
+
                     </div>
 
                 </div>
 
 
-                <!-- ====================================================
+                <!-- ==================================================
                      OBSERVACIÓN
-                ==================================================== -->
+                ================================================== -->
 
                 <div class="mb-4">
 
@@ -501,16 +702,31 @@
                               maxlength="300"
                               placeholder="Ingrese una observación adicional, si es necesario..."></textarea>
 
-                    <div class="form-text">
-                        Máximo 300 caracteres.
+                    <div class="d-flex justify-content-between">
+
+                        <div class="form-text">
+
+                            La observación es opcional.
+
+                        </div>
+
+                        <div class="form-text">
+
+                            <span id="contadorCaracteres">
+                                0
+                            </span>
+                            / 300
+
+                        </div>
+
                     </div>
 
                 </div>
 
 
-                <!-- ====================================================
+                <!-- ==================================================
                      CONFIRMACIÓN
-                ==================================================== -->
+                ================================================== -->
 
                 <div class="alert alert-warning">
 
@@ -525,7 +741,13 @@
                                for="confirmarAnulacion">
 
                             Confirmo que deseo anular la factura
-                            <strong>@Model.NumeroFactura</strong>.
+
+                            <strong>
+                                @Model.NumeroFactura
+                            </strong>
+
+                            y comprendo que esta operación
+                            quedará registrada en el historial.
 
                         </label>
 
@@ -534,18 +756,18 @@
                 </div>
 
 
-                <!-- ====================================================
+                <!-- ==================================================
                      BOTONES
-                ==================================================== -->
+                ================================================== -->
 
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-center">
 
                     <a asp-controller="Factura"
                        asp-action="Details"
                        asp-route-id="@Model.IdFactura"
                        class="btn btn-secondary">
 
-                        <i class="bi bi-arrow-left"></i>
+                        <i class="bi bi-arrow-left me-1"></i>
 
                         Cancelar
 
@@ -553,9 +775,10 @@
 
 
                     <button type="submit"
-                            class="btn btn-danger">
+                            id="btnAnular"
+                            class="btn btn-danger btn-lg">
 
-                        <i class="bi bi-x-circle"></i>
+                        <i class="bi bi-x-circle me-1"></i>
 
                         Anular factura
 
@@ -569,4 +792,272 @@
 
     </div>
 
+
+    <!-- ============================================================
+         PIE INFORMATIVO
+    ============================================================ -->
+
+    <div class="text-muted small mb-4">
+
+        <i class="bi bi-shield-check me-1"></i>
+
+        La anulación será procesada por el sistema y registrada
+        automáticamente en el historial de la factura.
+
+    </div>
+
 </div>
+
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const formulario =
+                document.getElementById("formAnulacion");
+
+            const motivo =
+                document.getElementById("idMotivoAnulacion");
+
+            const confirmacion =
+                document.getElementById("confirmarAnulacion");
+
+            const boton =
+                document.getElementById("btnAnular");
+
+            const observacion =
+                document.getElementById("observacionAnulacion");
+
+            const contador =
+                document.getElementById("contadorCaracteres");
+
+            const errorMotivo =
+                document.getElementById("errorMotivo");
+
+
+            /*
+             * ========================================================
+             * CONTADOR DE CARACTERES
+             * ========================================================
+             */
+
+            function actualizarContador() {
+
+                if (!observacion || !contador) {
+                    return;
+                }
+
+                contador.textContent =
+                    observacion.value.length;
+
+            }
+
+
+            if (observacion) {
+
+                observacion.addEventListener(
+                    "input",
+                    actualizarContador
+                );
+
+            }
+
+
+            actualizarContador();
+
+
+            /*
+             * ========================================================
+             * VALIDAR FORMULARIO
+             * ========================================================
+             */
+
+            if (formulario) {
+
+                formulario.addEventListener(
+                    "submit",
+                    function(event) {
+
+                        let valido = true;
+
+
+                        /*
+                         * ------------------------------------------------
+                         * VALIDAR MOTIVO
+                         * ------------------------------------------------
+                         */
+
+                        if (!motivo ||
+                            !motivo.value ||
+                            motivo.value === "0") {
+
+                            valido = false;
+
+                            if (errorMotivo) {
+
+                                errorMotivo.classList.remove(
+                                    "d-none"
+                                );
+
+                            }
+
+                            if (motivo) {
+
+                                motivo.classList.add(
+                                    "is-invalid"
+                                );
+
+                            }
+
+                        }
+                        else {
+
+                            if (errorMotivo) {
+
+                                errorMotivo.classList.add(
+                                    "d-none"
+                                );
+
+                            }
+
+                            motivo.classList.remove(
+                                "is-invalid"
+                            );
+
+                        }
+
+
+                        /*
+                         * ------------------------------------------------
+                         * VALIDAR CONFIRMACIÓN
+                         * ------------------------------------------------
+                         */
+
+                        if (!confirmacion ||
+                            !confirmacion.checked) {
+
+                            valido = false;
+
+                        }
+
+
+                        /*
+                         * ------------------------------------------------
+                         * CANCELAR ENVÍO SI HAY ERRORES
+                         * ------------------------------------------------
+                         */
+
+                        if (!valido) {
+
+                            event.preventDefault();
+
+                            if (!confirmacion ||
+                                !confirmacion.checked) {
+
+                                alert(
+                                    "Debe confirmar que desea anular la factura."
+                                );
+
+                            }
+
+                            return;
+
+                        }
+
+
+                        /*
+                         * ------------------------------------------------
+                         * CONFIRMACIÓN FINAL
+                         * ------------------------------------------------
+                         */
+
+                        const numeroFactura =
+                            "@Html.Raw(
+                                                                            System.Text.Encodings.Web.HtmlEncoder.Default.Encode(
+                                                                                    Model.NumeroFactura ?? ""
+                                                    )
+                                                    )";
+
+
+                        const confirmar =
+                            window.confirm(
+                                "¿Está seguro de anular la factura " +
+                                numeroFactura +
+                                "?\n\n" +
+                                "Esta operación quedará registrada " +
+                                "en el historial."
+                            );
+
+
+                        if (!confirmar) {
+
+                            event.preventDefault();
+
+                            return;
+
+                        }
+
+
+                        /*
+                         * ------------------------------------------------
+                         * EVITAR DOBLE ENVÍO
+                         * ------------------------------------------------
+                         */
+
+                        if (boton) {
+
+                            boton.disabled = true;
+
+                            boton.innerHTML =
+                                '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
+                                'Anulando factura...';
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            /*
+             * ========================================================
+             * QUITAR ERROR DEL MOTIVO AL SELECCIONAR
+             * ========================================================
+             */
+
+            if (motivo) {
+
+                motivo.addEventListener(
+                    "change",
+                    function() {
+
+                        if (motivo.value &&
+                            motivo.value !== "0") {
+
+                            motivo.classList.remove(
+                                "is-invalid"
+                            );
+
+                            if (errorMotivo) {
+
+                                errorMotivo.classList.add(
+                                    "d-none"
+                                );
+
+                            }
+
+                        }
+
+                    }
+                );
+
+            }
+
+        });
+
+    </script>
+
+}

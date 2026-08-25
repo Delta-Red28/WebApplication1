@@ -15,6 +15,19 @@ namespace WebApplication1.Controllers
     {
         private readonly RestauranteContext _context;
 
+        // =========================================================
+        // ESTADOS DEL PEDIDO
+        // =========================================================
+
+        private const int ESTADO_PENDIENTE = 1;
+        private const int ESTADO_EN_COCINA = 2;
+        private const int ESTADO_PREPARANDOSE = 3;
+        private const int ESTADO_LISTO = 4;
+        private const int ESTADO_ENTREGADO = 5;
+        private const int ESTADO_FACTURADO = 6;
+        private const int ESTADO_CANCELADO = 7;
+
+
         public PedidoController(RestauranteContext context)
         {
             _context = context;
@@ -336,6 +349,7 @@ namespace WebApplication1.Controllers
             if (id == null)
                 return NotFound();
 
+
             var pedido = await _context.Pedidos
                 .AsNoTracking()
                 .Include(p => p.IdClienteNavigation)
@@ -347,6 +361,7 @@ namespace WebApplication1.Controllers
                     .ThenInclude(d => d.IdProductoNavigation)
                 .FirstOrDefaultAsync(
                     p => p.IdPedido == id);
+
 
             if (pedido == null)
                 return NotFound();
@@ -386,6 +401,15 @@ namespace WebApplication1.Controllers
                                 e.Nombre ?? ""
                         })
                     .ToListAsync();
+
+
+            // =====================================================
+            // SIGUIENTE ESTADO
+            // =====================================================
+
+            ViewBag.SiguienteEstado =
+                ObtenerSiguienteEstado(
+                    pedido.IdEstadoPedido);
 
 
             return View(pedido);
@@ -679,14 +703,11 @@ namespace WebApplication1.Controllers
                     decimal cantidad =
                         item.Cantidad;
 
-
                     decimal precio =
                         producto.PrecioVenta;
 
-
                     decimal subtotalLinea =
                         precio * cantidad;
-
 
                     decimal descuentoLinea =
                         Math.Max(
@@ -702,13 +723,8 @@ namespace WebApplication1.Controllers
                     }
 
 
-                    // =================================================
-                    // IMPUESTO
-                    // =================================================
-
                     decimal impuestoLinea =
                         0m;
-
 
                     decimal totalLinea =
                         subtotalLinea
@@ -956,10 +972,6 @@ namespace WebApplication1.Controllers
                 };
 
 
-            // =====================================================
-            // ASEGURAR UN DETALLE
-            // =====================================================
-
             if (!model.Detalles.Any())
             {
                 model.Detalles.Add(
@@ -1030,10 +1042,6 @@ namespace WebApplication1.Controllers
             }
 
 
-            // =====================================================
-            // VALIDAR CANTIDADES
-            // =====================================================
-
             foreach (var detalle in detalles)
             {
                 if (detalle.Cantidad < 0)
@@ -1062,10 +1070,6 @@ namespace WebApplication1.Controllers
                 }
             }
 
-
-            // =====================================================
-            // VALIDAR MODELO
-            // =====================================================
 
             if (!ModelState.IsValid)
             {
@@ -1202,10 +1206,6 @@ namespace WebApplication1.Controllers
 
             try
             {
-                // =================================================
-                // ACTUALIZAR CABECERA
-                // =================================================
-
                 pedido.IdCliente =
                     model.IdCliente;
 
@@ -1219,26 +1219,14 @@ namespace WebApplication1.Controllers
                     model.Observacion;
 
 
-                // =================================================
-                // ELIMINAR DETALLES ANTERIORES
-                // =================================================
-
                 _context.DetallePedidos.RemoveRange(
                     pedido.DetallePedidos);
 
-
-                // =================================================
-                // TOTALES
-                // =================================================
 
                 decimal subtotalPedido = 0m;
                 decimal descuentoPedido = 0m;
                 decimal impuestoPedido = 0m;
 
-
-                // =================================================
-                // NUEVOS DETALLES
-                // =================================================
 
                 foreach (var item in detallesValidos)
                 {
@@ -1254,11 +1242,9 @@ namespace WebApplication1.Controllers
                     decimal precio =
                         producto.PrecioVenta;
 
-
                     decimal subtotalLinea =
                         precio *
                         item.Cantidad;
-
 
                     decimal descuentoLinea =
                         Math.Max(
@@ -1276,7 +1262,6 @@ namespace WebApplication1.Controllers
 
                     decimal impuestoLinea =
                         0m;
-
 
                     decimal totalLinea =
                         subtotalLinea
@@ -1330,10 +1315,6 @@ namespace WebApplication1.Controllers
                         impuestoLinea;
                 }
 
-
-                // =================================================
-                // ACTUALIZAR TOTALES
-                // =================================================
 
                 pedido.Subtotal =
                     subtotalPedido;
@@ -1390,6 +1371,10 @@ namespace WebApplication1.Controllers
             int id,
             int idEstado)
         {
+            // =====================================================
+            // BUSCAR PEDIDO
+            // =====================================================
+
             var pedido =
                 await _context.Pedidos
                     .Include(p =>
@@ -1421,6 +1406,21 @@ namespace WebApplication1.Controllers
 
             // =====================================================
             // FACTURADO
+            // =====================================================
+
+            if (pedido.IdEstadoPedido == ESTADO_FACTURADO)
+            {
+                TempData["Error"] =
+                    "No se puede cambiar el estado de un pedido facturado.";
+
+                return RedirectToAction(
+                    nameof(Details),
+                    new { id });
+            }
+
+
+            // =====================================================
+            // COMPROBAR FACTURA
             // =====================================================
 
             var tieneFactura =
@@ -1458,22 +1458,13 @@ namespace WebApplication1.Controllers
 
 
             // =====================================================
-            // BUSCAR ESTADO
+            // NO PERMITIR FACTURADO DESDE AQUÍ
             // =====================================================
 
-            var nuevoEstado =
-                await _context.EstadoPedidos
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(
-                        e =>
-                            e.IdEstadoPedido ==
-                            idEstado);
-
-
-            if (nuevoEstado == null)
+            if (idEstado == ESTADO_FACTURADO)
             {
                 TempData["Error"] =
-                    "El estado seleccionado no existe.";
+                    "Un pedido solamente puede pasar a Facturado mediante el proceso de facturación.";
 
                 return RedirectToAction(
                     nameof(Details),
@@ -1482,14 +1473,45 @@ namespace WebApplication1.Controllers
 
 
             // =====================================================
-            // NO CANCELAR DESDE CAMBIAR ESTADO
+            // NO PERMITIR CANCELADO DESDE AQUÍ
             // =====================================================
 
-            if (EsEstadoCancelado(
-                nuevoEstado.Nombre))
+            if (idEstado == ESTADO_CANCELADO)
             {
                 TempData["Error"] =
                     "Para cancelar un pedido utilice la opción Cancelar.";
+
+                return RedirectToAction(
+                    nameof(Details),
+                    new { id });
+            }
+
+
+            // =====================================================
+            // VALIDAR TRANSICIÓN
+            // =====================================================
+
+            var siguienteEstado =
+                ObtenerSiguienteEstado(
+                    pedido.IdEstadoPedido);
+
+
+            if (siguienteEstado == null)
+            {
+                TempData["Error"] =
+                    "Este pedido no tiene una transición de estado disponible.";
+
+                return RedirectToAction(
+                    nameof(Details),
+                    new { id });
+            }
+
+
+            if (idEstado != siguienteEstado.Value.Id)
+            {
+                TempData["Error"] =
+                    $"No se puede pasar de '{pedido.IdEstadoPedidoNavigation?.Nombre}' a ese estado. " +
+                    $"El siguiente estado debe ser '{siguienteEstado.Value.Nombre}'.";
 
                 return RedirectToAction(
                     nameof(Details),
@@ -1502,14 +1524,14 @@ namespace WebApplication1.Controllers
             // =====================================================
 
             pedido.IdEstadoPedido =
-                nuevoEstado.IdEstadoPedido;
+                idEstado;
 
 
             await _context.SaveChangesAsync();
 
 
             TempData["Mensaje"] =
-                "Estado del pedido actualizado.";
+                $"Estado actualizado correctamente a '{siguienteEstado.Value.Nombre}'.";
 
 
             return RedirectToAction(
@@ -1529,10 +1551,6 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Anular(
             int id)
         {
-            // =====================================================
-            // BUSCAR PEDIDO
-            // =====================================================
-
             var pedido =
                 await _context.Pedidos
                     .Include(p =>
@@ -1574,7 +1592,8 @@ namespace WebApplication1.Controllers
                         pedido.IdPedido);
 
 
-            if (tieneFactura)
+            if (tieneFactura ||
+                pedido.IdEstadoPedido == ESTADO_FACTURADO)
             {
                 TempData["Error"] =
                     "No se puede cancelar un pedido que ya fue facturado.";
@@ -1592,15 +1611,14 @@ namespace WebApplication1.Controllers
             var estadoCancelado =
                 await _context.EstadoPedidos
                     .FirstOrDefaultAsync(e =>
-                        e.Nombre != null &&
-                        e.Nombre.ToLower() ==
-                        "cancelado");
+                        e.IdEstadoPedido ==
+                        ESTADO_CANCELADO);
 
 
             if (estadoCancelado == null)
             {
                 TempData["Error"] =
-                    "No existe un estado de pedido 'Cancelado' configurado.";
+                    "No existe el estado de pedido Cancelado configurado con ID 7.";
 
                 return RedirectToAction(
                     nameof(Details),
@@ -1622,9 +1640,7 @@ namespace WebApplication1.Controllers
                     estadoCancelado.IdEstadoPedido;
 
 
-                // IMPORTANTE:
-                // El subtotal, descuento, impuesto
-                // y total histórico NO se modifican.
+                // El total histórico NO se modifica.
 
                 await _context.SaveChangesAsync();
 
@@ -1662,10 +1678,6 @@ namespace WebApplication1.Controllers
         private async Task CargarCombos(
             PedidoViewModel model)
         {
-            // =====================================================
-            // CLIENTES
-            // =====================================================
-
             model.Clientes =
                 await _context.Clientes
                     .AsNoTracking()
@@ -1687,10 +1699,6 @@ namespace WebApplication1.Controllers
                     .ToListAsync();
 
 
-            // =====================================================
-            // MESAS
-            // =====================================================
-
             model.Mesas =
                 await _context.Mesas
                     .AsNoTracking()
@@ -1711,10 +1719,6 @@ namespace WebApplication1.Controllers
                     .ToListAsync();
 
 
-            // =====================================================
-            // TIPOS DE PEDIDO
-            // =====================================================
-
             model.TiposPedido =
                 await _context.TipoPedidos
                     .AsNoTracking()
@@ -1732,10 +1736,6 @@ namespace WebApplication1.Controllers
                     .ToListAsync();
 
 
-            // =====================================================
-            // ESTADOS
-            // =====================================================
-
             model.EstadosPedido =
                 await _context.EstadoPedidos
                     .AsNoTracking()
@@ -1752,10 +1752,6 @@ namespace WebApplication1.Controllers
                         })
                     .ToListAsync();
 
-
-            // =====================================================
-            // PRODUCTOS
-            // =====================================================
 
             await CargarProductosEnDetalles(
                 model);
@@ -1813,30 +1809,16 @@ namespace WebApplication1.Controllers
             var estado =
                 await _context.EstadoPedidos
                     .FirstOrDefaultAsync(e =>
-                        e.Nombre != null &&
-                        e.Nombre.ToLower() ==
-                        "pendiente");
+                        e.IdEstadoPedido ==
+                        ESTADO_PENDIENTE);
 
 
             if (estado != null)
                 return estado.IdEstadoPedido;
 
 
-            estado =
-                await _context.EstadoPedidos
-                    .OrderBy(e =>
-                        e.IdEstadoPedido)
-                    .FirstOrDefaultAsync();
-
-
-            if (estado == null)
-            {
-                throw new InvalidOperationException(
-                    "No existen estados de pedido configurados.");
-            }
-
-
-            return estado.IdEstadoPedido;
+            throw new InvalidOperationException(
+                "No existe el estado Pendiente con ID 1.");
         }
 
 
@@ -1879,6 +1861,42 @@ namespace WebApplication1.Controllers
 
 
             return $"PED-{siguiente:000000}";
+        }
+
+
+        // =========================================================
+        // OBTENER SIGUIENTE ESTADO
+        // =========================================================
+
+        private (int Id, string Nombre)? ObtenerSiguienteEstado(
+            int estadoActual)
+        {
+            return estadoActual switch
+            {
+                ESTADO_PENDIENTE =>
+                    (ESTADO_EN_COCINA, "En cocina"),
+
+                ESTADO_EN_COCINA =>
+                    (ESTADO_PREPARANDOSE, "Preparándose"),
+
+                ESTADO_PREPARANDOSE =>
+                    (ESTADO_LISTO, "Listo"),
+
+                ESTADO_LISTO =>
+                    (ESTADO_ENTREGADO, "Entregado"),
+
+                ESTADO_ENTREGADO =>
+                    null,
+
+                ESTADO_FACTURADO =>
+                    null,
+
+                ESTADO_CANCELADO =>
+                    null,
+
+                _ =>
+                    null
+            };
         }
 
 

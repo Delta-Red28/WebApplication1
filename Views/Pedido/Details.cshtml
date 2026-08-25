@@ -6,12 +6,18 @@
     var estado = Model.IdEstadoPedidoNavigation?.Nombre
         ?? "Sin estado";
 
-    var estaCancelado = estado.Trim().Equals(
+    var estadoNormalizado = estado.Trim();
+
+    var estaCancelado = estadoNormalizado.Equals(
         "Cancelado",
         StringComparison.OrdinalIgnoreCase);
 
-    var estaFacturado = estado.Trim().Equals(
+    var estaFacturado = estadoNormalizado.Equals(
         "Facturado",
+        StringComparison.OrdinalIgnoreCase);
+
+    var estaEntregado = estadoNormalizado.Equals(
+        "Entregado",
         StringComparison.OrdinalIgnoreCase);
 
     var puedeCancelar =
@@ -24,6 +30,44 @@
         User.IsInRole("Cajero") ||
         User.IsInRole("Mesero") ||
         User.IsInRole("Cocina");
+
+
+    // ============================================================
+    // DETERMINAR SIGUIENTE ESTADO
+    // ============================================================
+
+    string? siguienteEstado = null;
+
+    if (estadoNormalizado.Equals(
+        "Pendiente",
+        StringComparison.OrdinalIgnoreCase))
+    {
+        siguienteEstado = "En cocina";
+    }
+    else if (estadoNormalizado.Equals(
+        "En cocina",
+        StringComparison.OrdinalIgnoreCase))
+    {
+        siguienteEstado = "Preparándose";
+    }
+    else if (estadoNormalizado.Equals(
+        "Preparándose",
+        StringComparison.OrdinalIgnoreCase))
+    {
+        siguienteEstado = "Listo";
+    }
+    else if (estadoNormalizado.Equals(
+        "Listo",
+        StringComparison.OrdinalIgnoreCase))
+    {
+        siguienteEstado = "Entregado";
+    }
+
+    var puedeAvanzarEstado =
+        !estaCancelado &&
+        !estaFacturado &&
+        !string.IsNullOrWhiteSpace(siguienteEstado) &&
+        puedeCambiarEstado;
 }
 
 <div class="container-fluid py-4">
@@ -127,7 +171,9 @@
 
     <div class="row g-4 mb-4">
 
-        <!-- PEDIDO -->
+        <!-- ===================================================== -->
+        <!-- INFORMACIÓN DEL PEDIDO -->
+        <!-- ===================================================== -->
 
         <div class="col-lg-8">
 
@@ -150,6 +196,8 @@
 
                     <div class="row g-4">
 
+                        <!-- NÚMERO -->
+
                         <div class="col-md-4">
 
                             <label class="text-muted small">
@@ -165,6 +213,8 @@
 
                         </div>
 
+
+                        <!-- FECHA -->
 
                         <div class="col-md-4">
 
@@ -189,11 +239,14 @@
                         </div>
 
 
+                        <!-- ESTADO -->
+
                         <div class="col-md-4">
 
                             <label class="text-muted small d-block">
                                 Estado
                             </label>
+
 
                             @if (estaCancelado)
                             {
@@ -215,7 +268,7 @@
 
                                 </span>
                             }
-                            else if (estado.Equals(
+                            else if (estadoNormalizado.Equals(
                                 "Pendiente",
                                 StringComparison.OrdinalIgnoreCase))
                             {
@@ -227,7 +280,7 @@
 
                                 </span>
                             }
-                            else if (estado.Equals(
+                            else if (estadoNormalizado.Equals(
                                 "En cocina",
                                 StringComparison.OrdinalIgnoreCase))
                             {
@@ -239,7 +292,7 @@
 
                                 </span>
                             }
-                            else if (estado.Equals(
+                            else if (estadoNormalizado.Equals(
                                 "Preparándose",
                                 StringComparison.OrdinalIgnoreCase))
                             {
@@ -251,7 +304,7 @@
 
                                 </span>
                             }
-                            else if (estado.Equals(
+                            else if (estadoNormalizado.Equals(
                                 "Listo",
                                 StringComparison.OrdinalIgnoreCase))
                             {
@@ -263,7 +316,7 @@
 
                                 </span>
                             }
-                            else if (estado.Equals(
+                            else if (estadoNormalizado.Equals(
                                 "Entregado",
                                 StringComparison.OrdinalIgnoreCase))
                             {
@@ -286,6 +339,8 @@
 
                         </div>
 
+
+                        <!-- CLIENTE -->
 
                         <div class="col-md-6">
 
@@ -324,6 +379,8 @@
                         </div>
 
 
+                        <!-- MESA -->
+
                         <div class="col-md-3">
 
                             <label class="text-muted small">
@@ -355,6 +412,8 @@
                         </div>
 
 
+                        <!-- TIPO -->
+
                         <div class="col-md-3">
 
                             <label class="text-muted small">
@@ -370,6 +429,8 @@
 
                         </div>
 
+
+                        <!-- USUARIO -->
 
                         <div class="col-md-6">
 
@@ -403,6 +464,8 @@
 
                         </div>
 
+
+                        <!-- OBSERVACIÓN -->
 
                         <div class="col-12">
 
@@ -554,6 +617,148 @@
 
                         </div>
                     }
+                    else if (estaEntregado)
+                    {
+                        <div class="alert alert-success mt-4 mb-0">
+
+                            <i class="bi bi-check-circle me-2"></i>
+
+                            Este pedido fue entregado y ya está
+                            disponible para facturación.
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- FLUJO DEL PEDIDO -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white py-3">
+
+            <h5 class="mb-0 fw-semibold">
+
+                <i class="bi bi-diagram-3 me-2"></i>
+
+                Flujo del pedido
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row text-center g-3">
+
+                <!-- PENDIENTE -->
+
+                <div class="col">
+
+                    <div class="fw-semibold">
+
+                        <i class="bi bi-clock"></i>
+
+                    </div>
+
+                    <small>
+                        Pendiente
+                    </small>
+
+                </div>
+
+
+                <!-- EN COCINA -->
+
+                <div class="col">
+
+                    <div class="fw-semibold">
+
+                        <i class="bi bi-fire"></i>
+
+                    </div>
+
+                    <small>
+                        En cocina
+                    </small>
+
+                </div>
+
+
+                <!-- PREPARÁNDOSE -->
+
+                <div class="col">
+
+                    <div class="fw-semibold">
+
+                        <i class="bi bi-gear"></i>
+
+                    </div>
+
+                    <small>
+                        Preparándose
+                    </small>
+
+                </div>
+
+
+                <!-- LISTO -->
+
+                <div class="col">
+
+                    <div class="fw-semibold">
+
+                        <i class="bi bi-check2-circle"></i>
+
+                    </div>
+
+                    <small>
+                        Listo
+                    </small>
+
+                </div>
+
+
+                <!-- ENTREGADO -->
+
+                <div class="col">
+
+                    <div class="fw-semibold text-success">
+
+                        <i class="bi bi-box-seam"></i>
+
+                    </div>
+
+                    <small>
+                        Entregado
+                    </small>
+
+                </div>
+
+
+                <!-- FACTURADO -->
+
+                <div class="col">
+
+                    <div class="fw-semibold text-success">
+
+                        <i class="bi bi-cash-coin"></i>
+
+                    </div>
+
+                    <small>
+                        Facturado
+                    </small>
 
                 </div>
 
@@ -567,9 +772,7 @@
     <!-- ========================================================= -->
     <!-- CAMBIO DE ESTADO -->
     <!-- ========================================================= -->
-    @if (!estaCancelado &&
-             !estaFacturado &&
-             puedeCambiarEstado)
+    @if (puedeAvanzarEstado)
     {
         <div class="card shadow-sm border-0 mb-4">
 
@@ -577,9 +780,9 @@
 
                 <h5 class="mb-0 fw-semibold">
 
-                    <i class="bi bi-arrow-repeat me-2"></i>
+                    <i class="bi bi-arrow-right-circle me-2"></i>
 
-                    Actualizar estado
+                    Siguiente estado
 
                 </h5>
 
@@ -588,72 +791,119 @@
 
             <div class="card-body">
 
-                <form asp-action="CambiarEstado"
-                      method="post"
-                      class="row g-3 align-items-end">
+                <div class="row align-items-center g-3">
 
-                    @Html.AntiForgeryToken()
+                    <div class="col-md-8">
 
-                    <input type="hidden"
-                           name="id"
-                           value="@Model.IdPedido" />
+                        <div class="text-muted small mb-1">
 
+                            Estado actual
 
-                    <div class="col-md-6">
+                        </div>
 
-                        <label class="form-label">
-                            Nuevo estado
-                        </label>
+                        <div class="fw-bold">
 
-                        <select name="idEstado"
-                                class="form-select"
-                                required>
+                            @estado
 
-                            <option value="">
-                                -- Seleccione un estado --
-                            </option>
+                            <i class="bi bi-arrow-right mx-2"></i>
 
-                            @if (ViewBag.EstadosPedido != null)
-                            {
-                                foreach (var item in
-                                    ViewBag.EstadosPedido as
-                                    IEnumerable<SelectListItem>
-                                    ?? Enumerable.Empty<SelectListItem>())
-                                {
-                                    if (!string.IsNullOrWhiteSpace(item.Text) &&
-                                        !item.Text.Trim().Equals(
-                                            "Cancelado",
-                                            StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <option value="@item.Value"
-                                                selected="@(item.Value == Model.IdEstadoPedido.ToString())">
+                            <span class="text-primary">
+                                @siguienteEstado
+                            </span>
 
-                                            @item.Text
+                        </div>
 
-                                        </option>
-                                    }
-                                }
-                            }
+                        <small class="text-muted">
 
-                        </select>
+                            El pedido debe avanzar en orden.
+                            No se pueden saltar estados.
+
+                        </small>
 
                     </div>
 
 
-                    <div class="col-md-auto">
+                    <div class="col-md-4 text-md-end">
 
-                        <button type="submit"
-                                class="btn btn-primary">
+                        <form asp-action="CambiarEstado"
+                              method="post"
+                              class="d-inline">
 
-                            <i class="bi bi-check-circle me-1"></i>
+                            @Html.AntiForgeryToken()
 
-                            Actualizar estado
+                            <input type="hidden"
+                                   name="id"
+                                   value="@Model.IdPedido" />
 
-                        </button>
+                            <input type="hidden"
+                                   name="idEstado"
+                                   value="@(
+                                   siguienteEstado == "En cocina"
+                                       ? 2
+                                       : siguienteEstado == "Preparándose"
+                                           ? 3
+                                           : siguienteEstado == "Listo"
+                                               ? 4
+                                               : siguienteEstado == "Entregado"
+                                                   ? 5
+                                                   : 0
+                                                           )" />
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+
+                                <i class="bi bi-arrow-right-circle me-1"></i>
+
+                                Pasar a @siguienteEstado
+
+                            </button>
+
+                        </form>
 
                     </div>
 
-                </form>
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJE CUANDO ESTÁ ENTREGADO -->
+    <!-- ========================================================= -->
+    @if (estaEntregado)
+    {
+        <div class="card border-success shadow-sm mb-4">
+
+            <div class="card-body">
+
+                <div class="d-flex align-items-center">
+
+                    <div class="me-3">
+
+                        <i class="bi bi-check-circle-fill text-success fs-2"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h6 class="fw-bold mb-1">
+                            Pedido entregado
+                        </h6>
+
+                        <p class="text-muted mb-0">
+
+                            El pedido ya fue entregado.
+                            Ahora puede ser facturado desde el módulo
+                            de facturación.
+
+                        </p>
+
+                    </div>
+
+                </div>
 
             </div>
 
@@ -681,7 +931,8 @@
 
                 <span class="text-muted small">
 
-                    @(Model.DetallePedidos?.Count ?? 0) producto(s)
+                    @(Model.DetallePedidos?.Count ?? 0)
+                    producto(s)
 
                 </span>
 
@@ -769,6 +1020,7 @@
                                                 Producto no disponible
                                             </span>
                                         }
+
 
                                         @if (!string.IsNullOrWhiteSpace(
                                             detalle.Observacion))
@@ -994,9 +1246,9 @@
                 "¿Está seguro de cancelar este pedido?\n\n" +
                 "El pedido pasará al estado Cancelado y " +
                 "dejará de considerarse una venta activa."
-                    );
+            );
 
-                }
+        }
 
     </script>
 

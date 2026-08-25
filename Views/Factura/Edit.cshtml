@@ -8,6 +8,7 @@
     var moneda = Model.IdMonedaNavigation;
     var tipoComprobante = Model.IdTipoComprobanteNavigation;
     var serie = Model.IdSerieFacturaNavigation;
+    var impuestoActual = Model.IdImpuestoNavigation;
 
     bool facturaAnulada = Model.IdEstadoFactura == 3;
 
@@ -20,72 +21,59 @@
     var impuestos = ViewBag.Impuestos as IEnumerable<WebApplication1.Models.Impuesto>
                     ?? Enumerable.Empty<WebApplication1.Models.Impuesto>();
 
-    WebApplication1.Models.Impuesto? impuestoActual = null;
-
-    if (Model.IdImpuesto.HasValue && Model.IdImpuesto.Value > 0)
-    {
-        impuestoActual = impuestos.FirstOrDefault(
-            i => i.IdImpuesto == Model.IdImpuesto.Value
-        );
-    }
-
     decimal porcentajeImpuesto = impuestoActual?.Porcentaje ?? 0m;
 }
 
-<div class="container mt-4">
+<div class="container-fluid py-4">
 
-    <!-- ============================================================
-         ENCABEZADO
-    ============================================================ -->
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
-
-            <h2 class="mb-1">
-
-                <i class="bi bi-pencil-square"></i>
-
-                Editar Factura
-
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-pencil-square me-2"></i>
+                Editar factura
             </h2>
 
             <p class="text-muted mb-0">
-
                 Modifique la información permitida de la factura.
-
             </p>
-
         </div>
 
         <div>
-
             <a asp-controller="Factura"
                asp-action="Details"
                asp-route-id="@Model.IdFactura"
-               class="btn btn-secondary">
+               class="btn btn-outline-secondary">
 
-                <i class="bi bi-arrow-left"></i>
-
+                <i class="bi bi-arrow-left me-1"></i>
                 Volver al detalle
 
             </a>
-
         </div>
 
     </div>
 
 
-    <!-- ============================================================
-         MENSAJES
-    ============================================================ -->
+    <!-- ========================================================= -->
+    <!-- MENSAJES -->
+    <!-- ========================================================= -->
+
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger">
+        <div class="alert alert-danger alert-dismissible fade show">
 
-            <i class="bi bi-exclamation-triangle-fill"></i>
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
             @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
 
         </div>
     }
@@ -93,32 +81,33 @@
 
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success">
+        <div class="alert alert-success alert-dismissible fade show">
 
-            <i class="bi bi-check-circle-fill"></i>
+            <i class="bi bi-check-circle-fill me-2"></i>
 
             @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
 
         </div>
     }
 
 
-    <!-- ============================================================
-         ERRORES DE VALIDACIÓN
-    ============================================================ -->
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="alert alert-danger">
 
-            <h6 class="alert-heading">
-
-                <i class="bi bi-exclamation-triangle-fill"></i>
-
+            <div class="fw-bold mb-2">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 No se pudieron guardar los cambios
+            </div>
 
-            </h6>
-
-            <div asp-validation-summary="All"></div>
+            <div asp-validation-summary="All"
+                 class="mb-0">
+            </div>
 
         </div>
     }
@@ -128,7 +117,7 @@
     {
         <div class="alert alert-danger">
 
-            <i class="bi bi-x-circle-fill"></i>
+            <i class="bi bi-x-circle-fill me-2"></i>
 
             Esta factura se encuentra anulada y no puede ser modificada.
 
@@ -136,9 +125,9 @@
     }
 
 
-    <!-- ============================================================
-         FORMULARIO PRINCIPAL
-    ============================================================ -->
+    <!-- ========================================================= -->
+    <!-- FORMULARIO -->
+    <!-- ========================================================= -->
 
     <form asp-controller="Factura"
           asp-action="Edit"
@@ -148,10 +137,9 @@
 
         @Html.AntiForgeryToken()
 
-
-        <!-- ========================================================
-             CAMPOS OCULTOS
-        ======================================================== -->
+        <!-- ===================================================== -->
+        <!-- CAMPOS OCULTOS -->
+        <!-- ===================================================== -->
 
         <input type="hidden"
                asp-for="IdFactura" />
@@ -160,41 +148,26 @@
                asp-for="IdPedido" />
 
         <input type="hidden"
-               asp-for="IdEstadoFactura" />
-
-        <input type="hidden"
                asp-for="NumeroFactura" />
 
         <input type="hidden"
                asp-for="IdSerieFactura" />
 
         <input type="hidden"
-               asp-for="Subtotal" />
-
-        <input type="hidden"
-               asp-for="Descuento" />
-
-        <input type="hidden"
-               asp-for="Impuesto" />
-
-        <input type="hidden"
-               asp-for="Total" />
-
-        <input type="hidden"
-               asp-for="SaldoPendiente" />
+               asp-for="IdEstadoFactura" />
 
 
-        <!-- ========================================================
-             INFORMACIÓN DE LA FACTURA
-        ======================================================== -->
+        <!-- ===================================================== -->
+        <!-- INFORMACIÓN GENERAL -->
+        <!-- ===================================================== -->
 
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm border-0 mb-4">
 
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-primary text-white py-3">
 
-                <h5 class="mb-0">
+                <h5 class="mb-0 fw-semibold">
 
-                    <i class="bi bi-receipt"></i>
+                    <i class="bi bi-receipt me-2"></i>
 
                     Información de la factura
 
@@ -202,68 +175,67 @@
 
             </div>
 
+
             <div class="card-body">
 
-                <div class="row">
+                <div class="row g-4">
 
-                    <!-- ID FACTURA -->
+                    <!-- ID -->
 
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
 
                         <label class="form-label text-muted">
-
                             ID Factura
-
                         </label>
 
-                        <div class="form-control bg-light">
-
-                            #@Model.IdFactura
-
-                        </div>
+                        <input type="text"
+                               class="form-control bg-light"
+                               value="#@Model.IdFactura"
+                               readonly />
 
                     </div>
 
 
-                    <!-- NÚMERO -->
+                    <!-- NUMERO -->
 
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
 
                         <label class="form-label text-muted">
-
                             Número de factura
-
                         </label>
 
-                        <div class="form-control bg-light fw-bold">
-
-                            @Model.NumeroFactura
-
-                        </div>
+                        <input type="text"
+                               class="form-control bg-light fw-bold"
+                               value="@Model.NumeroFactura"
+                               readonly />
 
                     </div>
 
 
                     <!-- PEDIDO -->
 
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
 
                         <label class="form-label text-muted">
-
-                            Pedido
-
+                            Pedido asociado
                         </label>
 
-                        <div class="form-control bg-light">
+                        <div class="input-group">
 
-                            @if (pedido != null)
-                            {
-                                @pedido.NumeroPedido
-                            }
-                            else
-                            {
-                                @:#@Model.IdPedido
-                            }
+                            <input type="text"
+                                   class="form-control bg-light"
+                                   value="@(pedido?.NumeroPedido ?? $"#{Model.IdPedido}")"
+                                   readonly />
+
+                            <a asp-controller="Pedido"
+                               asp-action="Details"
+                               asp-route-id="@Model.IdPedido"
+                               class="btn btn-outline-primary"
+                               title="Ver pedido">
+
+                                <i class="bi bi-box-arrow-up-right"></i>
+
+                            </a>
 
                         </div>
 
@@ -272,67 +244,44 @@
 
                     <!-- ESTADO -->
 
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
 
                         <label class="form-label text-muted">
-
                             Estado
-
                         </label>
 
-                        <div class="form-control bg-light">
-
-                            @if (estado != null)
-                            {
-                                @estado.Nombre
-                            }
-                            else
-                            {
-                                <span class="text-muted">
-                                    No especificado
-                                </span>
-                            }
-
-                        </div>
+                        <input type="text"
+                               class="form-control bg-light"
+                               value="@(estado?.Nombre ?? "No especificado")"
+                               readonly />
 
                     </div>
 
                 </div>
 
 
-                <div class="row">
+                <hr class="my-4" />
+
+
+                <div class="row g-4">
 
                     <!-- SERIE -->
 
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-4">
 
                         <label class="form-label text-muted">
-
                             Serie
-
                         </label>
 
-                        <div class="form-control bg-light">
+                        <input type="text"
+                               class="form-control bg-light"
+                               value="@(serie != null
+                                   ? $"{serie.Nombre} ({serie.Prefijo})"
+                                   : "No especificada")"
+                               readonly />
 
-                            @if (serie != null)
-                            {
-                                @serie.Nombre
-
-                                <span class="text-muted">
-
-                                    (@serie.Prefijo)
-
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="text-muted">
-
-                                    No especificada
-
-                                </span>
-                            }
-
+                        <div class="form-text">
+                            La serie no puede cambiarse al editar una factura.
                         </div>
 
                     </div>
@@ -340,7 +289,7 @@
 
                     <!-- TIPO COMPROBANTE -->
 
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-4">
 
                         <label asp-for="IdTipoComprobante"
                                class="form-label fw-bold">
@@ -355,17 +304,13 @@
                                 class="form-select">
 
                             <option value="0">
-
                                 -- Seleccione un tipo de comprobante --
-
                             </option>
 
                             @foreach (var tipo in tiposComprobante)
                             {
                                 <option value="@tipo.IdTipoComprobante">
-
                                     @tipo.Nombre
-
                                 </option>
                             }
 
@@ -380,7 +325,7 @@
 
                     <!-- FECHA -->
 
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-4">
 
                         <label asp-for="FechaFactura"
                                class="form-label fw-bold">
@@ -408,17 +353,251 @@
         </div>
 
 
-        <!-- ========================================================
-             MONEDA E IMPUESTO
-        ======================================================== -->
+        <!-- ========================================================= -->
+        <!-- PEDIDO ASOCIADO -->
+        <!-- ========================================================= -->
 
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm border-0 mb-4">
 
-            <div class="card-header bg-light">
+            <div class="card-header bg-white py-3">
 
-                <h5 class="mb-0">
+                <div class="d-flex justify-content-between align-items-center">
 
-                    <i class="bi bi-currency-exchange"></i>
+                    <h5 class="mb-0 fw-semibold">
+
+                        <i class="bi bi-cart-check me-2"></i>
+
+                        Pedido asociado
+
+                    </h5>
+
+                    <span class="badge bg-primary">
+                        Pedido #@Model.IdPedido
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="alert alert-info">
+
+                    <i class="bi bi-info-circle-fill me-2"></i>
+
+                    El pedido asociado no puede cambiarse desde la edición
+                    de una factura existente.
+
+                </div>
+
+
+                @if (pedido != null)
+                {
+                    <div class="row g-4">
+
+                        <!-- ================================================= -->
+                        <!-- CLIENTE -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-4">
+
+                            <label class="form-label text-muted">
+                                Cliente
+                            </label>
+
+                            <div class="form-control bg-light">
+
+                                @if (pedido.IdClienteNavigation != null)
+                                {
+                                    @pedido.IdClienteNavigation.Nombres
+                                    @:
+                                    @pedido.IdClienteNavigation.Apellidos
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        Cliente no especificado
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- MESA -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-4">
+
+                            <label class="form-label text-muted">
+                                Mesa
+                            </label>
+
+                            <div class="form-control bg-light">
+
+                                @if (pedido.IdMesaNavigation != null)
+                                {
+                                    @pedido.IdMesaNavigation.NumeroMesa
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        Sin mesa
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- TIPO PEDIDO -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-4">
+
+                            <label class="form-label text-muted">
+                                Tipo de pedido
+                            </label>
+
+                            <div class="form-control bg-light">
+
+                                @if (pedido.IdTipoPedidoNavigation != null)
+                                {
+                                    @pedido.IdTipoPedidoNavigation.Nombre
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        No especificado
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- NUMERO PEDIDO -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-4">
+
+                            <label class="form-label text-muted">
+                                Número de pedido
+                            </label>
+
+                            <div class="form-control bg-light">
+                                @pedido.NumeroPedido
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- FECHA PEDIDO -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-4">
+
+                            <label class="form-label text-muted">
+                                Fecha del pedido
+                            </label>
+
+                            <div class="form-control bg-light">
+
+                                @pedido.FechaPedido.ToString(
+                                    "dd/MM/yyyy HH:mm"
+                                )
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- ESTADO PEDIDO -->
+                        <!-- ================================================= -->
+
+                        <div class="col-md-4">
+
+                            <label class="form-label text-muted">
+                                Estado del pedido
+                            </label>
+
+                            <div class="form-control bg-light">
+
+                                @if (pedido.IdEstadoPedidoNavigation != null)
+                                {
+                                    @pedido.IdEstadoPedidoNavigation.Nombre
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        No especificado
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- OBSERVACION PEDIDO -->
+                        <!-- ================================================= -->
+
+                        <div class="col-12">
+
+                            <label class="form-label text-muted">
+                                Observación del pedido
+                            </label>
+
+                            <div class="form-control bg-light"
+                                 style="min-height: 80px;">
+
+                                @(string.IsNullOrWhiteSpace(pedido.Observacion)
+                                    ? "Sin observación"
+                                    : pedido.Observacion)
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning mb-0">
+
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                        No se pudo cargar el pedido asociado a esta factura.
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+
+        <!-- ========================================================= -->
+        <!-- CONFIGURACIÓN FISCAL -->
+        <!-- ========================================================= -->
+
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header bg-white py-3">
+
+                <h5 class="mb-0 fw-semibold">
+
+                    <i class="bi bi-currency-exchange me-2"></i>
 
                     Configuración fiscal y monetaria
 
@@ -426,13 +605,16 @@
 
             </div>
 
+
             <div class="card-body">
 
-                <div class="row">
+                <div class="row g-4">
 
+                    <!-- ================================================= -->
                     <!-- MONEDA -->
+                    <!-- ================================================= -->
 
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-6">
 
                         <label asp-for="IdMoneda"
                                class="form-label fw-bold">
@@ -447,9 +629,7 @@
                                 class="form-select">
 
                             <option value="0">
-
                                 -- Seleccione una moneda --
-
                             </option>
 
                             @foreach (var monedaItem in monedas)
@@ -457,10 +637,10 @@
                                 <option value="@monedaItem.IdMoneda">
 
                                     @monedaItem.Nombre
-
                                     (@monedaItem.CodigoIso)
 
-                                    @if (!string.IsNullOrWhiteSpace(monedaItem.Simbolo))
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        monedaItem.Simbolo))
                                     {
                                         @: - @monedaItem.Simbolo
                                     }
@@ -474,6 +654,7 @@
                               class="text-danger">
                         </span>
 
+
                         @if (moneda != null)
                         {
                             <div class="form-text">
@@ -481,22 +662,43 @@
                                 Moneda actual:
 
                                 <strong>
-
                                     @moneda.Nombre
-
                                     (@moneda.CodigoIso)
-
                                 </strong>
 
                             </div>
                         }
 
+
+                        <div class="mt-2">
+
+                            <span class="badge bg-warning text-dark">
+
+                                <i class="bi bi-exclamation-circle me-1"></i>
+
+                                @if (Model.Pagos != null &&
+                                     Model.Pagos.Any(p =>
+                                         p.IdEstadoPago == 2))
+                                {
+                                    @:No puede cambiarse si existen pagos confirmados.
+                                }
+                                else
+                                {
+                                    @:Puede cambiarse mientras no existan pagos confirmados.
+                                }
+
+                            </span>
+
+                        </div>
+
                     </div>
 
 
+                    <!-- ================================================= -->
                     <!-- IMPUESTO -->
+                    <!-- ================================================= -->
 
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-6">
 
                         <label asp-for="IdImpuesto"
                                class="form-label fw-bold">
@@ -510,20 +712,15 @@
                                 class="form-select">
 
                             <option value="">
-
                                 -- Sin impuesto --
-
                             </option>
 
                             @foreach (var impuesto in impuestos)
                             {
-                                <option value="@impuesto.IdImpuesto"
-                                        data-porcentaje="@impuesto.Porcentaje.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                <option value="@impuesto.IdImpuesto">
 
                                     @impuesto.Nombre
-
                                     -
-
                                     @impuesto.Porcentaje.ToString("N2")%
 
                                 </option>
@@ -537,8 +734,9 @@
 
                         <div class="form-text">
 
-                            Seleccione el impuesto o IVA aplicado
-                            a esta factura.
+                            El impuesto seleccionado se guarda en la
+                            factura. Los importes de la factura no se
+                            recalculan durante la edición.
 
                         </div>
 
@@ -551,17 +749,17 @@
         </div>
 
 
-        <!-- ========================================================
-             IMPORTES
-        ======================================================== -->
+        <!-- ========================================================= -->
+        <!-- RESUMEN DE IMPORTES -->
+        <!-- ========================================================= -->
 
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm border-0 mb-4">
 
-            <div class="card-header bg-success text-white">
+            <div class="card-header bg-success text-white py-3">
 
-                <h5 class="mb-0">
+                <h5 class="mb-0 fw-semibold">
 
-                    <i class="bi bi-calculator"></i>
+                    <i class="bi bi-calculator me-2"></i>
 
                     Resumen de la factura
 
@@ -569,33 +767,35 @@
 
             </div>
 
+
             <div class="card-body">
 
                 <div class="alert alert-info">
 
-                    <i class="bi bi-info-circle"></i>
+                    <i class="bi bi-info-circle-fill me-2"></i>
 
-                    Los importes se obtienen del pedido asociado.
-                    No deben modificarse manualmente.
+                    Estos importes son los registrados actualmente en
+                    la factura. El controlador de edición los conserva
+                    y no permite modificarlos desde este formulario.
 
                 </div>
 
 
-                <div class="row">
+                <div class="row g-4">
 
+                    <!-- ================================================= -->
                     <!-- SUBTOTAL -->
+                    <!-- ================================================= -->
 
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
 
                         <label class="form-label text-muted">
-
                             Subtotal
-
                         </label>
 
-                        <div id="resumenSubtotal"
-                             class="form-control bg-light text-end fw-bold">
+                        <div class="form-control bg-light text-end fw-bold">
 
+                            C$
                             @Model.Subtotal.ToString("N2")
 
                         </div>
@@ -603,19 +803,19 @@
                     </div>
 
 
+                    <!-- ================================================= -->
                     <!-- DESCUENTO -->
+                    <!-- ================================================= -->
 
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
 
                         <label class="form-label text-muted">
-
                             Descuento
-
                         </label>
 
-                        <div id="resumenDescuento"
-                             class="form-control bg-light text-end fw-bold">
+                        <div class="form-control bg-light text-end fw-bold text-danger">
 
+                            C$
                             @Model.Descuento.ToString("N2")
 
                         </div>
@@ -623,52 +823,40 @@
                     </div>
 
 
-                    <!-- IMPUESTO -->
+                    <!-- ================================================= -->
+                    <!-- BASE -->
+                    <!-- ================================================= -->
 
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
 
                         <label class="form-label text-muted">
-
-                            Impuesto / IVA
-
+                            Base imponible
                         </label>
 
-                        <div id="resumenImpuesto"
-                             class="form-control bg-light text-end fw-bold">
+                        <div class="form-control bg-light text-end fw-bold">
 
-                            @Model.Impuesto.ToString("N2")
-
-                        </div>
-
-                        <div class="small text-muted mt-1">
-
-                            Porcentaje:
-
-                            <strong id="resumenPorcentajeImpuesto">
-
-                                @porcentajeImpuesto.ToString("N2")%
-
-                            </strong>
+                            C$
+                            @((Model.Subtotal - Model.Descuento)
+                                .ToString("N2"))
 
                         </div>
 
                     </div>
 
 
-                    <!-- TOTAL -->
+                    <!-- ================================================= -->
+                    <!-- IVA % -->
+                    <!-- ================================================= -->
 
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
 
                         <label class="form-label text-muted">
-
-                            Total
-
+                            Porcentaje impuesto
                         </label>
 
-                        <div id="resumenTotal"
-                             class="form-control bg-light text-end fw-bold text-success">
+                        <div class="form-control bg-light text-end fw-bold">
 
-                            @Model.Total.ToString("N2")
+                            @porcentajeImpuesto.ToString("N2")%
 
                         </div>
 
@@ -677,24 +865,64 @@
                 </div>
 
 
-                <!-- SALDO -->
+                <div class="row g-4 mt-1">
 
-                <div class="row mt-2">
+                    <!-- ================================================= -->
+                    <!-- IMPUESTO -->
+                    <!-- ================================================= -->
 
                     <div class="col-md-4">
 
                         <label class="form-label text-muted">
-
-                            Saldo pendiente
-
+                            Impuesto / IVA
                         </label>
 
-                        <div id="resumenSaldo"
-                             class="form-control bg-light text-end fw-bold
+                        <div class="form-control bg-light text-end fw-bold">
+
+                            C$
+                            @Model.Impuesto.ToString("N2")
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- TOTAL -->
+                    <!-- ================================================= -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label text-muted">
+                            Total factura
+                        </label>
+
+                        <div class="form-control bg-light text-end fw-bold text-success fs-5">
+
+                            C$
+                            @Model.Total.ToString("N2")
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- SALDO -->
+                    <!-- ================================================= -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label text-muted">
+                            Saldo pendiente
+                        </label>
+
+                        <div class="form-control bg-light text-end fw-bold
                             @(Model.SaldoPendiente > 0
                                 ? "text-danger"
                                 : "text-success")">
 
+                            C$
                             @Model.SaldoPendiente.ToString("N2")
 
                         </div>
@@ -703,28 +931,43 @@
 
                 </div>
 
+
+                @if (Model.Pagos != null && Model.Pagos.Any())
+                {
+                    <div class="alert alert-warning mt-4 mb-0">
+
+                        <i class="bi bi-cash-coin me-2"></i>
+
+                        Esta factura tiene pagos registrados.
+                        Si existen pagos confirmados, la moneda no
+                        puede cambiarse.
+
+                    </div>
+                }
+
             </div>
 
         </div>
 
 
-        <!-- ========================================================
-             OBSERVACIÓN
-        ======================================================== -->
+        <!-- ========================================================= -->
+        <!-- OBSERVACIÓN -->
+        <!-- ========================================================= -->
 
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm border-0 mb-4">
 
-            <div class="card-header">
+            <div class="card-header bg-white py-3">
 
-                <h5 class="mb-0">
+                <h5 class="mb-0 fw-semibold">
 
-                    <i class="bi bi-chat-left-text"></i>
+                    <i class="bi bi-chat-left-text me-2"></i>
 
                     Observación
 
                 </h5>
 
             </div>
+
 
             <div class="card-body">
 
@@ -746,9 +989,7 @@
                 </span>
 
                 <div class="form-text">
-
                     Máximo 300 caracteres.
-
                 </div>
 
             </div>
@@ -756,18 +997,19 @@
         </div>
 
 
-        <!-- ========================================================
-             INFORMACIÓN DE ANULACIÓN
-        ======================================================== -->
+        <!-- ========================================================= -->
+        <!-- INFORMACIÓN DE ANULACIÓN -->
+        <!-- ========================================================= -->
+
         @if (Model.FechaAnulacion.HasValue)
         {
-            <div class="card shadow-sm mb-4 border-danger">
+            <div class="card shadow-sm border-danger mb-4">
 
-                <div class="card-header bg-danger text-white">
+                <div class="card-header bg-danger text-white py-3">
 
                     <h5 class="mb-0">
 
-                        <i class="bi bi-x-circle"></i>
+                        <i class="bi bi-x-circle me-2"></i>
 
                         Información de anulación
 
@@ -775,16 +1017,15 @@
 
                 </div>
 
+
                 <div class="card-body">
 
-                    <div class="row">
+                    <div class="row g-4">
 
                         <div class="col-md-4">
 
                             <label class="text-muted">
-
                                 Fecha de anulación
-
                             </label>
 
                             <div class="fw-bold">
@@ -801,9 +1042,7 @@
                         <div class="col-md-8">
 
                             <label class="text-muted">
-
                                 Observación de anulación
-
                             </label>
 
                             <div class="fw-bold">
@@ -825,11 +1064,11 @@
         }
 
 
-        <!-- ========================================================
-             BOTONES
-        ======================================================== -->
+        <!-- ========================================================= -->
+        <!-- BOTONES -->
+        <!-- ========================================================= -->
 
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm border-0 mb-4">
 
             <div class="card-body">
 
@@ -838,9 +1077,9 @@
                     <a asp-controller="Factura"
                        asp-action="Details"
                        asp-route-id="@Model.IdFactura"
-                       class="btn btn-secondary">
+                       class="btn btn-outline-secondary">
 
-                        <i class="bi bi-x-lg"></i>
+                        <i class="bi bi-x-circle me-1"></i>
 
                         Cancelar
 
@@ -850,9 +1089,10 @@
                     @if (!facturaAnulada)
                     {
                         <button type="submit"
-                                class="btn btn-primary btn-lg">
+                                class="btn btn-primary btn-lg"
+                                id="btnGuardar">
 
-                            <i class="bi bi-check-circle"></i>
+                            <i class="bi bi-check-circle me-1"></i>
 
                             Guardar cambios
 
@@ -876,57 +1116,68 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
+
     <script>
 
         document.addEventListener("DOMContentLoaded", function () {
 
-            const impuestoSelect =
-                document.getElementById("IdImpuesto");
+            const formulario =
+                document.getElementById("formEditarFactura");
 
-            const porcentajeElement =
-                document.getElementById("resumenPorcentajeImpuesto");
+            const btnGuardar =
+                document.getElementById("btnGuardar");
+
+            const facturaAnulada =
+                @facturaAnulada.ToString().ToLowerInvariant();
 
 
-            function actualizarPorcentajeImpuesto() {
+            /*
+             * ---------------------------------------------------------
+             * FACTURA ANULADA
+             * ---------------------------------------------------------
+             */
 
-                if (!impuestoSelect || !porcentajeElement) {
-                    return;
-                }
+            if (formulario && facturaAnulada) {
 
-                const opcion =
-                    impuestoSelect.options[
-                        impuestoSelect.selectedIndex
-                    ];
+                formulario.addEventListener(
+                    "submit",
+                    function (event) {
 
-                if (!opcion) {
-                    porcentajeElement.textContent = "0.00%";
-                    return;
-                }
+                        event.preventDefault();
 
-                const porcentaje =
-                    Number(
-                        opcion.getAttribute("data-porcentaje")
-                    ) || 0;
+                        alert(
+                            "Esta factura se encuentra anulada y no puede ser modificada."
+                        );
 
-                porcentajeElement.textContent =
-                    porcentaje.toLocaleString("es-NI", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }) + "%";
+                    }
+                );
+
+                return;
             }
 
 
-            if (impuestoSelect) {
+            /*
+             * ---------------------------------------------------------
+             * EVITAR DOBLE ENVÍO
+             * ---------------------------------------------------------
+             */
 
-                impuestoSelect.addEventListener(
-                    "change",
-                    actualizarPorcentajeImpuesto
+            if (formulario && btnGuardar) {
+
+                formulario.addEventListener(
+                    "submit",
+                    function () {
+
+                        btnGuardar.disabled = true;
+
+                        btnGuardar.innerHTML =
+                            '<span class="spinner-border spinner-border-sm me-2"></span>' +
+                            'Guardando...';
+
+                    }
                 );
 
             }
-
-
-            actualizarPorcentajeImpuesto();
 
         });
 

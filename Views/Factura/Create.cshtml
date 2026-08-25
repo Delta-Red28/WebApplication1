@@ -18,15 +18,18 @@
     var impuestos = ViewBag.Impuestos as List<WebApplication1.Models.Impuesto>
                     ?? new List<WebApplication1.Models.Impuesto>();
 
-    var pedidoSeleccionado = ViewBag.Pedido as WebApplication1.Models.Pedido;
-
     /*
      * ============================================================
      * PEDIDO ACTUAL
      * ============================================================
+     *
+     * Cuando la vista viene desde CreateParaPedido(), el controlador
+     * envía ViewBag.Pedido.
+     *
+     * Cuando viene desde Create(), buscamos el pedido en ViewBag.Pedidos.
      */
 
-    WebApplication1.Models.Pedido? pedidoActual = pedidoSeleccionado;
+    WebApplication1.Models.Pedido? pedidoActual = ViewBag.Pedido as WebApplication1.Models.Pedido;
 
     if (pedidoActual == null && Model.IdPedido > 0)
     {
@@ -63,20 +66,17 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
-
             <h2 class="mb-1">
                 <i class="bi bi-receipt"></i>
                 Crear Factura
             </h2>
 
             <p class="text-muted mb-0">
-                Registra una nueva factura a partir de un pedido.
+                Registra una nueva factura a partir de un pedido entregado.
             </p>
-
         </div>
 
         <div>
-
             <a asp-controller="Factura"
                asp-action="Index"
                class="btn btn-secondary">
@@ -85,23 +85,26 @@
                 Volver
 
             </a>
-
         </div>
 
     </div>
 
 
     <!-- ============================================================
-         MENSAJE TEMPORAL DE ERROR
+         MENSAJE TEMPORAL
     ============================================================ -->
-
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger">
+        <div class="alert alert-danger alert-dismissible fade show">
 
-            <i class="bi bi-exclamation-triangle-fill"></i>
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
             @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
 
         </div>
     }
@@ -110,18 +113,16 @@
     <!-- ============================================================
          VALIDACIONES
     ============================================================ -->
-
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="alert alert-danger">
 
             <h6 class="alert-heading">
-
-                <i class="bi bi-exclamation-triangle-fill"></i>
-
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 No se pudo crear la factura
-
             </h6>
+
+            <hr />
 
             <div asp-validation-summary="All"></div>
 
@@ -130,27 +131,40 @@
 
 
     <!-- ============================================================
-         PEDIDO SELECCIONADO
+         INFORMACIÓN DEL PEDIDO
     ============================================================ -->
-
     @if (pedidoActual != null)
     {
-        <div class="alert alert-info">
+        <div class="alert alert-info shadow-sm">
 
             <div class="d-flex align-items-center">
 
-                <i class="bi bi-cart-check fs-3 me-3"></i>
+                <i class="bi bi-cart-check fs-2 me-3"></i>
 
                 <div>
 
                     <strong>
-                        Facturando pedido @pedidoActual.NumeroPedido
+                        Pedido seleccionado:
+                        @pedidoActual.NumeroPedido
                     </strong>
 
-                    <div class="small">
+                    <div class="small mt-1">
 
-                        Total original del pedido:
+                        Fecha:
+                        <strong>
+                            @pedidoActual.FechaPedido.ToString("dd/MM/yyyy HH:mm")
+                        </strong>
 
+                        &nbsp; | &nbsp;
+
+                        Estado:
+                        <strong>
+                            Entregado
+                        </strong>
+
+                        &nbsp; | &nbsp;
+
+                        Total:
                         <strong>
                             @pedidoActual.Total.ToString("N2")
                         </strong>
@@ -175,9 +189,8 @@
 
         @Html.AntiForgeryToken()
 
-
         <!-- ========================================================
-             PEDIDO
+             PEDIDO Y FECHA
         ======================================================== -->
 
         <div class="card shadow-sm mb-4">
@@ -185,11 +198,8 @@
             <div class="card-header bg-primary text-white">
 
                 <h5 class="mb-0">
-
-                    <i class="bi bi-cart"></i>
-
+                    <i class="bi bi-cart me-2"></i>
                     Pedido
-
                 </h5>
 
             </div>
@@ -198,7 +208,9 @@
 
                 <div class="row">
 
-                    <!-- PEDIDO -->
+                    <!-- ==================================================
+                         PEDIDO
+                    ================================================== -->
 
                     <div class="col-md-8 mb-3">
 
@@ -212,26 +224,27 @@
 
                         @if (pedidoActual != null)
                         {
+                            /*
+                             * El select visual está deshabilitado para
+                             * impedir que se cambie el pedido cuando
+                             * CreateParaPedido() abrió esta vista.
+                             *
+                             * El hidden sí envía IdPedido al controlador.
+                             */
+
                             <select class="form-select"
                                     disabled>
 
                                 <option value="@pedidoActual.IdPedido">
-
                                     @pedidoActual.NumeroPedido
+                                    -
+                                    @pedidoActual.FechaPedido.ToString("dd/MM/yyyy HH:mm")
                                     -
                                     Total:
                                     @pedidoActual.Total.ToString("N2")
-
                                 </option>
 
                             </select>
-
-                            <!--
-                                El select está disabled y por lo tanto
-                                no se envía al servidor.
-
-                                Este hidden sí se envía.
-                            -->
 
                             <input type="hidden"
                                    asp-for="IdPedido" />
@@ -243,7 +256,7 @@
                                     class="form-select">
 
                                 <option value="0">
-                                    -- Seleccione un pedido --
+                                    -- Seleccione un pedido entregado --
                                 </option>
 
                                 @foreach (var pedido in pedidos)
@@ -251,6 +264,7 @@
                                     <option value="@pedido.IdPedido"
                                             data-subtotal="@pedido.Subtotal.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                                             data-descuento="@pedido.Descuento.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                            data-impuesto-pedido="@pedido.Impuesto.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                                             data-total="@pedido.Total.ToString(System.Globalization.CultureInfo.InvariantCulture)">
 
                                         @pedido.NumeroPedido
@@ -272,14 +286,17 @@
 
                         <div class="form-text">
 
-                            Seleccione el pedido que desea facturar.
+                            Solo se muestran pedidos entregados
+                            que todavía no tienen factura.
 
                         </div>
 
                     </div>
 
 
-                    <!-- FECHA -->
+                    <!-- ==================================================
+                         FECHA
+                    ================================================== -->
 
                     <div class="col-md-4 mb-3">
 
@@ -299,6 +316,11 @@
                               class="text-danger">
                         </span>
 
+                        <div class="form-text">
+                            Si se deja vacío, el controlador utilizará
+                            la fecha actual.
+                        </div>
+
                     </div>
 
                 </div>
@@ -308,9 +330,9 @@
         </div>
 
 
-        <!-- ========================================================
+        <!-- ============================================================
              DATOS DEL COMPROBANTE
-        ======================================================== -->
+        ============================================================ -->
 
         <div class="card shadow-sm mb-4">
 
@@ -318,7 +340,7 @@
 
                 <h5 class="mb-0">
 
-                    <i class="bi bi-file-earmark-text"></i>
+                    <i class="bi bi-file-earmark-text me-2"></i>
 
                     Datos del comprobante
 
@@ -330,7 +352,9 @@
 
                 <div class="row">
 
-                    <!-- TIPO COMPROBANTE -->
+                    <!-- ==================================================
+                         TIPO COMPROBANTE
+                    ================================================== -->
 
                     <div class="col-md-6 mb-3">
 
@@ -367,7 +391,9 @@
                     </div>
 
 
-                    <!-- SERIE -->
+                    <!-- ==================================================
+                         SERIE
+                    ================================================== -->
 
                     <div class="col-md-6 mb-3">
 
@@ -405,7 +431,7 @@
                         <div class="form-text">
 
                             El número de factura será generado
-                            automáticamente.
+                            automáticamente por el controlador.
 
                         </div>
 
@@ -418,9 +444,9 @@
         </div>
 
 
-        <!-- ========================================================
-             MONEDA E IMPUESTO
-        ======================================================== -->
+        <!-- ============================================================
+             CONFIGURACIÓN MONETARIA Y FISCAL
+        ============================================================ -->
 
         <div class="card shadow-sm mb-4">
 
@@ -428,7 +454,7 @@
 
                 <h5 class="mb-0">
 
-                    <i class="bi bi-currency-exchange"></i>
+                    <i class="bi bi-currency-exchange me-2"></i>
 
                     Configuración fiscal y monetaria
 
@@ -440,7 +466,9 @@
 
                 <div class="row">
 
-                    <!-- MONEDA -->
+                    <!-- ==================================================
+                         MONEDA
+                    ================================================== -->
 
                     <div class="col-md-6 mb-3">
 
@@ -480,10 +508,18 @@
                               class="text-danger">
                         </span>
 
+                        <div class="form-text">
+
+                            Solo se muestran monedas activas.
+
+                        </div>
+
                     </div>
 
 
-                    <!-- IMPUESTO -->
+                    <!-- ==================================================
+                         IMPUESTO
+                    ================================================== -->
 
                     <div class="col-md-6 mb-3">
 
@@ -491,7 +527,6 @@
                                class="form-label fw-bold">
 
                             Impuesto / IVA
-                            <span class="text-danger">*</span>
 
                         </label>
 
@@ -500,7 +535,7 @@
                                 class="form-select">
 
                             <option value="">
-                                -- Seleccione un impuesto --
+                                -- Sin impuesto / usar impuesto del pedido --
                             </option>
 
                             @foreach (var impuesto in impuestos)
@@ -523,8 +558,10 @@
 
                         <div class="form-text">
 
-                            El porcentaje seleccionado se utilizará
-                            para calcular el IVA de la factura.
+                            Si selecciona un impuesto, el controlador
+                            calculará el impuesto sobre la base imponible.
+                            Si no selecciona ninguno, se utilizará el
+                            impuesto registrado en el pedido.
 
                         </div>
 
@@ -537,9 +574,9 @@
         </div>
 
 
-        <!-- ========================================================
-             RESUMEN DE LA FACTURA
-        ======================================================== -->
+        <!-- ============================================================
+             RESUMEN
+        ============================================================ -->
 
         <div class="card shadow-sm mb-4">
 
@@ -547,7 +584,7 @@
 
                 <h5 class="mb-0">
 
-                    <i class="bi bi-calculator"></i>
+                    <i class="bi bi-calculator me-2"></i>
 
                     Resumen de la factura
 
@@ -559,11 +596,11 @@
 
                 <div class="alert alert-info">
 
-                    <i class="bi bi-info-circle"></i>
+                    <i class="bi bi-info-circle me-2"></i>
 
-                    Los importes se calculan automáticamente.
-                    El IVA se calcula utilizando el porcentaje
-                    seleccionado en el campo Impuesto / IVA.
+                    Los importes se calculan automáticamente a partir
+                    del pedido. El servidor volverá a calcularlos
+                    antes de guardar la factura.
 
                 </div>
 
@@ -631,7 +668,7 @@
 
 
                     <!-- ==================================================
-                         IVA
+                         IMPUESTO
                     ================================================== -->
 
                     <div class="col-md-3 mb-3">
@@ -663,12 +700,14 @@
 
 
                 <!-- ==================================================
-                     TOTAL
+                     TOTAL Y SALDO
                 ================================================== -->
 
                 <div class="row mt-2">
 
-                    <div class="col-md-6">
+                    <!-- TOTAL -->
+
+                    <div class="col-md-6 mb-3">
 
                         <label class="text-muted">
                             Total factura
@@ -686,7 +725,7 @@
 
                     <!-- SALDO -->
 
-                    <div class="col-md-6">
+                    <div class="col-md-6 mb-3">
 
                         <label class="text-muted">
                             Saldo pendiente inicial
@@ -708,9 +747,9 @@
         </div>
 
 
-        <!-- ========================================================
+        <!-- ============================================================
              OBSERVACIÓN
-        ======================================================== -->
+        ============================================================ -->
 
         <div class="card shadow-sm mb-4">
 
@@ -718,7 +757,7 @@
 
                 <h5 class="mb-0">
 
-                    <i class="bi bi-chat-left-text"></i>
+                    <i class="bi bi-chat-left-text me-2"></i>
 
                     Observación
 
@@ -756,15 +795,15 @@
         </div>
 
 
-        <!-- ========================================================
+        <!-- ============================================================
              NÚMERO DE FACTURA
-        ======================================================== -->
+        ============================================================ -->
 
         <div class="alert alert-secondary">
 
-            <div class="d-flex">
+            <div class="d-flex align-items-center">
 
-                <i class="bi bi-hash fs-4 me-3"></i>
+                <i class="bi bi-hash fs-3 me-3"></i>
 
                 <div>
 
@@ -774,8 +813,8 @@
 
                     <p class="mb-0">
 
-                        El número de factura será generado
-                        automáticamente al guardar.
+                        El número será generado automáticamente
+                        utilizando la serie seleccionada.
 
                     </p>
 
@@ -786,9 +825,9 @@
         </div>
 
 
-        <!-- ========================================================
+        <!-- ============================================================
              BOTONES
-        ======================================================== -->
+        ============================================================ -->
 
         <div class="card shadow-sm mb-4">
 
@@ -800,7 +839,7 @@
                        asp-action="Index"
                        class="btn btn-secondary">
 
-                        <i class="bi bi-x-circle"></i>
+                        <i class="bi bi-x-circle me-1"></i>
 
                         Cancelar
 
@@ -809,7 +848,7 @@
                     <button type="submit"
                             class="btn btn-primary btn-lg">
 
-                        <i class="bi bi-check-circle"></i>
+                        <i class="bi bi-check-circle me-1"></i>
 
                         Crear factura
 
@@ -834,13 +873,11 @@
 
     <script>
 
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
 
-            /*
-             * ========================================================
-             * ELEMENTOS
-             * ========================================================
-             */
+            // ========================================================
+            // ELEMENTOS
+            // ========================================================
 
             const pedidoSelect =
                 document.getElementById("IdPedido");
@@ -867,250 +904,343 @@
                 document.getElementById("resumenSaldo");
 
             const porcentajeElement =
-                document.getElementById("resumenPorcentajeImpuesto");
+                document.getElementById(
+                    "resumenPorcentajeImpuesto"
+                );
 
 
-            /*
-             * ========================================================
-             * FORMATEAR NÚMERO
-             * ========================================================
-             */
+            // ========================================================
+            // DATOS DEL PEDIDO SELECCIONADO DESDE EL SERVIDOR
+            // ========================================================
 
-            function formatearNumero(valor) {
+            let pedidoServidor = null;
 
-                const numero = Number(valor);
+            @if (pedidoActual != null)
+                {
+                    <text>
+                            pedidoServidor = {
+                                subtotal:
+                            @pedidoActual.Subtotal.ToString(
+                            System.Globalization.CultureInfo.InvariantCulture
+                            ),
 
-                if (!Number.isFinite(numero)) {
-                    return "0.00";
-                }
+                            descuento:
+                            @pedidoActual.Descuento.ToString(
+                            System.Globalization.CultureInfo.InvariantCulture
+                            ),
 
-                return numero.toLocaleString("es-NI", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
+                            impuesto:
+                            @pedidoActual.Impuesto.ToString(
+                            System.Globalization.CultureInfo.InvariantCulture
+                            ),
+
+                            total:
+                            @pedidoActual.Total.ToString(
+                            System.Globalization.CultureInfo.InvariantCulture
+                            )
+                                };
+                    </text>
             }
 
 
-            /*
-             * ========================================================
-             * OBTENER DATOS DEL PEDIDO
-             * ========================================================
-             */
+                // ========================================================
+                // FORMATEAR NÚMEROS
+                // ========================================================
+
+                function formatearNumero(valor) {
+
+                    const numero = Number(valor);
+
+                    if (!Number.isFinite(numero)) {
+                        return "0.00";
+                    }
+
+                    return numero.toLocaleString("es-NI", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+
+
+            // ========================================================
+            // OBTENER PEDIDO
+            // ========================================================
 
             function obtenerDatosPedido() {
 
-                let subtotal = 0;
-                let descuento = 0;
-                let totalPedido = 0;
+                // ----------------------------------------------------
+                // Si viene desde CreateParaPedido()
+                // ----------------------------------------------------
 
-                /*
-                 * CASO 1:
-                 * Hay un select de pedidos.
-                 */
+                if (pedidoServidor !== null) {
 
-                if (pedidoSelect) {
+                    return {
+                        subtotal: Number(
+                            pedidoServidor.subtotal
+                        ) || 0,
 
-                    const opcion =
-                        pedidoSelect.options[
-                            pedidoSelect.selectedIndex
-                        ];
+                        descuento: Number(
+                            pedidoServidor.descuento
+                        ) || 0,
 
-                    if (opcion) {
+                        impuesto: Number(
+                            pedidoServidor.impuesto
+                        ) || 0,
 
-                        subtotal =
-                            Number(
-                                opcion.getAttribute(
-                                    "data-subtotal"
-                                )
-                            ) || 0;
-
-                        descuento =
-                            Number(
-                                opcion.getAttribute(
-                                    "data-descuento"
-                                )
-                            ) || 0;
-
-                        totalPedido =
-                            Number(
-                                opcion.getAttribute(
-                                    "data-total"
-                                )
-                            ) || 0;
-                    }
-                }
-
-                /*
-                 * CASO 2:
-                 * El pedido viene seleccionado desde el servidor
-                 * y el select está disabled.
-                 *
-                 * En ese caso el pedido no tiene data-* porque
-                 * solamente mostramos un hidden.
-                 *
-                 * Pasamos los valores desde Razor mediante
-                 * variables JavaScript.
-                 */
-
-                @if (pedidoActual != null)
-                {
-                    <text>
-                    subtotal = @pedidoActual.Subtotal.ToString(
-                        System.Globalization.CultureInfo.InvariantCulture
-                    );
-
-                    descuento = @pedidoActual.Descuento.ToString(
-                        System.Globalization.CultureInfo.InvariantCulture
-                    );
-
-                    totalPedido = @pedidoActual.Total.ToString(
-                        System.Globalization.CultureInfo.InvariantCulture
-                    );
-                    </text>
+                        total: Number(
+                            pedidoServidor.total
+                        ) || 0
+                    };
                 }
 
 
-                /*
-                 * Si no tenemos subtotal pero sí tenemos total,
-                 * dejamos que el subtotal sea el total del pedido.
-                 *
-                 * Esto solamente actúa como respaldo.
-                 */
+                // ----------------------------------------------------
+                // Si se seleccionó desde el combo
+                // ----------------------------------------------------
 
-                if (subtotal === 0 && descuento === 0 && totalPedido > 0) {
+                if (!pedidoSelect) {
 
-                    subtotal = totalPedido;
+                    return {
+                        subtotal: 0,
+                        descuento: 0,
+                        impuesto: 0,
+                        total: 0
+                    };
+                }
+
+
+                const opcion =
+                    pedidoSelect.options[
+                    pedidoSelect.selectedIndex
+                    ];
+
+
+                if (!opcion) {
+
+                    return {
+                        subtotal: 0,
+                        descuento: 0,
+                        impuesto: 0,
+                        total: 0
+                    };
                 }
 
 
                 return {
-                    subtotal: subtotal,
-                    descuento: descuento,
-                    totalPedido: totalPedido
+
+                    subtotal:
+                        Number(
+                            opcion.getAttribute(
+                                "data-subtotal"
+                            )
+                        ) || 0,
+
+                    descuento:
+                        Number(
+                            opcion.getAttribute(
+                                "data-descuento"
+                            )
+                        ) || 0,
+
+                    impuesto:
+                        Number(
+                            opcion.getAttribute(
+                                "data-impuesto-pedido"
+                            )
+                        ) || 0,
+
+                    total:
+                        Number(
+                            opcion.getAttribute(
+                                "data-total"
+                            )
+                        ) || 0
                 };
             }
 
 
-            /*
-             * ========================================================
-             * OBTENER PORCENTAJE DEL IMPUESTO
-             * ========================================================
-             */
+            // ========================================================
+            // OBTENER IMPUESTO SELECCIONADO
+            // ========================================================
 
-            function obtenerPorcentajeImpuesto() {
+            function obtenerImpuestoSeleccionado() {
 
                 if (!impuestoSelect) {
-                    return 0;
+
+                    return {
+                        seleccionado: false,
+                        porcentaje: 0
+                    };
                 }
+
+
+                const valor =
+                    impuestoSelect.value;
+
+
+                // ----------------------------------------------------
+                // SIN IMPUESTO SELECCIONADO
+                // ----------------------------------------------------
+
+                if (!valor) {
+
+                    return {
+                        seleccionado: false,
+                        porcentaje: 0
+                    };
+                }
+
 
                 const opcion =
                     impuestoSelect.options[
-                        impuestoSelect.selectedIndex
+                    impuestoSelect.selectedIndex
                     ];
 
+
                 if (!opcion) {
-                    return 0;
+
+                    return {
+                        seleccionado: false,
+                        porcentaje: 0
+                    };
                 }
 
-                const atributo =
-                    opcion.getAttribute("data-porcentaje");
 
-                if (!atributo) {
-                    return 0;
-                }
+                const porcentaje =
+                    Number(
+                        opcion.getAttribute(
+                            "data-porcentaje"
+                        )
+                    ) || 0;
 
-                return Number(atributo) || 0;
+
+                return {
+                    seleccionado: true,
+                    porcentaje: porcentaje
+                };
             }
 
 
-            /*
-             * ========================================================
-             * CALCULAR RESUMEN
-             * ========================================================
-             */
+            // ========================================================
+            // CALCULAR RESUMEN
+            // ========================================================
 
             function calcularResumen() {
 
                 const datos =
                     obtenerDatosPedido();
 
-                const porcentaje =
-                    obtenerPorcentajeImpuesto();
 
+                const impuestoSeleccionado =
+                    obtenerImpuestoSeleccionado();
 
-                /*
-                 * Subtotal
-                 */
 
                 const subtotal =
-                    datos.subtotal;
+                    Math.round(
+                        (datos.subtotal + Number.EPSILON) *
+                        100
+                    ) / 100;
 
-
-                /*
-                 * Descuento
-                 */
 
                 const descuento =
-                    datos.descuento;
+                    Math.round(
+                        (datos.descuento + Number.EPSILON) *
+                        100
+                    ) / 100;
 
 
-                /*
-                 * Base imponible
-                 *
-                 * Subtotal - descuento
-                 */
+                // ----------------------------------------------------
+                // BASE IMPONIBLE
+                // ----------------------------------------------------
 
                 let baseImponible =
                     subtotal - descuento;
+
 
                 if (baseImponible < 0) {
                     baseImponible = 0;
                 }
 
 
-                /*
-                 * IVA
-                 *
-                 * Base imponible × porcentaje / 100
-                 */
-
-                const impuesto =
-                    baseImponible *
-                    porcentaje /
-                    100;
+                baseImponible =
+                    Math.round(
+                        (baseImponible + Number.EPSILON) *
+                        100
+                    ) / 100;
 
 
-                /*
-                 * TOTAL
-                 *
-                 * Base + IVA
-                 */
+                // ----------------------------------------------------
+                // IMPUESTO
+                // ----------------------------------------------------
 
-                const total =
+                let impuesto = 0;
+
+
+                if (impuestoSeleccionado.seleccionado) {
+
+                    impuesto =
+                        baseImponible *
+                        (
+                            impuestoSeleccionado.porcentaje /
+                            100
+                        );
+
+                    impuesto =
+                        Math.round(
+                            (impuesto + Number.EPSILON) *
+                            100
+                        ) / 100;
+
+                }
+                else {
+
+                    /*
+                     * Igual que el controlador:
+                     *
+                     * si no se selecciona un impuesto,
+                     * utiliza pedido.Impuesto.
+                     */
+
+                    impuesto =
+                        Math.round(
+                            (datos.impuesto + Number.EPSILON) *
+                            100
+                        ) / 100;
+                }
+
+
+                // ----------------------------------------------------
+                // TOTAL
+                // ----------------------------------------------------
+
+                let total =
                     baseImponible +
                     impuesto;
 
 
-                /*
-                 * SALDO INICIAL
-                 *
-                 * Al crear una factura el saldo inicial
-                 * es igual al total.
-                 */
+                total =
+                    Math.round(
+                        (total + Number.EPSILON) *
+                        100
+                    ) / 100;
+
+
+                // ----------------------------------------------------
+                // SALDO INICIAL
+                // ----------------------------------------------------
 
                 const saldo =
                     total;
 
 
-                /*
-                 * MOSTRAR RESULTADOS
-                 */
+                // ====================================================
+                // MOSTRAR
+                // ====================================================
 
                 if (subtotalElement) {
 
                     subtotalElement.textContent =
                         formatearNumero(subtotal);
-
                 }
 
 
@@ -1118,7 +1248,6 @@
 
                     descuentoElement.textContent =
                         formatearNumero(descuento);
-
                 }
 
 
@@ -1126,7 +1255,6 @@
 
                     baseElement.textContent =
                         formatearNumero(baseImponible);
-
                 }
 
 
@@ -1134,7 +1262,6 @@
 
                     impuestoElement.textContent =
                         formatearNumero(impuesto);
-
                 }
 
 
@@ -1142,7 +1269,6 @@
 
                     totalElement.textContent =
                         formatearNumero(total);
-
                 }
 
 
@@ -1150,61 +1276,76 @@
 
                     saldoElement.textContent =
                         formatearNumero(saldo);
-
                 }
 
 
                 if (porcentajeElement) {
 
-                    porcentajeElement.textContent =
-                        porcentaje.toLocaleString("es-NI", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }) + "%";
+                    if (impuestoSeleccionado.seleccionado) {
 
+                        porcentajeElement.textContent =
+                            impuestoSeleccionado.porcentaje.toLocaleString(
+                                "es-NI",
+                                {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }
+                            ) + "%";
+
+                    }
+                    else {
+
+                        porcentajeElement.textContent =
+                            "Impuesto del pedido";
+                    }
                 }
 
             }
 
 
-            /*
-             * ========================================================
-             * EVENTO CAMBIO DE PEDIDO
-             * ========================================================
-             */
+            // ========================================================
+            // CAMBIO DE PEDIDO
+            // ========================================================
 
             if (pedidoSelect) {
 
                 pedidoSelect.addEventListener(
                     "change",
-                    function () {
+                    function() {
+
+                        /*
+                         * Si el usuario selecciona un pedido desde
+                         * Create normal, eliminamos cualquier valor
+                         * servidor.
+                         */
+
+                        pedidoServidor = null;
 
                         calcularResumen();
-
                     }
                 );
-
             }
 
 
-            /*
-             * ========================================================
-             * EVENTO CAMBIO DE IMPUESTO
-             * ========================================================
-             */
+            // ========================================================
+            // CAMBIO DE IMPUESTO
+            // ========================================================
 
             if (impuestoSelect) {
 
                 impuestoSelect.addEventListener(
                     "change",
-                    function () {
+                    function() {
 
                         calcularResumen();
-
                     }
                 );
-
             }
+
+
+            // ========================================================
+            // CÁLCULO INICIAL
+            // ========================================================
 
             calcularResumen();
 
