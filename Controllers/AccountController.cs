@@ -12,6 +12,11 @@ namespace WebApplication1.Controllers
     {
         private readonly RestauranteContext _context;
 
+
+        // ============================================================
+        // CONSTRUCTOR
+        // ============================================================
+
         public AccountController(RestauranteContext context)
         {
             _context = context;
@@ -91,7 +96,6 @@ namespace WebApplication1.Controllers
             // DATOS VALIDADOS
             // ========================================================
 
-            // En este punto ya validamos que no sean null ni vacíos.
             string usuarioIngresado = usuario!.Trim();
 
             string passwordIngresada = password!;
@@ -103,8 +107,8 @@ namespace WebApplication1.Controllers
 
             var usuarioDb = await _context.Usuarios
                 .Include(u => u.IdRolNavigation)
-                .FirstOrDefaultAsync(u =>
-                    u.Usuario1 == usuarioIngresado
+                .FirstOrDefaultAsync(
+                    u => u.Usuario1 == usuarioIngresado
                 );
 
 
@@ -193,7 +197,8 @@ namespace WebApplication1.Controllers
             // ========================================================
 
             string nombreRol =
-                usuarioDb.IdRolNavigation?.Nombre ?? "Usuario";
+                usuarioDb.IdRolNavigation?.Nombre
+                ?? "Usuario";
 
 
             // ========================================================
@@ -211,6 +216,11 @@ namespace WebApplication1.Controllers
 
             string correo =
                 usuarioDb.Correo ?? "";
+
+
+            // ========================================================
+            // NOMBRE COMPLETO
+            // ========================================================
 
             string nombreCompleto =
                 $"{nombres} {apellidos}".Trim();
@@ -393,8 +403,65 @@ namespace WebApplication1.Controllers
 
         [Authorize]
         [HttpGet]
-        public IActionResult CambiarPassword()
+        public async Task<IActionResult> CambiarPassword()
         {
+            // ========================================================
+            // OBTENER ID DEL USUARIO ACTUAL
+            // ========================================================
+
+            var claimId =
+                User.FindFirstValue(
+                    ClaimTypes.NameIdentifier
+                );
+
+
+            // ========================================================
+            // VALIDAR ID
+            // ========================================================
+
+            if (!int.TryParse(
+                claimId,
+                out int idUsuario))
+            {
+                return RedirectToAction(
+                    nameof(Login)
+                );
+            }
+
+
+            // ========================================================
+            // BUSCAR USUARIO
+            // ========================================================
+
+            var usuarioDb =
+                await _context.Usuarios
+                    .FirstOrDefaultAsync(
+                        u => u.IdUsuario == idUsuario
+                    );
+
+
+            // ========================================================
+            // USUARIO NO EXISTE
+            // ========================================================
+
+            if (usuarioDb == null)
+            {
+                return NotFound();
+            }
+
+
+            // ========================================================
+            // INDICAR A LA VISTA SI EL CAMBIO ES OBLIGATORIO
+            // ========================================================
+
+            ViewBag.DebeCambiarPassword =
+                usuarioDb.DebeCambiarPassword;
+
+
+            // ========================================================
+            // MOSTRAR VISTA
+            // ========================================================
+
             return View();
         }
 
@@ -418,7 +485,7 @@ namespace WebApplication1.Controllers
             if (string.IsNullOrWhiteSpace(passwordActual))
             {
                 ModelState.AddModelError(
-                    "passwordActual",
+                    "PasswordActual",
                     "Debe ingresar su contraseña actual."
                 );
             }
@@ -431,7 +498,7 @@ namespace WebApplication1.Controllers
             if (string.IsNullOrWhiteSpace(nuevaPassword))
             {
                 ModelState.AddModelError(
-                    "nuevaPassword",
+                    "NuevaPassword",
                     "Debe ingresar una nueva contraseña."
                 );
             }
@@ -444,7 +511,7 @@ namespace WebApplication1.Controllers
             if (string.IsNullOrWhiteSpace(confirmarPassword))
             {
                 ModelState.AddModelError(
-                    "confirmarPassword",
+                    "ConfirmarPassword",
                     "Debe confirmar la nueva contraseña."
                 );
             }
@@ -459,8 +526,22 @@ namespace WebApplication1.Controllers
                 nuevaPassword != confirmarPassword)
             {
                 ModelState.AddModelError(
-                    "confirmarPassword",
+                    "ConfirmarPassword",
                     "Las contraseñas no coinciden."
+                );
+            }
+
+
+            // ========================================================
+            // VALIDAR LONGITUD MINIMA
+            // ========================================================
+
+            if (!string.IsNullOrWhiteSpace(nuevaPassword) &&
+                nuevaPassword.Length < 8)
+            {
+                ModelState.AddModelError(
+                    "NuevaPassword",
+                    "La nueva contraseña debe tener al menos 8 caracteres."
                 );
             }
 
@@ -471,6 +552,33 @@ namespace WebApplication1.Controllers
 
             if (!ModelState.IsValid)
             {
+                // Volvemos a determinar si el cambio era obligatorio
+
+                var claimIdError =
+                    User.FindFirstValue(
+                        ClaimTypes.NameIdentifier
+                    );
+
+
+                if (int.TryParse(
+                    claimIdError,
+                    out int idUsuarioError))
+                {
+                    var usuarioError =
+                        await _context.Usuarios
+                            .FirstOrDefaultAsync(
+                                u => u.IdUsuario == idUsuarioError
+                            );
+
+
+                    if (usuarioError != null)
+                    {
+                        ViewBag.DebeCambiarPassword =
+                            usuarioError.DebeCambiarPassword;
+                    }
+                }
+
+
                 return View();
             }
 
@@ -554,9 +662,16 @@ namespace WebApplication1.Controllers
             if (!passwordCorrecta)
             {
                 ModelState.AddModelError(
-                    "passwordActual",
+                    "PasswordActual",
                     "La contraseña actual es incorrecta."
                 );
+
+
+                // Mantener información para la vista
+
+                ViewBag.DebeCambiarPassword =
+                    usuarioDb.DebeCambiarPassword;
+
 
                 return View();
             }
@@ -585,16 +700,23 @@ namespace WebApplication1.Controllers
             if (mismaPassword)
             {
                 ModelState.AddModelError(
-                    "nuevaPassword",
-                    "La nueva contraseña debe ser diferente."
+                    "NuevaPassword",
+                    "La nueva contraseña debe ser diferente de la actual."
                 );
+
+
+                // Mantener información para la vista
+
+                ViewBag.DebeCambiarPassword =
+                    usuarioDb.DebeCambiarPassword;
+
 
                 return View();
             }
 
 
             // ========================================================
-            // GENERAR NUEVO HASH
+            // GUARDAR NUEVO HASH
             // ========================================================
 
             usuarioDb.PasswordHash =
@@ -604,13 +726,23 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
-            // ACTUALIZAR ESTADO DE CONTRASEÑA
+            // ACTUALIZAR ESTADO
             // ========================================================
 
             usuarioDb.DebeCambiarPassword = false;
 
+
+            // ========================================================
+            // FECHA DEL CAMBIO
+            // ========================================================
+
             usuarioDb.FechaCambioPassword =
                 DateTime.Now;
+
+
+            // ========================================================
+            // REINICIAR INTENTOS FALLIDOS
+            // ========================================================
 
             usuarioDb.IntentosFallidos = 0;
 
@@ -620,6 +752,14 @@ namespace WebApplication1.Controllers
             // ========================================================
 
             await _context.SaveChangesAsync();
+
+
+            // ========================================================
+            // ACTUALIZAR COOKIE / CLAIMS
+            // ========================================================
+
+            // El usuario ya no tiene pendiente el cambio obligatorio.
+            // La sesión actual continúa siendo válida.
 
 
             // ========================================================

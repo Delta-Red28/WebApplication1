@@ -2,11 +2,6 @@
     Layout = null;
     ViewData["Title"] = "Iniciar Sesión";
 
-    // ============================================================
-    // OBTENER ERROR GENERAL DEL MODELSTATE
-    // El controlador utiliza AddModelError("", "mensaje")
-    // ============================================================
-
     var errorGeneral = "";
 
     if (ViewData.ModelState.ContainsKey(""))
@@ -51,29 +46,46 @@
 
     <style>
 
-        * {
+        /* =====================================================
+           GENERAL
+        ====================================================== */
+
+        .login-page,
+        .login-page * {
             box-sizing: border-box;
         }
 
 
         /* =====================================================
-           FONDO
+           PÁGINA
         ====================================================== */
 
-        body {
+        .login-page {
             min-height: 100vh;
+            min-height: 100svh;
+
             margin: 0;
+            padding: 30px 20px;
 
             display: flex;
             align-items: center;
             justify-content: center;
 
-            font-family: "Segoe UI", sans-serif;
+            position: relative;
+
+            overflow: hidden;
+
+            font-family:
+                "Segoe UI",
+                Arial,
+                Helvetica,
+                sans-serif;
 
             background:
                 linear-gradient(
-                    rgba(47, 18, 13, 0.88),
-                    rgba(47, 18, 13, 0.92)
+                    135deg,
+                    rgba(34, 12, 9, 0.96),
+                    rgba(103, 31, 27, 0.94)
                 ),
                 url("https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1920&q=80");
 
@@ -81,7 +93,91 @@
             background-position: center;
             background-attachment: fixed;
 
-            padding: 20px;
+            opacity: 0;
+
+            transition:
+                opacity 0.8s ease;
+        }
+
+
+        .login-page.page-visible {
+            opacity: 1;
+        }
+
+
+        /* =====================================================
+           LUCES DECORATIVAS DEL FONDO
+        ====================================================== */
+
+        .background-light-one {
+            position: fixed;
+
+            width: 520px;
+            height: 520px;
+
+            top: -270px;
+            right: -210px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(217, 164, 65, 0.08);
+
+            pointer-events: none;
+
+            opacity: 0;
+
+            transform:
+                scale(0.5);
+
+            transition:
+                opacity 1.4s ease 0.2s,
+                transform 1.8s
+                cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+        }
+
+
+        .page-visible .background-light-one {
+            opacity: 1;
+
+            transform:
+                scale(1);
+        }
+
+
+        .background-light-two {
+            position: fixed;
+
+            width: 430px;
+            height: 430px;
+
+            bottom: -260px;
+            left: -210px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(255, 255, 255, 0.035);
+
+            pointer-events: none;
+
+            opacity: 0;
+
+            transform:
+                scale(0.5);
+
+            transition:
+                opacity 1.5s ease 0.35s,
+                transform 1.8s
+                cubic-bezier(0.22, 1, 0.36, 1) 0.35s;
+        }
+
+
+        .page-visible .background-light-two {
+            opacity: 1;
+
+            transform:
+                scale(1);
         }
 
 
@@ -91,8 +187,11 @@
 
         .login-container {
             width: 100%;
-            max-width: 500px;
-            padding: 20px;
+            max-width: 455px;
+
+            position: relative;
+
+            z-index: 5;
         }
 
 
@@ -101,152 +200,1100 @@
         ====================================================== */
 
         .login-card {
-            border: none;
-            border-radius: 26px;
+            width: 100%;
+
             overflow: hidden;
 
-            background: #fffaf3;
+            border:
+                1px solid rgba(255, 255, 255, 0.15);
+
+            border-radius:
+                26px;
+
+            background:
+                #fffdf9;
 
             box-shadow:
-                0 25px 60px rgba(0, 0, 0, 0.35);
+                0 35px 90px rgba(0, 0, 0, 0.45),
+                0 15px 35px rgba(0, 0, 0, 0.22);
+
+            opacity: 0;
+
+            transform:
+                translateY(70px)
+                scale(0.88);
+
+            filter:
+                blur(4px);
+
+            transition:
+                opacity 0.8s ease,
+                transform 1s
+                cubic-bezier(0.16, 1, 0.3, 1),
+                filter 0.8s ease;
+        }
+
+
+        .login-card.show {
+            opacity: 1;
+
+            transform:
+                translateY(0)
+                scale(1);
+
+            filter:
+                blur(0);
         }
 
 
         /* =====================================================
-           ENCABEZADO
+           SALIDA AL INICIAR SESIÓN
+        ====================================================== */
+
+        .login-card.login-exiting {
+            opacity: 0.25;
+
+            transform:
+                translateY(-12px)
+                scale(0.98);
+
+            filter:
+                blur(1px);
+
+            transition:
+                opacity 0.35s ease,
+                transform 0.45s ease,
+                filter 0.35s ease;
+        }
+
+
+        /* =====================================================
+           HEADER
         ====================================================== */
 
         .login-header {
             position: relative;
 
-            text-align: center;
+            padding:
+                28px 30px 42px;
 
-            padding: 48px 30px 38px;
+            text-align:
+                center;
 
-            background: #671f1b;
+            color:
+                white;
 
-            color: white;
-        }
+            background:
+                linear-gradient(
+                    145deg,
+                    #76261f,
+                    #4b1512
+                );
 
-
-        .login-header::after {
-            content: "";
-
-            position: absolute;
-
-            bottom: -12px;
-            left: 0;
-
-            width: 100%;
-            height: 25px;
-
-            background: #671f1b;
-
-            clip-path: polygon(
-                0 0,
-                5% 40%,
-                10% 0,
-                15% 40%,
-                20% 0,
-                25% 40%,
-                30% 0,
-                35% 40%,
-                40% 0,
-                45% 40%,
-                50% 0,
-                55% 40%,
-                60% 0,
-                65% 40%,
-                70% 0,
-                75% 40%,
-                80% 0,
-                85% 40%,
-                90% 0,
-                95% 40%,
-                100% 0
-            );
+            overflow:
+                hidden;
         }
 
 
         /* =====================================================
-           ICONO
+           BRILLO DEL HEADER
         ====================================================== */
 
-        .restaurant-icon {
-            width: 85px;
-            height: 85px;
+        .header-shine {
+            position:
+                absolute;
 
-            margin: 0 auto 18px;
+            top:
+                0;
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            left:
+                -120%;
 
-            border-radius: 50%;
+            width:
+                65%;
 
-            background: #d9a441;
-            color: #671f1b;
+            height:
+                100%;
 
-            font-size: 38px;
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.10),
+                    transparent
+                );
 
-            box-shadow:
-                0 8px 20px rgba(0, 0, 0, 0.25);
+            transform:
+                skewX(-20deg);
+
+            transition:
+                left 1.2s ease;
+        }
+
+
+        .login-card.show .header-shine {
+            left:
+                150%;
+
+            transition-delay:
+                0.7s;
         }
 
 
         /* =====================================================
-           TITULO
+           LÍNEA DORADA
+        ====================================================== */
+
+        .login-header-line {
+            position:
+                absolute;
+
+            left:
+                50%;
+
+            bottom:
+                0;
+
+            width:
+                85px;
+
+            height:
+                4px;
+
+            border-radius:
+                20px;
+
+            background:
+                #d9a441;
+
+            transform:
+                translateX(-50%)
+                scaleX(0);
+
+            transition:
+                transform 0.7s
+                cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+
+        .login-card.show .login-header-line {
+            transform:
+                translateX(-50%)
+                scaleX(1);
+
+            transition-delay:
+                1.1s;
+        }
+
+
+        /* =====================================================
+           ESCENA DE COCINA
+        ====================================================== */
+
+        .kitchen-scene {
+            width:
+                180px;
+
+            height:
+                138px;
+
+            margin:
+                0 auto 0;
+
+            position:
+                relative;
+        }
+
+
+        /* =====================================================
+           CAMPANA DE COCINA
+        ====================================================== */
+
+        .kitchen-hood {
+            position:
+                absolute;
+
+            left:
+                38px;
+
+            top:
+                28px;
+
+            width:
+                104px;
+
+            height:
+                54px;
+
+            border-radius:
+                18px 18px 8px 8px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #e7d9c2,
+                    #b7a993
+                );
+
+            border:
+                3px solid
+                rgba(255, 255, 255, 0.28);
+
+            box-shadow:
+                0 12px 22px
+                rgba(0, 0, 0, 0.24);
+
+            opacity:
+                0;
+
+            transform:
+                translateY(-40px)
+                scale(0.7);
+
+            transition:
+                opacity 0.45s ease 0.35s,
+                transform 0.8s
+                cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.35s;
+        }
+
+
+        .login-card.show .kitchen-hood {
+            opacity:
+                1;
+
+            transform:
+                translateY(0)
+                scale(1);
+        }
+
+
+        /* =====================================================
+           DETALLE DE LA CAMPANA
+        ====================================================== */
+
+        .hood-top {
+            position:
+                absolute;
+
+            top:
+                -10px;
+
+            left:
+                48px;
+
+            width:
+                12px;
+
+            height:
+                13px;
+
+            background:
+                #c2b49f;
+
+            border-radius:
+                3px 3px 0 0;
+        }
+
+
+        .hood-light {
+            position:
+                absolute;
+
+            left:
+                20px;
+
+            right:
+                20px;
+
+            bottom:
+                8px;
+
+            height:
+                7px;
+
+            border-radius:
+                10px;
+
+            background:
+                #f2c95c;
+
+            box-shadow:
+                0 0 14px
+                rgba(242, 201, 92, 0.85);
+
+            opacity:
+                0;
+
+            transition:
+                opacity 0.5s ease 1s;
+        }
+
+
+        .login-card.show .hood-light {
+            opacity:
+                1;
+        }
+
+
+        /* =====================================================
+           ESTUFA
+        ====================================================== */
+
+        .stove {
+            position:
+                absolute;
+
+            left:
+                43px;
+
+            bottom:
+                17px;
+
+            width:
+                94px;
+
+            height:
+                15px;
+
+            border-radius:
+                5px;
+
+            background:
+                #302b28;
+
+            box-shadow:
+                0 7px 12px
+                rgba(0, 0, 0, 0.25);
+
+            opacity:
+                0;
+
+            transform:
+                scaleX(0.2);
+
+            transition:
+                opacity 0.45s ease 0.65s,
+                transform 0.65s
+                cubic-bezier(0.22, 1, 0.36, 1) 0.65s;
+        }
+
+
+        .login-card.show .stove {
+            opacity:
+                1;
+
+            transform:
+                scaleX(1);
+        }
+
+
+        /* =====================================================
+           SARTÉN
+        ====================================================== */
+
+        .pan {
+            position:
+                absolute;
+
+            left:
+                63px;
+
+            bottom:
+                30px;
+
+            width:
+                58px;
+
+            height:
+                18px;
+
+            border-radius:
+                50%;
+
+            background:
+                #292522;
+
+            border:
+                2px solid
+                #45403a;
+
+            opacity:
+                0;
+
+            transform:
+                translateY(20px)
+                scale(0.7);
+
+            transition:
+                opacity 0.4s ease 0.8s,
+                transform 0.7s
+                cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.8s;
+        }
+
+
+        .login-card.show .pan {
+            opacity:
+                1;
+
+            transform:
+                translateY(0)
+                scale(1);
+        }
+
+
+        .pan-handle {
+            position:
+                absolute;
+
+            top:
+                6px;
+
+            right:
+                -34px;
+
+            width:
+                38px;
+
+            height:
+                7px;
+
+            border-radius:
+                10px;
+
+            background:
+                #292522;
+
+            transform:
+                rotate(-4deg);
+        }
+
+
+        /* =====================================================
+           FUEGO DE LA ESTUFA
+        ====================================================== */
+
+        .fire {
+            position:
+                absolute;
+
+            left:
+                77px;
+
+            bottom:
+                43px;
+
+            width:
+                30px;
+
+            height:
+                28px;
+
+            opacity:
+                0;
+
+            transform:
+                translateY(10px)
+                scale(0.5);
+
+            transition:
+                opacity 0.5s ease 1s,
+                transform 0.6s
+                cubic-bezier(0.22, 1, 0.36, 1) 1s;
+        }
+
+
+        .login-card.show .fire {
+            opacity:
+                1;
+
+            transform:
+                translateY(0)
+                scale(1);
+        }
+
+
+        .fire::before {
+            content:
+                "";
+
+            position:
+                absolute;
+
+            left:
+                8px;
+
+            bottom:
+                0;
+
+            width:
+                17px;
+
+            height:
+                25px;
+
+            background:
+                #e65b2d;
+
+            border-radius:
+                60% 40% 60% 40%;
+
+            transform:
+                rotate(10deg);
+        }
+
+
+        .fire::after {
+            content:
+                "";
+
+            position:
+                absolute;
+
+            left:
+                12px;
+
+            bottom:
+                0;
+
+            width:
+                9px;
+
+            height:
+                17px;
+
+            background:
+                #ffd35a;
+
+            border-radius:
+                60% 40% 60% 40%;
+        }
+
+
+        /* =====================================================
+           PLATO
+        ====================================================== */
+
+        .plate {
+            position:
+                absolute;
+
+            right:
+                10px;
+
+            bottom:
+                15px;
+
+            width:
+                43px;
+
+            height:
+                43px;
+
+            border:
+                3px solid
+                rgba(255, 255, 255, 0.65);
+
+            border-radius:
+                50%;
+
+            opacity:
+                0;
+
+            transform:
+                translateX(25px)
+                rotate(30deg);
+
+            transition:
+                opacity 0.5s ease 1s,
+                transform 0.7s
+                cubic-bezier(0.22, 1, 0.36, 1) 1s;
+        }
+
+
+        .login-card.show .plate {
+            opacity:
+                0.8;
+
+            transform:
+                translateX(0)
+                rotate(0);
+        }
+
+
+        .plate::after {
+            content:
+                "";
+
+            position:
+                absolute;
+
+            left:
+                7px;
+
+            top:
+                7px;
+
+            width:
+                23px;
+
+            height:
+                23px;
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.5);
+
+            border-radius:
+                50%;
+        }
+
+
+        /* =====================================================
+           CUBIERTOS
+        ====================================================== */
+
+        .fork {
+            position:
+                absolute;
+
+            left:
+                13px;
+
+            bottom:
+                15px;
+
+            width:
+                5px;
+
+            height:
+                47px;
+
+            border-radius:
+                4px;
+
+            background:
+                #ded1bc;
+
+            opacity:
+                0;
+
+            transform:
+                translateX(-25px)
+                rotate(-20deg);
+
+            transition:
+                opacity 0.5s ease 1.05s,
+                transform 0.7s
+                cubic-bezier(0.22, 1, 0.36, 1) 1.05s;
+        }
+
+
+        .login-card.show .fork {
+            opacity:
+                0.85;
+
+            transform:
+                translateX(0)
+                rotate(-8deg);
+        }
+
+
+        .knife {
+            position:
+                absolute;
+
+            left:
+                26px;
+
+            bottom:
+                16px;
+
+            width:
+                4px;
+
+            height:
+                46px;
+
+            border-radius:
+                4px;
+
+            background:
+                #c9bba6;
+
+            opacity:
+                0;
+
+            transform:
+                translateX(-25px)
+                rotate(20deg);
+
+            transition:
+                opacity 0.5s ease 1.15s,
+                transform 0.7s
+                cubic-bezier(0.22, 1, 0.36, 1) 1.15s;
+        }
+
+
+        .login-card.show .knife {
+            opacity:
+                0.75;
+
+            transform:
+                translateX(0)
+                rotate(8deg);
+        }
+
+
+        /* =====================================================
+           VAPOR
+        ====================================================== */
+
+        .steam {
+            position:
+                absolute;
+
+            width:
+                12px;
+
+            height:
+                45px;
+
+            border-left:
+                3px solid
+                rgba(255, 255, 255, 0.72);
+
+            border-radius:
+                50%;
+
+            opacity:
+                0;
+
+            transform:
+                translateY(25px)
+                scale(0.6);
+
+            transition:
+                opacity 0.7s ease,
+                transform 1.7s ease;
+        }
+
+
+        .steam-one {
+            left:
+                66px;
+
+            top:
+                8px;
+        }
+
+
+        .steam-two {
+            left:
+                84px;
+
+            top:
+                0;
+
+            height:
+                50px;
+
+            transition-delay:
+                0.2s;
+        }
+
+
+        .steam-three {
+            left:
+                102px;
+
+            top:
+                10px;
+
+            height:
+                43px;
+
+            transition-delay:
+                0.4s;
+        }
+
+
+        .login-card.show .steam {
+            opacity:
+                0.65;
+
+            transform:
+                translateY(-20px)
+                scale(1);
+        }
+
+
+        /* =====================================================
+           DESTELLOS
+        ====================================================== */
+
+        .spark {
+            position:
+                absolute;
+
+            color:
+                #f4d687;
+
+            font-size:
+                17px;
+
+            opacity:
+                0;
+
+            transform:
+                scale(0)
+                rotate(-35deg);
+
+            transition:
+                opacity 0.35s ease,
+                transform 0.5s
+                cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+
+        .spark-one {
+            left:
+                22px;
+
+            top:
+                52px;
+        }
+
+
+        .spark-two {
+            right:
+                20px;
+
+            top:
+                55px;
+
+            font-size:
+                13px;
+        }
+
+
+        .spark-three {
+            left:
+                41px;
+
+            top:
+                18px;
+
+            font-size:
+                11px;
+        }
+
+
+        .login-card.show .spark-one {
+            opacity:
+                1;
+
+            transform:
+                scale(1)
+                rotate(0);
+
+            transition-delay:
+                1.1s;
+        }
+
+
+        .login-card.show .spark-two {
+            opacity:
+                1;
+
+            transform:
+                scale(1)
+                rotate(0);
+
+            transition-delay:
+                1.25s;
+        }
+
+
+        .login-card.show .spark-three {
+            opacity:
+                1;
+
+            transform:
+                scale(1)
+                rotate(0);
+
+            transition-delay:
+                1.4s;
+        }
+
+
+        /* =====================================================
+           TÍTULO
         ====================================================== */
 
         .login-header h2 {
-            margin: 0;
+            margin:
+                0;
 
-            font-family: Georgia, serif;
+            color:
+                white;
 
-            font-size: 34px;
-            font-weight: 700;
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif;
 
-            letter-spacing: 0.5px;
+            font-size:
+                32px;
+
+            font-weight:
+                700;
+
+            letter-spacing:
+                0.3px;
+
+            opacity:
+                0;
+
+            transform:
+                translateY(18px);
+
+            transition:
+                opacity 0.6s ease,
+                transform 0.7s
+                cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+
+        .login-card.show .login-header h2 {
+            opacity:
+                1;
+
+            transform:
+                translateY(0);
+
+            transition-delay:
+                0.85s;
         }
 
 
         .login-header p {
-            margin-top: 8px;
-            margin-bottom: 0;
+            margin:
+                7px 0 0;
 
-            color: #f4dca6;
+            color:
+                #efd9a2;
 
-            font-size: 15px;
+            font-size:
+                11px;
 
-            letter-spacing: 1.5px;
+            font-weight:
+                600;
 
-            text-transform: uppercase;
+            letter-spacing:
+                2px;
+
+            text-transform:
+                uppercase;
+
+            opacity:
+                0;
+
+            transform:
+                translateY(12px);
+
+            transition:
+                opacity 0.5s ease,
+                transform 0.6s ease;
+        }
+
+
+        .login-card.show .login-header p {
+            opacity:
+                1;
+
+            transform:
+                translateY(0);
+
+            transition-delay:
+                1s;
         }
 
 
         /* =====================================================
-           CUERPO
+           BODY
         ====================================================== */
 
         .login-body {
-            padding: 48px 42px 38px;
+            padding:
+                34px 40px 35px;
+
+            opacity:
+                0;
+
+            transform:
+                translateY(15px);
+
+            transition:
+                opacity 0.7s ease,
+                transform 0.7s
+                cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+
+        .login-card.show .login-body {
+            opacity:
+                1;
+
+            transform:
+                translateY(0);
+
+            transition-delay:
+                0.9s;
         }
 
 
         /* =====================================================
-           DECORACION
+           DECORACIÓN
         ====================================================== */
 
         .food-decoration {
-            text-align: center;
+            display:
+                flex;
 
-            color: #d9a441;
+            align-items:
+                center;
 
-            font-size: 18px;
+            justify-content:
+                center;
 
-            letter-spacing: 8px;
+            gap:
+                10px;
 
-            margin-bottom: 12px;
+            margin-bottom:
+                15px;
+
+            color:
+                #c99738;
+
+            font-size:
+                12px;
+        }
+
+
+        .food-decoration::before,
+        .food-decoration::after {
+            content:
+                "";
+
+            width:
+                42px;
+
+            height:
+                1px;
+
+            background:
+                #dfcca5;
         }
 
 
@@ -255,29 +1302,38 @@
         ====================================================== */
 
         .welcome-text {
-            text-align: center;
+            text-align:
+                center;
 
-            margin-bottom: 30px;
+            margin-bottom:
+                28px;
         }
 
 
         .welcome-text h5 {
-            color: #3e2723;
+            margin:
+                0 0 6px;
 
-            font-size: 20px;
+            color:
+                #38221e;
 
-            font-weight: 700;
+            font-size:
+                19px;
 
-            margin-bottom: 7px;
+            font-weight:
+                700;
         }
 
 
         .welcome-text p {
-            color: #8a7770;
+            margin:
+                0;
 
-            font-size: 15px;
+            color:
+                #897873;
 
-            margin-bottom: 0;
+            font-size:
+                14px;
         }
 
 
@@ -286,67 +1342,50 @@
         ====================================================== */
 
         .login-error {
-            display: flex;
-            align-items: flex-start;
+            display:
+                flex;
 
-            gap: 10px;
+            align-items:
+                flex-start;
 
-            margin-bottom: 25px;
+            gap:
+                10px;
 
-            padding: 14px 16px;
+            margin-bottom:
+                22px;
 
-            border-radius: 12px;
+            padding:
+                13px 14px;
 
-            background: #f8dfdc;
+            border:
+                1px solid #ecc7c3;
 
-            border: 1px solid #e5b7b2;
+            border-radius:
+                12px;
 
-            color: #7a211c;
+            background:
+                #fff2f0;
 
-            font-size: 14px;
+            color:
+                #8c2923;
 
-            line-height: 1.5;
+            font-size:
+                13px;
 
-            animation: mostrarError 0.25s ease;
+            line-height:
+                1.5;
         }
 
 
         .login-error i {
-            font-size: 18px;
+            flex-shrink:
+                0;
 
-            flex-shrink: 0;
+            margin-top:
+                1px;
 
-            margin-top: 1px;
-        }
-
-
-        @@keyframes mostrarError {
-
-            from {
-                opacity: 0;
-                transform: translateY(-5px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-
-        }
-
-
-        /* =====================================================
-           ERRORES DE CAMPOS
-        ====================================================== */
-
-        .field-validation-error {
-            display: block;
-
-            margin-top: 6px;
-
-            color: #a52a24;
-
-            font-size: 13px;
+            font-size:
+                17px;
         }
 
 
@@ -354,14 +1393,21 @@
            LABELS
         ====================================================== */
 
-        .form-label {
-            color: #4e342e;
+        .login-page .form-label {
+            display:
+                block;
 
-            font-size: 15px;
+            margin-bottom:
+                8px;
 
-            font-weight: 600;
+            color:
+                #49332e;
 
-            margin-bottom: 9px;
+            font-size:
+                14px;
+
+            font-weight:
+                600;
         }
 
 
@@ -369,38 +1415,66 @@
            INPUT GROUP
         ====================================================== */
 
-        .input-group {
-            border-radius: 13px;
+        .login-page .input-group {
+            min-height:
+                52px;
 
-            overflow: hidden;
+            overflow:
+                hidden;
 
-            background: white;
+            border:
+                1px solid #e1d8d2;
 
-            border: 1px solid #e2d5c9;
+            border-radius:
+                12px;
 
-            transition: all 0.25s ease;
+            background:
+                #ffffff;
+
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
         }
 
 
-        .input-group:focus-within {
-            border-color: #a52a24;
+        .login-page .input-group:hover {
+            border-color:
+                #cbbcb4;
+        }
+
+
+        .login-page .input-group:focus-within {
+            border-color:
+                #9b3028;
 
             box-shadow:
-                0 0 0 3px rgba(165, 42, 36, 0.12);
+                0 0 0 4px
+                rgba(155, 48, 40, 0.10);
         }
 
 
-        .input-group-text {
-            border: none;
+        /* =====================================================
+           ICONOS DE INPUT
+        ====================================================== */
 
-            background: transparent;
+        .login-page .input-group-text {
+            border:
+                none;
 
-            color: #9b6b2f;
+            background:
+                transparent;
 
-            font-size: 17px;
+            color:
+                #aa7a36;
 
-            padding-left: 16px;
-            padding-right: 12px;
+            font-size:
+                17px;
+
+            padding-left:
+                15px;
+
+            padding-right:
+                10px;
         }
 
 
@@ -408,126 +1482,421 @@
            INPUT
         ====================================================== */
 
-        .form-control {
-            height: 52px;
+        .login-page .form-control {
+            height:
+                50px;
 
-            border: none !important;
+            border:
+                none !important;
 
-            box-shadow: none !important;
+            outline:
+                none !important;
 
-            background: transparent;
+            box-shadow:
+                none !important;
 
-            color: #3e2723;
+            background:
+                transparent;
 
-            font-size: 15px;
+            color:
+                #35231f;
+
+            font-size:
+                14px;
         }
 
 
-        .form-control::placeholder {
-            color: #b5aaa4;
+        .login-page .form-control::placeholder {
+            color:
+                #b6aaa5;
         }
 
 
         /* =====================================================
-           BOTON PASSWORD
+           PASSWORD TOGGLE
         ====================================================== */
 
-        .password-toggle {
-            border: none;
+        .login-page .password-toggle {
+            border:
+                none;
 
-            background: transparent;
+            background:
+                transparent;
 
-            color: #9b6b2f;
+            color:
+                #a67a3a;
 
-            cursor: pointer;
+            cursor:
+                pointer;
 
-            padding: 0 16px;
+            padding:
+                0 15px;
 
-            transition: color 0.2s ease;
+            transition:
+                color 0.2s ease,
+                background-color 0.2s ease;
         }
 
 
-        .password-toggle:hover {
-            color: #671f1b;
+        .login-page .password-toggle:hover {
+            color:
+                #671f1b;
+
+            background:
+                rgba(103, 31, 27, 0.04);
         }
 
 
-        .password-toggle:focus {
-            outline: none;
+        .login-page .password-toggle:focus {
+            outline:
+                none;
 
-            box-shadow: none;
+            box-shadow:
+                none;
         }
 
 
-        .password-toggle i {
-            font-size: 18px;
+        .login-page .password-toggle i {
+            font-size:
+                17px;
         }
 
 
         /* =====================================================
-           BOTON LOGIN
+           ERRORES DE CAMPOS
+        ====================================================== */
+
+        .login-page .field-validation-error {
+            display:
+                block;
+
+            margin-top:
+                6px;
+
+            padding-left:
+                2px;
+
+            color:
+                #a52a24;
+
+            font-size:
+                12px;
+
+            font-weight:
+                500;
+        }
+
+
+        /* =====================================================
+           BOTÓN LOGIN
         ====================================================== */
 
         .btn-login {
-            width: 100%;
+            width:
+                100%;
 
-            height: 54px;
+            height:
+                53px;
 
-            border: none;
+            margin-top:
+                3px;
 
-            border-radius: 13px;
+            border:
+                none;
 
-            background: #8f2923;
+            border-radius:
+                12px;
 
-            color: white;
+            background:
+                linear-gradient(
+                    135deg,
+                    #9d3028,
+                    #751f1b
+                );
 
-            font-size: 16px;
+            color:
+                white;
 
-            font-weight: 700;
+            font-size:
+                15px;
 
-            letter-spacing: 0.3px;
+            font-weight:
+                700;
 
-            transition: all 0.25s ease;
+            letter-spacing:
+                0.2px;
 
             box-shadow:
-                0 5px 15px rgba(143, 41, 35, 0.25);
+                0 8px 18px
+                rgba(117, 31, 27, 0.22);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease;
         }
 
 
         .btn-login:hover {
-            background: #6f1e1a;
+            color:
+                white;
 
-            color: white;
+            background:
+                linear-gradient(
+                    135deg,
+                    #8d2923,
+                    #641915
+                );
 
-            transform: translateY(-2px);
+            transform:
+                translateY(-2px);
 
             box-shadow:
-                0 8px 20px rgba(143, 41, 35, 0.35);
+                0 12px 25px
+                rgba(117, 31, 27, 0.30);
         }
 
 
         .btn-login:active {
-            transform: translateY(0);
+            transform:
+                translateY(0);
         }
 
 
         /* =====================================================
-           PIE
+           BOTÓN CARGANDO
+        ====================================================== */
+
+        .btn-login.loading {
+            pointer-events:
+                none;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #72201c,
+                    #571714
+                );
+
+            box-shadow:
+                0 5px 14px
+                rgba(87, 23, 20, 0.20);
+        }
+
+
+        .login-spinner {
+            display:
+                none;
+
+            width:
+                16px;
+
+            height:
+                16px;
+
+            margin-right:
+                8px;
+
+            vertical-align:
+                -3px;
+
+            border:
+                2px solid
+                rgba(255, 255, 255, 0.30);
+
+            border-top-color:
+                #ffffff;
+
+            border-radius:
+                50%;
+        }
+
+
+        .btn-login.loading .login-spinner {
+            display:
+                inline-block;
+        }
+
+
+        .btn-login.loading .login-icon {
+            display:
+                none;
+        }
+
+
+        /* =====================================================
+           OVERLAY DE ENTRADA
+        ====================================================== */
+
+        .login-success-overlay {
+            position:
+                fixed;
+
+            inset:
+                0;
+
+            z-index:
+                100;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            background:
+                rgba(35, 11, 9, 0.35);
+
+            backdrop-filter:
+                blur(2px);
+
+            opacity:
+                0;
+
+            pointer-events:
+                none;
+
+            transition:
+                opacity 0.3s ease;
+        }
+
+
+        .login-success-overlay.active {
+            opacity:
+                1;
+        }
+
+
+        /* =====================================================
+           MENSAJE DE BIENVENIDA
+        ====================================================== */
+
+        .success-message {
+            padding:
+                21px 30px;
+
+            border-radius:
+                18px;
+
+            background:
+                rgba(255, 253, 249, 0.98);
+
+            box-shadow:
+                0 20px 60px
+                rgba(0, 0, 0, 0.30);
+
+            text-align:
+                center;
+
+            transform:
+                translateY(15px)
+                scale(0.92);
+
+            transition:
+                transform 0.4s
+                cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+
+        .login-success-overlay.active .success-message {
+            transform:
+                translateY(0)
+                scale(1);
+        }
+
+
+        .success-icon {
+            width:
+                50px;
+
+            height:
+                50px;
+
+            margin:
+                0 auto 10px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            border-radius:
+                50%;
+
+            background:
+                #8f2923;
+
+            color:
+                white;
+
+            font-size:
+                23px;
+
+            box-shadow:
+                0 7px 18px
+                rgba(143, 41, 35, 0.25);
+        }
+
+
+        .success-message strong {
+            display:
+                block;
+
+            color:
+                #3c2521;
+
+            font-size:
+                16px;
+        }
+
+
+        .success-message span {
+            display:
+                block;
+
+            margin-top:
+                3px;
+
+            color:
+                #8b7c76;
+
+            font-size:
+                12px;
+        }
+
+
+        /* =====================================================
+           FOOTER
         ====================================================== */
 
         .footer-text {
-            text-align: center;
+            margin-top:
+                24px;
 
-            margin-top: 25px;
+            text-align:
+                center;
 
-            color: #9a8981;
+            color:
+                #a0928c;
 
-            font-size: 12px;
+            font-size:
+                11px;
         }
 
 
         .footer-text span {
-            color: #9b6b2f;
+            margin:
+                0 4px;
+
+            color:
+                #c3943b;
         }
 
 
@@ -535,39 +1904,69 @@
            RESPONSIVE
         ====================================================== */
 
-        @@media (max-width: 480px) {
+        .login-page.mobile {
+            padding:
+                18px 13px;
+        }
 
-            body {
-                background-attachment: scroll;
-            }
 
-            .login-container {
-                padding: 15px;
-            }
+        .login-page.mobile .login-header {
+            padding:
+                24px 20px 38px;
+        }
 
-            .login-header {
-                padding: 38px 20px 32px;
-            }
 
-            .login-header h2 {
-                font-size: 28px;
-            }
+        .login-page.mobile .login-body {
+            padding:
+                30px 23px 28px;
+        }
 
-            .restaurant-icon {
-                width: 75px;
-                height: 75px;
 
-                font-size: 32px;
-            }
+        .login-page.mobile .login-header h2 {
+            font-size:
+                28px;
+        }
 
-            .login-body {
-                padding: 40px 24px 30px;
-            }
 
-            .welcome-text h5 {
-                font-size: 18px;
-            }
+        .login-page.mobile .login-header p {
+            font-size:
+                10px;
 
+            letter-spacing:
+                1.5px;
+        }
+
+
+        .login-page.mobile .kitchen-scene {
+            transform:
+                scale(0.90);
+        }
+
+
+        .login-page.small-mobile .login-header {
+            padding:
+                20px 16px 34px;
+        }
+
+
+        .login-page.small-mobile .login-body {
+            padding-left:
+                18px;
+
+            padding-right:
+                18px;
+        }
+
+
+        .login-page.small-mobile .login-header h2 {
+            font-size:
+                25px;
+        }
+
+
+        .login-page.small-mobile .kitchen-scene {
+            transform:
+                scale(0.80);
         }
 
     </style>
@@ -575,52 +1974,152 @@
 </head>
 
 
-<body>
+<body class="login-page">
+
+
+    <!-- =====================================================
+         FONDO
+    ====================================================== -->
+
+    <div class="background-light-one"></div>
+
+    <div class="background-light-two"></div>
+
+
+    <!-- =====================================================
+         LOGIN
+    ====================================================== -->
 
     <div class="login-container">
 
-        <div class="card login-card">
+        <div class="card login-card"
+             id="loginCard">
 
 
             <!-- =================================================
-                 ENCABEZADO
+                 HEADER
             ================================================== -->
 
             <div class="login-header">
 
-                <div class="restaurant-icon">
 
-                    <i class="bi bi-egg-fried"></i>
+                <div class="header-shine"></div>
+
+
+                <!-- =================================================
+                     ESCENA DE COCINA
+                ================================================== -->
+
+                <div class="kitchen-scene">
+
+
+                    <!-- Vapor -->
+
+                    <span class="steam steam-one"></span>
+
+                    <span class="steam steam-two"></span>
+
+                    <span class="steam steam-three"></span>
+
+
+                    <!-- Destellos -->
+
+                    <span class="spark spark-one">
+                        ✦
+                    </span>
+
+                    <span class="spark spark-two">
+                        ✦
+                    </span>
+
+                    <span class="spark spark-three">
+                        •
+                    </span>
+
+
+                    <!-- Campana -->
+
+                    <div class="kitchen-hood">
+
+                        <div class="hood-top"></div>
+
+                        <div class="hood-light"></div>
+
+                    </div>
+
+
+                    <!-- Estufa -->
+
+                    <div class="stove"></div>
+
+
+                    <!-- Sartén -->
+
+                    <div class="pan">
+
+                        <div class="pan-handle"></div>
+
+                    </div>
+
+
+                    <!-- Fuego -->
+
+                    <div class="fire"></div>
+
+
+                    <!-- Plato -->
+
+                    <div class="plate"></div>
+
+
+                    <!-- Cubiertos -->
+
+                    <div class="fork"></div>
+
+                    <div class="knife"></div>
 
                 </div>
+
+
+                <!-- =================================================
+                     TÍTULO
+                ================================================== -->
 
                 <h2>
                     Restaurante
                 </h2>
 
+
                 <p>
                     Sistema de Gestión
                 </p>
+
+
+                <div class="login-header-line"></div>
 
             </div>
 
 
             <!-- =================================================
-                 CUERPO
+                 BODY
             ================================================== -->
 
             <div class="login-body">
 
 
                 <div class="food-decoration">
-                    • • •
+                    •
                 </div>
 
+
+                <!-- =================================================
+                     BIENVENIDA
+                ================================================== -->
 
                 <div class="welcome-text">
 
                     <h5>
-                        ¡Bienvenido!
+                        Bienvenido al sistema
                     </h5>
 
                     <p>
@@ -631,7 +2130,7 @@
 
 
                 <!-- =================================================
-                     ERROR GENERAL DE AUTENTICACIÓN
+                     ERROR GENERAL
                 ================================================== -->
 
                 @if (!string.IsNullOrWhiteSpace(errorGeneral))
@@ -655,7 +2154,9 @@
 
                 <form asp-controller="Account"
                       asp-action="Login"
-                      method="post">
+                      method="post"
+                      id="loginForm">
+
 
                     @Html.AntiForgeryToken()
 
@@ -702,8 +2203,6 @@
 
                         </div>
 
-
-                        <!-- Error específico del usuario -->
 
                         @if (ViewData.ModelState.ContainsKey("usuario") &&
                              ViewData.ModelState["usuario"] != null &&
@@ -763,8 +2262,6 @@
                         </div>
 
 
-                        <!-- Error específico de contraseña -->
-
                         @if (ViewData.ModelState.ContainsKey("password") &&
                              ViewData.ModelState["password"] != null &&
                              ViewData.ModelState["password"]!.Errors.Count > 0)
@@ -780,15 +2277,20 @@
 
 
                     <!-- =================================================
-                         BOTON
+                         BOTÓN
                     ================================================== -->
 
                     <button type="submit"
-                            class="btn btn-login">
+                            class="btn btn-login"
+                            id="loginButton">
 
-                        <i class="bi bi-box-arrow-in-right me-2"></i>
+                        <span class="login-spinner"></span>
 
-                        Iniciar Sesión
+                        <i class="bi bi-box-arrow-in-right me-2 login-icon"></i>
+
+                        <span class="login-button-text">
+                            Iniciar Sesión
+                        </span>
 
                     </button>
 
@@ -796,7 +2298,7 @@
 
 
                 <!-- =================================================
-                     PIE
+                     FOOTER
                 ================================================== -->
 
                 <div class="footer-text">
@@ -818,19 +2320,62 @@
 
 
     <!-- =====================================================
+         OVERLAY AL INICIAR SESIÓN
+    ====================================================== -->
+
+    <div class="login-success-overlay"
+         id="loginSuccessOverlay">
+
+        <div class="success-message">
+
+            <div class="success-icon">
+
+                <i class="bi bi-check-lg"></i>
+
+            </div>
+
+
+            <strong>
+                ¡Bienvenido al sistema!
+            </strong>
+
+
+            <span>
+                Entrando a la cocina...
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
          BOOTSTRAP JS
     ====================================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 
-    <!-- =====================================================
-         MOSTRAR / OCULTAR CONTRASEÑA
-    ====================================================== -->
-
     <script>
 
         document.addEventListener("DOMContentLoaded", function () {
+
+
+            /* =====================================================
+               ELEMENTOS
+            ====================================================== */
+
+            const loginPage =
+                document.querySelector(".login-page");
+
+            const loginCard =
+                document.getElementById("loginCard");
+
+            const loginForm =
+                document.getElementById("loginForm");
+
+            const loginButton =
+                document.getElementById("loginButton");
 
             const togglePassword =
                 document.getElementById("togglePassword");
@@ -838,62 +2383,336 @@
             const passwordInput =
                 document.getElementById("password");
 
+            const successOverlay =
+                document.getElementById(
+                    "loginSuccessOverlay"
+                );
 
-            if (!togglePassword || !passwordInput) {
-                return;
+
+            /* =====================================================
+               ENTRADA DE LA PÁGINA
+            ====================================================== */
+
+            if (loginPage) {
+
+                setTimeout(function () {
+
+                    loginPage.classList.add(
+                        "page-visible"
+                    );
+
+                }, 50);
+
             }
 
 
-            togglePassword.addEventListener("click", function () {
+            /* =====================================================
+               ENTRADA DE LA TARJETA
+            ====================================================== */
 
-                const isPassword =
-                    passwordInput.type === "password";
+            if (loginCard) {
 
+                setTimeout(function () {
 
-                passwordInput.type =
-                    isPassword ? "text" : "password";
-
-
-                const icon =
-                    this.querySelector("i");
-
-
-                if (isPassword) {
-
-                    icon.classList.remove("bi-eye-fill");
-
-                    icon.classList.add("bi-eye-slash-fill");
-
-                    this.setAttribute(
-                        "aria-label",
-                        "Ocultar contraseña"
+                    loginCard.classList.add(
+                        "show"
                     );
 
-                    this.setAttribute(
-                        "title",
-                        "Ocultar contraseña"
+                }, 180);
+
+            }
+
+
+            /* =====================================================
+               RESPONSIVE
+            ====================================================== */
+
+            function actualizarResponsive() {
+
+                if (!loginPage) {
+                    return;
+                }
+
+
+                if (window.innerWidth <= 576) {
+
+                    loginPage.classList.add(
+                        "mobile"
                     );
 
                 }
                 else {
 
-                    icon.classList.remove("bi-eye-slash-fill");
-
-                    icon.classList.add("bi-eye-fill");
-
-                    this.setAttribute(
-                        "aria-label",
-                        "Mostrar contraseña"
-                    );
-
-                    this.setAttribute(
-                        "title",
-                        "Mostrar contraseña"
+                    loginPage.classList.remove(
+                        "mobile"
                     );
 
                 }
 
-            });
+
+                if (window.innerWidth <= 360) {
+
+                    loginPage.classList.add(
+                        "small-mobile"
+                    );
+
+                }
+                else {
+
+                    loginPage.classList.remove(
+                        "small-mobile"
+                    );
+
+                }
+
+            }
+
+
+            actualizarResponsive();
+
+
+            window.addEventListener(
+                "resize",
+                actualizarResponsive
+            );
+
+
+            /* =====================================================
+               VAPOR
+            ====================================================== */
+
+            const steamElements =
+                document.querySelectorAll(
+                    ".steam"
+                );
+
+
+            function animarVapor() {
+
+                steamElements.forEach(
+                    function (steam) {
+
+                        steam.style.opacity =
+                            "0.65";
+
+                        steam.style.transform =
+                            "translateY(-22px) scale(1)";
+
+                    }
+                );
+
+
+                setTimeout(function () {
+
+                    steamElements.forEach(
+                        function (steam) {
+
+                            steam.style.opacity =
+                                "0";
+
+                            steam.style.transform =
+                                "translateY(18px) scale(0.65)";
+
+                        }
+                    );
+
+                }, 1800);
+
+            }
+
+
+            setTimeout(
+                animarVapor,
+                1700
+            );
+
+
+            setInterval(
+                animarVapor,
+                4500
+            );
+
+
+            /* =====================================================
+               MOSTRAR / OCULTAR CONTRASEÑA
+            ====================================================== */
+
+            if (
+                togglePassword &&
+                passwordInput
+            ) {
+
+                togglePassword.addEventListener(
+                    "click",
+                    function () {
+
+                        const mostrar =
+                            passwordInput.type === "password";
+
+
+                        passwordInput.type =
+                            mostrar
+                                ? "text"
+                                : "password";
+
+
+                        const icon =
+                            togglePassword.querySelector("i");
+
+
+                        if (!icon) {
+                            return;
+                        }
+
+
+                        if (mostrar) {
+
+                            icon.classList.remove(
+                                "bi-eye-fill"
+                            );
+
+                            icon.classList.add(
+                                "bi-eye-slash-fill"
+                            );
+
+
+                            togglePassword.setAttribute(
+                                "aria-label",
+                                "Ocultar contraseña"
+                            );
+
+
+                            togglePassword.setAttribute(
+                                "title",
+                                "Ocultar contraseña"
+                            );
+
+                        }
+                        else {
+
+                            icon.classList.remove(
+                                "bi-eye-slash-fill"
+                            );
+
+                            icon.classList.add(
+                                "bi-eye-fill"
+                            );
+
+
+                            togglePassword.setAttribute(
+                                "aria-label",
+                                "Mostrar contraseña"
+                            );
+
+
+                            togglePassword.setAttribute(
+                                "title",
+                                "Mostrar contraseña"
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            /* =====================================================
+               INICIAR SESIÓN
+            ====================================================== */
+
+            if (
+                loginForm &&
+                loginButton
+            ) {
+
+                loginForm.addEventListener(
+                    "submit",
+                    function () {
+
+
+                        /* -----------------------------------------
+                           EVITAR DOBLE ENVÍO
+                        ----------------------------------------- */
+
+                        if (
+                            loginButton.classList.contains(
+                                "loading"
+                            )
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        /* -----------------------------------------
+                           CAMBIAR ESTADO DEL BOTÓN
+                        ----------------------------------------- */
+
+                        loginButton.classList.add(
+                            "loading"
+                        );
+
+
+                        const buttonText =
+                            loginButton.querySelector(
+                                ".login-button-text"
+                            );
+
+
+                        if (buttonText) {
+
+                            buttonText.textContent =
+                                "Entrando a cocina...";
+
+                        }
+
+
+                        /* -----------------------------------------
+                           ANIMACIÓN DE SALIDA
+                        ----------------------------------------- */
+
+                        if (loginCard) {
+
+                            setTimeout(
+                                function () {
+
+                                    loginCard.classList.add(
+                                        "login-exiting"
+                                    );
+
+                                },
+                                100
+                            );
+
+                        }
+
+
+                        /* -----------------------------------------
+                           MENSAJE DE BIENVENIDA
+                        ----------------------------------------- */
+
+                        if (successOverlay) {
+
+                            setTimeout(
+                                function () {
+
+                                    successOverlay.classList.add(
+                                        "active"
+                                    );
+
+                                },
+                                180
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
 
         });
 

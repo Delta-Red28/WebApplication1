@@ -10,50 +10,776 @@
         Model.IdRolNavigation?.Nombre ?? "Usuario";
 }
 
-<div class="container-fluid">
 
-    <!-- ===================================================== -->
-    <!-- ENCABEZADO -->
-    <!-- ===================================================== -->
+<style>
 
-    <div class="mb-4">
+    /* =========================================================
+       CONTENEDOR PRINCIPAL
+    ========================================================= */
 
-        <h2 class="fw-bold mb-1">
-            Editar mi perfil
-        </h2>
+    .profile-page {
+        color: #332522;
+    }
 
-        <p class="text-muted mb-0">
-            Actualiza tu información personal.
-        </p>
+
+    /* =========================================================
+       ENCABEZADO
+    ========================================================= */
+
+    .profile-header {
+        position: relative;
+
+        overflow: hidden;
+
+        padding: 28px 30px;
+
+        margin-bottom: 25px;
+
+        border-radius: 18px;
+
+        background: linear-gradient(
+            135deg,
+            #671f1b 0%,
+            #8f2923 100%
+        );
+
+        color: white;
+
+        box-shadow:
+            0 10px 30px rgba(103, 31, 27, 0.18);
+    }
+
+
+    .profile-header::before {
+        content: "";
+
+        position: absolute;
+
+        width: 220px;
+        height: 220px;
+
+        right: -80px;
+        top: -125px;
+
+        border-radius: 50%;
+
+        background: rgba(217, 164, 65, 0.14);
+
+        pointer-events: none;
+    }
+
+
+    .profile-header::after {
+        content: "";
+
+        position: absolute;
+
+        width: 150px;
+        height: 150px;
+
+        right: 120px;
+        bottom: -110px;
+
+        border-radius: 50%;
+
+        background: rgba(255, 255, 255, 0.05);
+
+        pointer-events: none;
+    }
+
+
+    .profile-header-content {
+        position: relative;
+
+        z-index: 2;
+    }
+
+
+    .profile-header-icon {
+        width: 52px;
+        height: 52px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        margin-bottom: 14px;
+
+        border-radius: 14px;
+
+        background: rgba(255, 255, 255, 0.12);
+
+        border: 1px solid rgba(255, 255, 255, 0.14);
+
+        color: #f2cf76;
+
+        font-size: 23px;
+    }
+
+
+    .profile-header h2 {
+        margin: 0 0 6px;
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif;
+
+        font-size: 28px;
+
+        font-weight: 700;
+    }
+
+
+    .profile-header p {
+        margin: 0;
+
+        color: rgba(255, 255, 255, 0.76);
+
+        font-size: 14px;
+
+        line-height: 1.6;
+    }
+
+
+    .profile-header-decoration {
+        position: absolute;
+
+        right: 32px;
+        bottom: 10px;
+
+        z-index: 1;
+
+        color: rgba(255, 255, 255, 0.08);
+
+        font-size: 76px;
+
+        pointer-events: none;
+    }
+
+
+    /* =========================================================
+       CONTENEDOR DEL FORMULARIO
+    ========================================================= */
+
+    .profile-card {
+        overflow: hidden;
+
+        border: 1px solid #eee5dc;
+
+        border-radius: 18px;
+
+        background: #fffdf9;
+
+        box-shadow:
+            0 7px 24px rgba(53, 35, 31, 0.07);
+    }
+
+
+    /* =========================================================
+       CABECERA DEL FORMULARIO
+    ========================================================= */
+
+    .profile-card-header {
+        padding: 24px 28px 20px;
+
+        border-bottom: 1px solid #f0e8e1;
+
+        background: #fffdf9;
+    }
+
+
+    .profile-section-title {
+        display: flex;
+
+        align-items: center;
+
+        gap: 12px;
+    }
+
+
+    .profile-section-icon {
+        width: 42px;
+        height: 42px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        flex-shrink: 0;
+
+        border-radius: 12px;
+
+        background: #f7e8e5;
+
+        color: #8f2923;
+
+        font-size: 19px;
+    }
+
+
+    .profile-card-header h5 {
+        margin: 0;
+
+        color: #392622;
+
+        font-size: 20px;
+
+        font-weight: 700;
+    }
+
+
+    .profile-card-header p {
+        margin: 4px 0 0;
+
+        color: #958680;
+
+        font-size: 14px;
+
+        line-height: 1.5;
+    }
+
+
+    /* =========================================================
+       CUERPO
+    ========================================================= */
+
+    .profile-card-body {
+        padding: 28px;
+    }
+
+
+    /* =========================================================
+       CAMPOS
+    ========================================================= */
+
+    .profile-form-label {
+        display: block;
+
+        margin-bottom: 8px;
+
+        color: #4a342e;
+
+        font-size: 14px;
+
+        font-weight: 700;
+    }
+
+
+    .profile-input-group {
+        overflow: hidden;
+
+        border: 1px solid #e4d9d0;
+
+        border-radius: 12px;
+
+        background: #ffffff;
+
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+
+    .profile-input-group:focus-within {
+        border-color: #a52a24;
+
+        box-shadow:
+            0 0 0 3px rgba(165, 42, 36, 0.10);
+    }
+
+
+    .profile-input-group .input-group-text {
+        min-width: 45px;
+
+        justify-content: center;
+
+        border: none;
+
+        background: #fffaf4;
+
+        color: #a27625;
+
+        font-size: 16px;
+    }
+
+
+    .profile-input {
+        height: 48px;
+
+        border: none !important;
+
+        box-shadow: none !important;
+
+        background: transparent;
+
+        color: #382622;
+
+        font-size: 14px;
+    }
+
+
+    .profile-input::placeholder {
+        color: #b5aaa4;
+    }
+
+
+    .profile-input:focus {
+        background: transparent;
+    }
+
+
+    .profile-input-plain {
+        height: 48px;
+
+        border: 1px solid #e4d9d0;
+
+        border-radius: 12px;
+
+        box-shadow: none !important;
+
+        color: #382622;
+
+        font-size: 14px;
+
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+
+    .profile-input-plain:focus {
+        border-color: #a52a24;
+
+        box-shadow:
+            0 0 0 3px rgba(165, 42, 36, 0.10) !important;
+    }
+
+
+    /* =========================================================
+       VALIDACIONES
+    ========================================================= */
+
+    .profile-validation {
+        display: block;
+
+        margin-top: 6px;
+
+        color: #a52a24;
+
+        font-size: 12px;
+    }
+
+
+    /* =========================================================
+       SECCIÓN INFORMACIÓN BLOQUEADA
+    ========================================================= */
+
+    .protected-section {
+        margin-top: 30px;
+
+        padding-top: 25px;
+
+        border-top: 1px solid #eee5dc;
+    }
+
+
+    .protected-title {
+        display: flex;
+
+        align-items: center;
+
+        gap: 10px;
+
+        margin-bottom: 18px;
+    }
+
+
+    .protected-title-icon {
+        width: 38px;
+        height: 38px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 10px;
+
+        background: #f2eee9;
+
+        color: #786d68;
+
+        font-size: 16px;
+    }
+
+
+    .protected-title h6 {
+        margin: 0;
+
+        color: #45332e;
+
+        font-size: 16px;
+
+        font-weight: 700;
+    }
+
+
+    .protected-title p {
+        margin: 3px 0 0;
+
+        color: #9a8c86;
+
+        font-size: 12px;
+    }
+
+
+    /* =========================================================
+       CAMPOS BLOQUEADOS
+    ========================================================= */
+
+    .readonly-field {
+        height: 48px;
+
+        border: 1px solid #e8e1db;
+
+        border-radius: 12px;
+
+        background: #f7f5f2 !important;
+
+        color: #756a65 !important;
+
+        font-size: 14px;
+
+        box-shadow: none !important;
+    }
+
+
+    .readonly-help {
+        display: block;
+
+        margin-top: 7px;
+
+        color: #9a8d87;
+
+        font-size: 11px;
+
+        line-height: 1.5;
+    }
+
+
+    /* =========================================================
+       ESTADO DE CUENTA
+    ========================================================= */
+
+    .account-status {
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 7px;
+
+        margin-top: 2px;
+
+        padding: 7px 11px;
+
+        border-radius: 20px;
+
+        background: #eef7f3;
+
+        border: 1px solid #d8ebe3;
+
+        color: #39786d;
+
+        font-size: 12px;
+
+        font-weight: 700;
+    }
+
+
+    .account-status.inactive {
+        background: #f8e9e7;
+
+        border-color: #efd4d0;
+
+        color: #8f2923;
+    }
+
+
+    .status-dot {
+        width: 7px;
+        height: 7px;
+
+        border-radius: 50%;
+
+        background: #43a47f;
+
+        box-shadow:
+            0 0 0 3px rgba(67, 164, 127, 0.10);
+    }
+
+
+    .account-status.inactive .status-dot {
+        background: #a52a24;
+
+        box-shadow:
+            0 0 0 3px rgba(165, 42, 36, 0.10);
+    }
+
+
+    /* =========================================================
+       ALERTA DE ERRORES
+    ========================================================= */
+
+    .profile-alert {
+        margin-bottom: 25px;
+
+        padding: 13px 16px;
+
+        border: 1px solid #efd0cc;
+
+        border-radius: 12px;
+
+        background: #fdf0ee;
+
+        color: #84251f;
+
+        font-size: 13px;
+    }
+
+
+    .profile-alert:empty {
+        display: none;
+    }
+
+
+    /* =========================================================
+       BOTONES
+    ========================================================= */
+
+    .profile-actions {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: flex-end;
+
+        gap: 10px;
+
+        margin-top: 30px;
+
+        padding-top: 23px;
+
+        border-top: 1px solid #eee5dc;
+    }
+
+
+    .profile-btn-cancel {
+        min-height: 46px;
+
+        padding: 10px 18px;
+
+        border: 1px solid #e2d9d2;
+
+        border-radius: 11px;
+
+        background: #ffffff;
+
+        color: #665852;
+
+        font-size: 14px;
+
+        font-weight: 600;
+
+        transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            transform 0.2s ease;
+    }
+
+
+    .profile-btn-cancel:hover {
+        background: #f8f4f0;
+
+        border-color: #d6c9c0;
+
+        color: #4f403b;
+
+        transform: translateY(-1px);
+    }
+
+
+    .profile-btn-save {
+        min-height: 46px;
+
+        padding: 10px 20px;
+
+        border: none;
+
+        border-radius: 11px;
+
+        background: #8f2923;
+
+        color: #ffffff;
+
+        font-size: 14px;
+
+        font-weight: 700;
+
+        box-shadow:
+            0 5px 14px rgba(143, 41, 35, 0.20);
+
+        transition:
+            background-color 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+
+    .profile-btn-save:hover {
+        background: #6f1e1a;
+
+        color: #ffffff;
+
+        transform: translateY(-2px);
+
+        box-shadow:
+            0 8px 20px rgba(143, 41, 35, 0.28);
+    }
+
+
+    .profile-btn-save:active {
+        transform: translateY(0);
+    }
+
+
+    /* =========================================================
+       DECORACIÓN INFERIOR
+    ========================================================= */
+
+    .profile-footer-decoration {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        gap: 9px;
+
+        margin-top: 20px;
+
+        color: #c49743;
+
+        font-size: 10px;
+
+        letter-spacing: 2px;
+    }
+
+
+    .profile-footer-decoration::before,
+    .profile-footer-decoration::after {
+        content: "";
+
+        width: 35px;
+        height: 1px;
+
+        background: #e5d6be;
+    }
+
+</style>
+
+
+<div class="container-fluid profile-page">
+
+
+    <!-- =====================================================
+         ENCABEZADO
+    ====================================================== -->
+
+    <div class="profile-header">
+
+        <div class="profile-header-content">
+
+            <div class="profile-header-icon">
+
+                <i class="bi bi-person-gear"></i>
+
+            </div>
+
+
+            <h2>
+                Editar mi perfil
+            </h2>
+
+
+            <p>
+                Actualiza tu información personal y mantén
+                tus datos al día.
+            </p>
+
+        </div>
+
+
+        <div class="profile-header-decoration">
+
+            <i class="bi bi-person-circle"></i>
+
+        </div>
 
     </div>
 
+
+    <!-- =====================================================
+         TARJETA PRINCIPAL
+    ====================================================== -->
 
     <div class="row">
 
         <div class="col-xl-8 col-lg-10">
 
-            <div class="card border-0 shadow-sm">
+            <div class="profile-card">
 
-                <div class="card-header bg-white border-0 p-4">
 
-                    <h5 class="fw-bold mb-1">
+                <!-- =================================================
+                     CABECERA
+                ================================================== -->
 
-                        <i class="bi bi-person-gear
-                        text-primary me-2"></i>
+                <div class="profile-card-header">
 
-                        Información personal
+                    <div class="profile-section-title">
 
-                    </h5>
+                        <div class="profile-section-icon">
 
-                    <p class="text-muted mb-0">
-                        Puedes modificar únicamente tu información personal.
-                    </p>
+                            <i class="bi bi-person-vcard-fill"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h5>
+                                Información personal
+                            </h5>
+
+
+                            <p>
+                                Puedes modificar únicamente tu información personal.
+                            </p>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
 
-                <div class="card-body p-4">
+                <!-- =================================================
+                     CUERPO
+                ================================================== -->
+
+                <div class="profile-card-body">
 
                     <form asp-controller="Perfil"
                           asp-action="Editar"
@@ -62,35 +788,44 @@
                         @Html.AntiForgeryToken()
 
 
-                        <!-- ================================================= -->
-                        <!-- ERRORES GENERALES -->
-                        <!-- ================================================= -->
+                        <!-- =================================================
+                             ERRORES GENERALES
+                        ================================================== -->
 
                         <div asp-validation-summary="ModelOnly"
-                             class="alert alert-danger"
+                             class="profile-alert"
                              role="alert">
                         </div>
 
 
+                        <!-- =================================================
+                             INFORMACIÓN EDITABLE
+                        ================================================== -->
+
                         <div class="row g-4">
+
 
                             <!-- NOMBRES -->
 
                             <div class="col-md-6">
 
-                                <label class="form-label fw-semibold">
+                                <label class="profile-form-label">
+
                                     Nombres
+
                                 </label>
+
 
                                 <input type="text"
                                        name="nombres"
                                        value="@Model.Nombres"
-                                       class="form-control"
+                                       class="form-control profile-input-plain"
                                        maxlength="100"
                                        required />
 
+
                                 <span asp-validation-for="Nombres"
-                                      class="text-danger">
+                                      class="profile-validation">
                                 </span>
 
                             </div>
@@ -100,19 +835,23 @@
 
                             <div class="col-md-6">
 
-                                <label class="form-label fw-semibold">
+                                <label class="profile-form-label">
+
                                     Apellidos
+
                                 </label>
+
 
                                 <input type="text"
                                        name="apellidos"
                                        value="@Model.Apellidos"
-                                       class="form-control"
+                                       class="form-control profile-input-plain"
                                        maxlength="100"
                                        required />
 
+
                                 <span asp-validation-for="Apellidos"
-                                      class="text-danger">
+                                      class="profile-validation">
                                 </span>
 
                             </div>
@@ -122,29 +861,34 @@
 
                             <div class="col-md-6">
 
-                                <label class="form-label fw-semibold">
+                                <label class="profile-form-label">
+
                                     Correo electrónico
+
                                 </label>
 
-                                <div class="input-group">
+
+                                <div class="input-group profile-input-group">
 
                                     <span class="input-group-text">
 
-                                        <i class="bi bi-envelope"></i>
+                                        <i class="bi bi-envelope-fill"></i>
 
                                     </span>
+
 
                                     <input type="email"
                                            name="correo"
                                            value="@Model.Correo"
-                                           class="form-control"
+                                           class="form-control profile-input"
                                            maxlength="150"
                                            required />
 
                                 </div>
 
+
                                 <span asp-validation-for="Correo"
-                                      class="text-danger">
+                                      class="profile-validation">
                                 </span>
 
                             </div>
@@ -154,140 +898,206 @@
 
                             <div class="col-md-6">
 
-                                <label class="form-label fw-semibold">
+                                <label class="profile-form-label">
+
                                     Teléfono
+
                                 </label>
 
-                                <div class="input-group">
+
+                                <div class="input-group profile-input-group">
 
                                     <span class="input-group-text">
 
-                                        <i class="bi bi-telephone"></i>
+                                        <i class="bi bi-telephone-fill"></i>
 
                                     </span>
+
 
                                     <input type="text"
                                            name="telefono"
                                            value="@Model.Telefono"
-                                           class="form-control"
+                                           class="form-control profile-input"
                                            maxlength="30" />
 
                                 </div>
 
+
                                 <span asp-validation-for="Telefono"
-                                      class="text-danger">
+                                      class="profile-validation">
                                 </span>
 
                             </div>
 
-                        </div>
-
-
-                        <!-- ================================================= -->
-                        <!-- DATOS BLOQUEADOS -->
-                        <!-- ================================================= -->
-
-                        <hr class="my-4" />
-
-
-                        <h6 class="fw-bold mb-3">
-
-                            <i class="bi bi-lock me-2 text-secondary"></i>
-
-                            Información administrada por el sistema
-
-                        </h6>
-
-
-                        <div class="row g-4">
-
-                            <!-- USUARIO -->
-
-                            <div class="col-md-6">
-
-                                <label class="form-label">
-                                    Nombre de usuario
-                                </label>
-
-                                <input type="text"
-                                       class="form-control bg-light"
-                                       value="@Model.Usuario1"
-                                       readonly />
-
-                                <small class="text-muted">
-                                    El nombre de usuario solo puede ser
-                                    modificado por un administrador.
-                                </small>
-
-                            </div>
-
-
-                            <!-- ROL -->
-
-                            <div class="col-md-6">
-
-                                <label class="form-label">
-                                    Rol
-                                </label>
-
-                                <input type="text"
-                                       class="form-control bg-light"
-                                       value="@rol"
-                                       readonly />
-
-                                <small class="text-muted">
-                                    El rol es administrado por el sistema.
-                                </small>
-
-                            </div>
-
-
-                            <!-- ESTADO -->
-
-                            <div class="col-md-6">
-
-                                <label class="form-label">
-                                    Estado de la cuenta
-                                </label>
-
-                                <input type="text"
-                                       class="form-control bg-light"
-                                       value="@(Model.Estado ? "Activa" : "Inactiva")"
-                                       readonly />
-
-                            </div>
-
-
-                            <!-- FECHA REGISTRO -->
-
-                            <div class="col-md-6">
-
-                                <label class="form-label">
-                                    Fecha de registro
-                                </label>
-
-                                <input type="text"
-                                       class="form-control bg-light"
-                                       value="@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")"
-                                       readonly />
-
-                            </div>
 
                         </div>
 
 
-                        <!-- ================================================= -->
-                        <!-- BOTONES -->
-                        <!-- ================================================= -->
+                        <!-- =================================================
+                             INFORMACIÓN PROTEGIDA
+                        ================================================== -->
 
-                        <div class="d-flex
-                            justify-content-end
-                            gap-2
-                            mt-4">
+                        <div class="protected-section">
+
+
+                            <div class="protected-title">
+
+                                <div class="protected-title-icon">
+
+                                    <i class="bi bi-lock-fill"></i>
+
+                                </div>
+
+
+                                <div>
+
+                                    <h6>
+                                        Información administrada por el sistema
+                                    </h6>
+
+
+                                    <p>
+                                        Estos datos no pueden modificarse desde tu perfil.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="row g-4">
+
+
+                                <!-- USUARIO -->
+
+                                <div class="col-md-6">
+
+                                    <label class="profile-form-label">
+
+                                        Nombre de usuario
+
+                                    </label>
+
+
+                                    <input type="text"
+                                           class="form-control readonly-field"
+                                           value="@Model.Usuario1"
+                                           readonly />
+
+
+                                    <small class="readonly-help">
+
+                                        El nombre de usuario solo puede ser
+                                        modificado por un administrador.
+
+                                    </small>
+
+                                </div>
+
+
+                                <!-- ROL -->
+
+                                <div class="col-md-6">
+
+                                    <label class="profile-form-label">
+
+                                        Rol
+
+                                    </label>
+
+
+                                    <input type="text"
+                                           class="form-control readonly-field"
+                                           value="@rol"
+                                           readonly />
+
+
+                                    <small class="readonly-help">
+
+                                        El rol es administrado por el sistema.
+
+                                    </small>
+
+                                </div>
+
+
+                                <!-- ESTADO -->
+
+                                <div class="col-md-6">
+
+                                    <label class="profile-form-label">
+
+                                        Estado de la cuenta
+
+                                    </label>
+
+
+                                    @if (Model.Estado)
+                                    {
+                                        <div>
+
+                                            <span class="account-status">
+
+                                                <span class="status-dot"></span>
+
+                                                Cuenta activa
+
+                                            </span>
+
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div>
+
+                                            <span class="account-status inactive">
+
+                                                <span class="status-dot"></span>
+
+                                                Cuenta inactiva
+
+                                            </span>
+
+                                        </div>
+                                    }
+
+                                </div>
+
+
+                                <!-- FECHA REGISTRO -->
+
+                                <div class="col-md-6">
+
+                                    <label class="profile-form-label">
+
+                                        Fecha de registro
+
+                                    </label>
+
+
+                                    <input type="text"
+                                           class="form-control readonly-field"
+                                           value="@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")"
+                                           readonly />
+
+                                </div>
+
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             BOTONES
+                        ================================================== -->
+
+                        <div class="profile-actions">
+
 
                             <a asp-controller="Perfil"
                                asp-action="Index"
-                               class="btn btn-light">
+                               class="btn profile-btn-cancel">
 
                                 <i class="bi bi-x-lg me-2"></i>
 
@@ -297,7 +1107,7 @@
 
 
                             <button type="submit"
-                                    class="btn btn-primary">
+                                    class="btn profile-btn-save">
 
                                 <i class="bi bi-check-lg me-2"></i>
 
@@ -305,9 +1115,27 @@
 
                             </button>
 
+
                         </div>
 
+
                     </form>
+
+
+                    <!-- =================================================
+                         DECORACIÓN
+                    ================================================== -->
+
+                    <div class="profile-footer-decoration">
+
+                        <span>✦</span>
+
+                        <span>MI PERFIL</span>
+
+                        <span>✦</span>
+
+                    </div>
+
 
                 </div>
 
@@ -318,6 +1146,7 @@
     </div>
 
 </div>
+
 
 @section Scripts {
 

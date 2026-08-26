@@ -75,7 +75,7 @@
 
 
     <!-- ========================================================= -->
-    <!-- CSS PROPIO -->
+    <!-- CSS DEL SISTEMA -->
     <!-- ========================================================= -->
 
     <link rel="stylesheet"
@@ -84,529 +84,1211 @@
 
 
     <!-- ========================================================= -->
+    <!-- EVITA PARPADEO AL CARGAR EL MODO -->
+    <!-- ========================================================= -->
+
+    <script>
+
+        (function () {
+
+            const temaGuardado =
+                localStorage.getItem("temaRestaurante");
+
+            if (temaGuardado === "dark") {
+                document.documentElement.classList.add("dark-mode");
+            }
+
+        })();
+
+    </script>
+
+
+    <!-- ========================================================= -->
     <!-- ESTILOS DEL LAYOUT -->
     <!-- ========================================================= -->
 
     <style>
 
-            /* =========================================================
-                       VARIABLES
-                    ========================================================= */
+        /* =========================================================
+           VARIABLES - MODO CLARO
+        ========================================================= */
+
+        :root {
+
+            --sidebar-width: 270px;
+            --topbar-height: 74px;
+
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+
+            --sidebar-bg: #111827;
+            --sidebar-hover: #1f2937;
+            --sidebar-active: #2563eb;
+
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+
+            --border-color: #e5e7eb;
+
+            --background: #f5f7fb;
+
+            --card-background: #ffffff;
+            --topbar-background: #ffffff;
+
+            --white: #ffffff;
+
+            --soft-blue: #eff6ff;
+
+            --shadow-color: rgba(15, 23, 42, 0.08);
+
+            --layout-border: rgba(255, 255, 255, 0.85);
+        }
+
+
+        /* =========================================================
+           MODO OSCURO
+        ========================================================= */
+
+        html.dark-mode {
+
+            --background: #0f172a;
+
+            --card-background: #172033;
+
+            --topbar-background: #172033;
+
+            --text-dark: #f1f5f9;
+
+            --text-muted: #aeb8c7;
+
+            --border-color: #334155;
+
+            --sidebar-bg: #0b1120;
+
+            --sidebar-hover: #1e293b;
+
+            --sidebar-active: #2563eb;
+
+            --soft-blue: #172554;
+
+            --shadow-color: rgba(0, 0, 0, 0.35);
+
+            --layout-border: rgba(255, 255, 255, 0.10);
+        }
+
+
+        /* =========================================================
+           GENERAL
+        ========================================================= */
+
+        html,
+        body {
+
+            min-height: 100%;
+
+        }
+
+
+        body {
+
+            margin: 0;
+
+            background: var(--background);
+
+            color: var(--text-dark);
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+
+            font-size: 16px;
+
+            transition:
+                background-color 0.3s ease,
+                color 0.3s ease;
+
+        }
+
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+
+        .sidebar {
+
+            position: fixed;
+
+            top: 0;
+            left: 0;
+            bottom: 0;
+
+            width: var(--sidebar-width);
+
+            background: var(--sidebar-bg);
+
+            color: white;
+
+            z-index: 1050;
+
+            display: flex;
+
+            flex-direction: column;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                5px 0 22px rgba(0, 0, 0, 0.10);
+
+            scrollbar-width: thin;
+
+            scrollbar-color:
+                #374151
+                transparent;
+
+        }
+
+
+        /* =========================================================
+           LOGO
+        ========================================================= */
+
+        .sidebar-brand {
+
+            min-height: 74px;
+
+            padding: 0 24px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 13px;
+
+            font-size: 21px;
+
+            font-weight: 700;
+
+            letter-spacing: -0.3px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            flex-shrink: 0;
+
+        }
+
+
+        .sidebar-brand i {
+
+            width: 40px;
+            height: 40px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #3b82f6,
+                    #1d4ed8
+                );
+
+            border-radius: 11px;
+
+            font-size: 20px;
+
+            box-shadow:
+                0 5px 15px
+                rgba(37, 99, 235, 0.35);
+
+        }
+
+
+        /* =========================================================
+           USUARIO SIDEBAR
+        ========================================================= */
+
+        .sidebar-user {
+
+            padding: 22px 24px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.08);
+
+        }
+
+
+        .sidebar-user-name {
+
+            font-size: 16px;
+
+            font-weight: 600;
+
+            color: #ffffff;
+
+            white-space: nowrap;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+        }
+
+
+        .sidebar-user-role {
+
+            margin-top: 5px;
+
+            font-size: 14px;
+
+            color: #9ca3af;
+
+        }
+
+
+        /* =========================================================
+           SECCIONES
+        ========================================================= */
+
+        .sidebar-section {
+
+            padding: 22px 24px 9px;
+
+            color: #6b7280;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.8px;
+
+        }
+
+
+        /* =========================================================
+           MENU
+        ========================================================= */
+
+        .sidebar-menu {
+
+            list-style: none;
+
+            padding: 0 12px;
+
+            margin: 0;
+
+        }
+
+
+        .sidebar-menu li {
+
+            margin-bottom: 4px;
+
+        }
+
+
+        .sidebar-menu a {
+
+            min-height: 46px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 13px;
+
+            padding: 11px 14px;
+
+            border-radius: 9px;
+
+            color: #d1d5db;
+
+            text-decoration: none;
+
+            font-size: 15px;
+
+            font-weight: 500;
+
+            transition:
+                background 0.18s ease,
+                color 0.18s ease,
+                transform 0.18s ease;
+
+        }
+
+
+        .sidebar-menu a i {
+
+            width: 22px;
+
+            min-width: 22px;
+
+            text-align: center;
+
+            font-size: 19px;
+
+        }
+
+
+        .sidebar-menu a:hover {
+
+            background: var(--sidebar-hover);
+
+            color: #ffffff;
+
+            transform: translateX(2px);
+
+        }
+
+
+        .sidebar-menu a.active {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #1d4ed8
+                );
+
+            color: #ffffff;
+
+            box-shadow:
+                0 5px 14px
+                rgba(37, 99, 235, 0.28);
+
+        }
+
+
+        .sidebar-menu a.active i {
+
+            color: #ffffff;
+
+        }
+
+
+        /* =========================================================
+           CONTENEDOR PRINCIPAL
+        ========================================================= */
+
+        .main-wrapper {
+
+            margin-left: var(--sidebar-width);
+
+            min-height: 100vh;
+
+            display: flex;
+
+            flex-direction: column;
+
+            transition:
+                background-color 0.3s ease;
+
+        }
+
+
+        /* =========================================================
+           TOPBAR
+        ========================================================= */
+
+        .topbar {
+
+            height: var(--topbar-height);
+
+            min-height: var(--topbar-height);
+
+            background: var(--topbar-background);
+
+            border-bottom:
+                1px solid var(--border-color);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 30px;
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 1000;
+
+            box-shadow:
+                0 2px 12px var(--shadow-color);
+
+            transition:
+                background-color 0.3s ease,
+                border-color 0.3s ease;
+
+        }
+
+
+        .topbar-left {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 18px;
+
+            min-width: 0;
+
+        }
+
+
+        .topbar-title {
+
+            font-size: 22px;
+
+            font-weight: 700;
+
+            color: var(--text-dark);
+
+            white-space: nowrap;
+
+            transition:
+                color 0.3s ease;
+
+        }
+
+
+        /* =========================================================
+           BOTON MENU MOVIL
+        ========================================================= */
+
+        .mobile-menu-button {
+
+            width: 44px;
+
+            height: 44px;
+
+            border:
+                1px solid var(--border-color);
+
+            background: var(--card-background);
+
+            border-radius: 9px;
+
+            display: none;
+
+            align-items: center;
+
+            justify-content: center;
+
+            color: var(--text-dark);
+
+            font-size: 22px;
+
+            cursor: pointer;
+
+            transition:
+                background-color 0.25s ease,
+                border-color 0.25s ease;
+
+        }
+
+
+        .mobile-menu-button:hover {
+
+            background: var(--sidebar-hover);
+
+            color: #ffffff;
+
+        }
+
+
+        /* =========================================================
+           CONTENEDOR DE ACCIONES TOPBAR
+        ========================================================= */
+
+        .topbar-actions {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+        }
+
+
+        /* =========================================================
+           BOTON MODO OSCURO
+        ========================================================= */
+
+        .theme-toggle {
+
+            width: 43px;
+
+            height: 43px;
+
+            border: 1px solid var(--border-color);
+
+            border-radius: 50%;
+
+            background: var(--card-background);
+
+            color: var(--text-dark);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            cursor: pointer;
+
+            transition:
+                background-color 0.25s ease,
+                border-color 0.25s ease,
+                transform 0.2s ease,
+                color 0.25s ease;
+
+        }
+
+
+        .theme-toggle:hover {
+
+            transform: translateY(-2px);
+
+            border-color: var(--primary);
+
+            color: var(--primary);
+
+            box-shadow:
+                0 4px 12px
+                var(--shadow-color);
+
+        }
+
+
+        /* =========================================================
+           SOL AMARILLO EN MODO OSCURO
+        ========================================================= */
+
+        html.dark-mode .theme-toggle {
+
+            background: #242d3d;
+
+            border-color: #475569;
+
+        }
+
+
+        html.dark-mode .theme-toggle i {
+
+            color: #facc15;
+
+            text-shadow:
+                0 0 8px rgba(250, 204, 21, 0.35);
+
+        }
+
+
+        /* =========================================================
+           USUARIO TOPBAR
+        ========================================================= */
+
+        .user-button {
+
+            border: 0;
+
+            background: transparent;
+
+            padding: 6px 8px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 11px;
+
+            border-radius: 10px;
+
+            color: var(--text-dark);
+
+        }
+
+
+        .user-button:hover {
+
+            background: var(--background);
+
+        }
+
+
+        .user-avatar {
+
+            width: 42px;
+
+            height: 42px;
+
+            min-width: 42px;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #1d4ed8
+                );
+
+            color: #ffffff;
+
+            font-size: 14px;
+
+            font-weight: 700;
+
+            box-shadow:
+                0 4px 10px
+                rgba(37, 99, 235, 0.25);
+
+        }
+
+
+        .user-info {
+
+            text-align: left;
+
+            max-width: 180px;
+
+        }
+
+
+        .user-name {
+
+            font-size: 15px;
+
+            font-weight: 600;
+
+            color: var(--text-dark);
+
+            white-space: nowrap;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+        }
+
+
+        .user-role {
+
+            margin-top: 2px;
+
+            font-size: 13px;
+
+            color: var(--text-muted);
+
+        }
+
+
+        /* =========================================================
+           DROPDOWN
+        ========================================================= */
+
+        .dropdown-menu {
+
+            min-width: 245px;
+
+            padding: 8px;
+
+            background: var(--card-background);
+
+            border:
+                1px solid var(--border-color);
+
+            border-radius: 12px;
+
+            box-shadow:
+                0 12px 30px
+                var(--shadow-color);
+
+        }
+
+
+        .dropdown-header {
+
+            padding: 10px 12px;
+
+            font-size: 15px;
+
+            color: var(--text-dark);
+
+        }
+
+
+        .dropdown-item {
+
+            min-height: 43px;
+
+            display: flex;
+
+            align-items: center;
+
+            border-radius: 8px;
+
+            padding: 9px 12px;
+
+            font-size: 15px;
+
+            color: var(--text-dark);
+
+        }
+
+
+        .dropdown-item:hover {
+
+            background: var(--background);
+
+            color: var(--text-dark);
+
+        }
+
+
+        .dropdown-item.text-danger:hover {
+
+            background: #fef2f2;
+
+            color: #dc2626;
+
+        }
+
+
+        html.dark-mode .dropdown-item.text-danger:hover {
+
+            background: #3b1f24;
+
+        }
+
+
+        .dropdown-divider {
+
+            border-color: var(--border-color);
+
+        }
+
+
+        /* =========================================================
+           CONTENIDO
+        ========================================================= */
+
+        .content {
+
+            flex: 1;
+
+            width: 100%;
+
+            padding: 30px;
+
+            transition:
+                background-color 0.3s ease;
+
+        }
+
+
+        /* =========================================================
+           TARJETAS DEL SISTEMA
+           Esto ayuda a que las vistas existentes también
+           se adapten al modo oscuro.
+        ========================================================= */
+
+        .card {
+
+            background-color: var(--card-background);
+
+            color: var(--text-dark);
+
+            border-color: var(--border-color);
+
+            box-shadow:
+                0 5px 18px var(--shadow-color);
+
+            transition:
+                background-color 0.3s ease,
+                color 0.3s ease,
+                border-color 0.3s ease;
+
+        }
+
+
+        .card-header {
+
+            background-color: var(--card-background);
+
+            color: var(--text-dark);
+
+            border-color: var(--border-color);
+
+        }
+
+
+        .text-muted {
+
+            color: var(--text-muted) !important;
+
+        }
+
+
+        /* =========================================================
+           FORMULARIOS
+        ========================================================= */
+
+        .form-control,
+        .form-select {
+
+            background-color: var(--card-background);
+
+            color: var(--text-dark);
+
+            border-color: var(--border-color);
+
+        }
+
+
+        .form-control:focus,
+        .form-select:focus {
+
+            background-color: var(--card-background);
+
+            color: var(--text-dark);
+
+            border-color: var(--primary);
+
+        }
+
+
+        .form-control::placeholder {
+
+            color: var(--text-muted);
+
+        }
+
+
+        /* =========================================================
+           TABLAS
+        ========================================================= */
+
+        .table {
+
+            color: var(--text-dark);
+
+        }
+
+
+        .table > :not(caption) > * > * {
+
+            background-color: transparent;
+
+            color: var(--text-dark);
+
+            border-color: var(--border-color);
+
+        }
+
+
+        /* =========================================================
+           BOTONES LIGHT
+        ========================================================= */
+
+        .btn-light {
+
+            background-color: var(--card-background);
+
+            border-color: var(--border-color);
+
+            color: var(--text-dark);
+
+        }
+
+
+        .btn-light:hover {
+
+            background-color: var(--background);
+
+            border-color: var(--border-color);
+
+            color: var(--text-dark);
+
+        }
+
+
+        /* =========================================================
+           BADGES Y ELEMENTOS BOOTSTRAP
+        ========================================================= */
+
+        html.dark-mode .bg-white {
+
+            background-color: var(--card-background) !important;
+
+        }
+
+
+        html.dark-mode .bg-light {
+
+            background-color: #202a3b !important;
+
+            color: #e5e7eb !important;
+
+        }
+
+
+        html.dark-mode .border {
+
+            border-color: var(--border-color) !important;
+
+        }
+
+
+        /* =========================================================
+           OVERLAY
+        ========================================================= */
+
+        .sidebar-overlay {
+
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            background:
+                rgba(0, 0, 0, 0.55);
+
+            z-index: 1040;
+
+            backdrop-filter: blur(2px);
+
+        }
+
+
+        .sidebar-overlay.show {
+
+            display: block;
+
+        }
+
+
+        /* =========================================================
+           ANIMACION SUAVE DEL CAMBIO DE TEMA
+        ========================================================= */
+
+        .theme-transition * {
+
+            transition:
+                background-color 0.3s ease,
+                color 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+
+        }
+
+
+        /* =========================================================
+           TABLET
+        ========================================================= */
+
+        @@media (max-width: 1100px) {
 
             :root {
-                --sidebar-width: 270px;
-                --topbar-height: 74px;
-                --primary: #2563eb;
-                --primary-dark: #1d4ed8;
-                --sidebar-bg: #111827;
-                --sidebar-hover: #1f2937;
-                --sidebar-active: #2563eb;
-                --text-dark: #1f2937;
-                --text-muted: #6b7280;
-                --border-color: #e5e7eb;
-                --background: #f5f7fb;
-                --white: #ffffff;
+
+                --sidebar-width: 250px;
+
             }
 
+            .content {
 
-            /* =========================================================
-                       GENERAL
-                    ========================================================= */
+                padding: 25px;
 
-            html,
-            body {
-                min-height: 100%;
             }
-
-
-            body {
-                margin: 0;
-                background: var(--background);
-                color: var(--text-dark);
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                font-size: 16px;
-            }
-
-
-            /* =========================================================
-                       SIDEBAR
-                    ========================================================= */
-
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                width: var(--sidebar-width);
-                background: var(--sidebar-bg);
-                color: white;
-                z-index: 1050;
-                display: flex;
-                flex-direction: column;
-                overflow-y: auto;
-                overflow-x: hidden;
-                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
-                scrollbar-width: thin;
-                scrollbar-color: #374151 transparent;
-            }
-
-
-            /* =========================================================
-                       LOGO
-                    ========================================================= */
-
-            .sidebar-brand {
-                min-height: 74px;
-                padding: 0 24px;
-                display: flex;
-                align-items: center;
-                gap: 13px;
-                font-size: 21px;
-                font-weight: 700;
-                letter-spacing: -0.3px;
-                border-bottom: 1px solid rgba(255,255,255,0.08);
-                flex-shrink: 0;
-            }
-
-
-                .sidebar-brand i {
-                    width: 38px;
-                    height: 38px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background: linear-gradient( 135deg, #3b82f6, #1d4ed8 );
-                    border-radius: 10px;
-                    font-size: 20px;
-                    box-shadow: 0 5px 15px rgba(37,99,235,0.35);
-                }
-
-
-            /* =========================================================
-                       USUARIO SIDEBAR
-                    ========================================================= */
-
-            .sidebar-user {
-                padding: 22px 24px;
-                border-bottom: 1px solid rgba(255,255,255,0.08);
-            }
-
-
-            .sidebar-user-name {
-                font-size: 16px;
-                font-weight: 600;
-                color: #ffffff;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-
-            .sidebar-user-role {
-                margin-top: 5px;
-                font-size: 14px;
-                color: #9ca3af;
-            }
-
-
-            /* =========================================================
-                       SECCIONES
-                    ========================================================= */
-
-            .sidebar-section {
-                padding: 22px 24px 9px;
-                color: #6b7280;
-                font-size: 12px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.8px;
-            }
-
-
-            /* =========================================================
-                       MENU
-                    ========================================================= */
-
-            .sidebar-menu {
-                list-style: none;
-                padding: 0 12px;
-                margin: 0;
-            }
-
-
-                .sidebar-menu li {
-                    margin-bottom: 4px;
-                }
-
-
-                .sidebar-menu a {
-                    min-height: 46px;
-                    display: flex;
-                    align-items: center;
-                    gap: 13px;
-                    padding: 11px 14px;
-                    border-radius: 9px;
-                    color: #d1d5db;
-                    text-decoration: none;
-                    font-size: 15px;
-                    font-weight: 500;
-                    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
-                }
-
-
-                    .sidebar-menu a i {
-                        width: 22px;
-                        min-width: 22px;
-                        text-align: center;
-                        font-size: 19px;
-                    }
-
-
-                    .sidebar-menu a:hover {
-                        background: var(--sidebar-hover);
-                        color: #ffffff;
-                        transform: translateX(2px);
-                    }
-
-
-                    .sidebar-menu a.active {
-                        background: linear-gradient( 135deg, #2563eb, #1d4ed8 );
-                        color: #ffffff;
-                        box-shadow: 0 5px 14px rgba(37,99,235,0.28);
-                    }
-
-
-                        .sidebar-menu a.active i {
-                            color: #ffffff;
-                        }
-
-
-            /* =========================================================
-                       CONTENEDOR PRINCIPAL
-                    ========================================================= */
-
-            .main-wrapper {
-                margin-left: var(--sidebar-width);
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-            }
-
-
-            /* =========================================================
-                       TOPBAR
-                    ========================================================= */
 
             .topbar {
-                height: var(--topbar-height);
-                min-height: var(--topbar-height);
-                background: var(--white);
-                border-bottom: 1px solid var(--border-color);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 0 30px;
-                position: sticky;
-                top: 0;
-                z-index: 1000;
-                box-shadow: 0 2px 10px rgba(15,23,42,0.04);
+
+                padding: 0 24px;
+
+            }
+
+        }
+
+
+        /* =========================================================
+           TABLET PEQUEÑA
+        ========================================================= */
+
+        @@media (max-width: 900px) {
+
+            .sidebar {
+
+                transform: translateX(-100%);
+
+                transition:
+                    transform 0.25s ease;
+
+                width: 280px;
+
             }
 
 
-            .topbar-left {
+            .sidebar.show {
+
+                transform: translateX(0);
+
+            }
+
+
+            .main-wrapper {
+
+                margin-left: 0;
+
+            }
+
+
+            .mobile-menu-button {
+
                 display: flex;
-                align-items: center;
-                gap: 18px;
-                min-width: 0;
+
+            }
+
+
+            .topbar {
+
+                padding: 0 20px;
+
+            }
+
+
+            .content {
+
+                padding: 24px;
+
+            }
+
+        }
+
+
+        /* =========================================================
+           MOVIL
+        ========================================================= */
+
+        @@media (max-width: 600px) {
+
+            :root {
+
+                --topbar-height: 68px;
+
+            }
+
+
+            .topbar {
+
+                padding: 0 14px;
+
             }
 
 
             .topbar-title {
-                font-size: 22px;
-                font-weight: 700;
-                color: #111827;
-                white-space: nowrap;
-            }
 
+                font-size: 20px;
 
-            /* =========================================================
-                       BOTON MENU MOVIL
-                    ========================================================= */
-
-            .mobile-menu-button {
-                width: 44px;
-                height: 44px;
-                border: 1px solid var(--border-color);
-                background: #ffffff;
-                border-radius: 9px;
-                display: none;
-                align-items: center;
-                justify-content: center;
-                color: #374151;
-                font-size: 22px;
-                cursor: pointer;
-            }
-
-
-                .mobile-menu-button:hover {
-                    background: #f3f4f6;
-                }
-
-
-            /* =========================================================
-                       USUARIO TOPBAR
-                    ========================================================= */
-
-            .user-button {
-                border: 0;
-                background: transparent;
-                padding: 6px 8px;
-                display: flex;
-                align-items: center;
-                gap: 11px;
-                border-radius: 10px;
-            }
-
-
-                .user-button:hover {
-                    background: #f3f4f6;
-                }
-
-
-            .user-avatar {
-                width: 42px;
-                height: 42px;
-                min-width: 42px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: linear-gradient( 135deg, #2563eb, #1d4ed8 );
-                color: #ffffff;
-                font-size: 14px;
-                font-weight: 700;
-                box-shadow: 0 4px 10px rgba(37,99,235,0.25);
             }
 
 
             .user-info {
-                text-align: left;
-                max-width: 180px;
+
+                display: none;
+
             }
 
 
-            .user-name {
-                font-size: 15px;
-                font-weight: 600;
-                color: #1f2937;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
+            .user-button {
+
+                padding: 4px;
+
             }
 
 
-            .user-role {
-                margin-top: 2px;
-                font-size: 13px;
-                color: #6b7280;
+            .user-button::after {
+
+                display: none;
+
             }
 
 
-            /* =========================================================
-                       DROPDOWN
-                    ========================================================= */
+            .user-avatar {
 
-            .dropdown-menu {
-                min-width: 245px;
-                padding: 8px;
-                border: 1px solid var(--border-color);
-                border-radius: 12px;
+                width: 42px;
+
+                height: 42px;
+
             }
 
 
-            .dropdown-header {
-                padding: 10px 12px;
-                font-size: 15px;
-                color: #1f2937;
+            .theme-toggle {
+
+                width: 40px;
+
+                height: 40px;
+
             }
 
-
-            .dropdown-item {
-                min-height: 43px;
-                display: flex;
-                align-items: center;
-                border-radius: 8px;
-                padding: 9px 12px;
-                font-size: 15px;
-            }
-
-
-                .dropdown-item:hover {
-                    background: #f3f4f6;
-                }
-
-
-                .dropdown-item.text-danger:hover {
-                    background: #fef2f2;
-                }
-
-
-            /* =========================================================
-                       CONTENIDO
-                    ========================================================= */
 
             .content {
-                flex: 1;
-                width: 100%;
-                padding: 30px;
+
+                padding: 18px 14px;
+
             }
 
 
-            /* =========================================================
-                       OVERLAY
-                    ========================================================= */
+            .dropdown-menu {
 
-            .sidebar-overlay {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0,0,0,0.45);
-                z-index: 1040;
+                min-width: 230px;
+
+            }
+
+        }
+
+
+        /* =========================================================
+           MOVIL MUY PEQUEÑO
+        ========================================================= */
+
+        @@media (max-width: 380px) {
+
+            .topbar-title {
+
+                font-size: 18px;
+
             }
 
 
-                .sidebar-overlay.show {
-                    display: block;
-                }
+            .content {
 
+                padding: 16px 12px;
 
-            /* =========================================================
-                       TABLET
-                    ========================================================= */
-
-            @@media (max-width: 1100px) {
-
-                :root {
-                    --sidebar-width: 250px;
-                }
-
-                .content {
-                    padding: 25px;
-                }
-
-                .topbar {
-                    padding: 0 24px;
-                }
             }
 
-
-            /* =========================================================
-                       TABLET PEQUEÑA
-                    ========================================================= */
-
-            @@media (max-width: 900px) {
-
-                .sidebar {
-                    transform: translateX(-100%);
-                    transition: transform 0.25s ease;
-                    width: 280px;
-                }
-
-
-                    .sidebar.show {
-                        transform: translateX(0);
-                    }
-
-
-                .main-wrapper {
-                    margin-left: 0;
-                }
-
-
-                .mobile-menu-button {
-                    display: flex;
-                }
-
-
-                .topbar {
-                    padding: 0 20px;
-                }
-
-
-                .content {
-                    padding: 24px;
-                }
-            }
-
-
-            /* =========================================================
-                       MOVIL
-                    ========================================================= */
-
-            @@media (max-width: 600px) {
-
-                :root {
-                    --topbar-height: 68px;
-                }
-
-
-                .topbar {
-                    padding: 0 14px;
-                }
-
-
-                .topbar-title {
-                    font-size: 20px;
-                }
-
-
-                .user-info {
-                    display: none;
-                }
-
-
-                .user-button {
-                    padding: 4px;
-                }
-
-
-                    .user-button::after {
-                        display: none;
-                    }
-
-
-                .user-avatar {
-                    width: 42px;
-                    height: 42px;
-                }
-
-
-                .content {
-                    padding: 18px 14px;
-                }
-
-
-                .dropdown-menu {
-                    min-width: 230px;
-                }
-            }
-
-
-            /* =========================================================
-                       MOVIL MUY PEQUEÑO
-                    ========================================================= */
-
-            @@media (max-width: 380px) {
-
-                .topbar-title {
-                    font-size: 18px;
-                }
-
-
-                .content {
-                    padding: 16px 12px;
-                }
-            }
+        }
 
     </style>
 
@@ -617,7 +1299,7 @@
 
 
     <!-- ========================================================= -->
-    <!-- OVERLAY DEL SIDEBAR -->
+    <!-- OVERLAY -->
     <!-- ========================================================= -->
 
     <div class="sidebar-overlay"
@@ -715,6 +1397,7 @@
             <!-- ================================================= -->
             <!-- ADMINISTRADOR -->
             <!-- ================================================= -->
+
             @if (User.IsInRole("Administrador"))
             {
 
@@ -821,10 +1504,6 @@
                 </li>
 
 
-                <!-- ================================================= -->
-                <!-- INVENTARIO -->
-                <!-- ================================================= -->
-
                 <li>
 
                     <a asp-controller="Inventario"
@@ -916,6 +1595,7 @@
             <!-- ================================================= -->
             <!-- GERENTE -->
             <!-- ================================================= -->
+
             @if (User.IsInRole("Gerente"))
             {
 
@@ -963,10 +1643,6 @@
 
                 </li>
 
-
-                <!-- ================================================= -->
-                <!-- INVENTARIO -->
-                <!-- ================================================= -->
 
                 <li>
 
@@ -1076,6 +1752,7 @@
             <!-- ================================================= -->
             <!-- CAJERO -->
             <!-- ================================================= -->
+
             @if (User.IsInRole("Cajero"))
             {
 
@@ -1144,6 +1821,7 @@
             <!-- ================================================= -->
             <!-- MESERO -->
             <!-- ================================================= -->
+
             @if (User.IsInRole("Mesero"))
             {
 
@@ -1195,6 +1873,7 @@
             <!-- ================================================= -->
             <!-- COCINA -->
             <!-- ================================================= -->
+
             @if (User.IsInRole("Cocina"))
             {
 
@@ -1227,7 +1906,7 @@
 
 
         <!-- ===================================================== -->
-        <!-- BARRA SUPERIOR -->
+        <!-- TOPBAR -->
         <!-- ===================================================== -->
 
         <header class="topbar">
@@ -1256,146 +1935,166 @@
 
 
             <!-- ================================================= -->
-            <!-- USUARIO -->
+            <!-- ACCIONES -->
             <!-- ================================================= -->
 
-            <div class="dropdown">
+            <div class="topbar-actions">
 
 
-                <button class="user-button dropdown-toggle"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false">
+                <!-- ================================================= -->
+                <!-- MODO CLARO / OSCURO -->
+                <!-- ================================================= -->
 
+                <button type="button"
+                        class="theme-toggle"
+                        id="themeToggle"
+                        onclick="toggleTheme()"
+                        aria-label="Cambiar tema"
+                        title="Cambiar tema">
 
-                    <div class="user-avatar">
-
-                        @iniciales
-
-                    </div>
-
-
-                    <div class="user-info">
-
-                        <div class="user-name">
-
-                            @nombreCompleto
-
-                        </div>
-
-
-                        <div class="user-role">
-
-                            @rolActual
-
-                        </div>
-
-                    </div>
-
+                    <i class="bi bi-moon-stars-fill"
+                       id="themeIcon"></i>
 
                 </button>
 
 
-                <ul class="dropdown-menu dropdown-menu-end shadow">
+                <!-- ================================================= -->
+                <!-- USUARIO -->
+                <!-- ================================================= -->
+
+                <div class="dropdown">
 
 
-                    <li>
+                    <button class="user-button dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
 
-                        <h6 class="dropdown-header">
 
-                            @nombreCompleto
+                        <div class="user-avatar">
 
-                            <br />
+                            @iniciales
 
-                            <small class="text-muted">
+                        </div>
+
+
+                        <div class="user-info">
+
+                            <div class="user-name">
+
+                                @nombreCompleto
+
+                            </div>
+
+
+                            <div class="user-role">
 
                                 @rolActual
 
-                            </small>
+                            </div>
 
-                        </h6>
-
-                    </li>
+                        </div>
 
 
-                    <li>
-
-                        <hr class="dropdown-divider" />
-
-                    </li>
+                    </button>
 
 
-                    <!-- ================================================= -->
-                    <!-- MI PERFIL -->
-                    <!-- ================================================= -->
-
-                    <li>
-
-                        <a class="dropdown-item"
-                           asp-controller="Perfil"
-                           asp-action="Index">
-
-                            <i class="bi bi-person me-2"></i>
-
-                            Mi perfil
-
-                        </a>
-
-                    </li>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
 
 
-                    <!-- ================================================= -->
-                    <!-- EDITAR INFORMACIÓN -->
-                    <!-- ================================================= -->
+                        <li>
 
-                    <li>
+                            <h6 class="dropdown-header">
 
-                        <a class="dropdown-item"
-                           asp-controller="Perfil"
-                           asp-action="Editar">
+                                @nombreCompleto
 
-                            <i class="bi bi-pencil-square me-2"></i>
+                                <br />
 
-                            Editar mi información
+                                <small class="text-muted">
 
-                        </a>
+                                    @rolActual
 
-                    </li>
+                                </small>
 
+                            </h6>
 
-                    <li>
-
-                        <hr class="dropdown-divider" />
-
-                    </li>
+                        </li>
 
 
-                    <!-- ================================================= -->
-                    <!-- CERRAR SESIÓN -->
-                    <!-- ================================================= -->
+                        <li>
 
-                    <li>
+                            <hr class="dropdown-divider" />
 
-                        <form asp-controller="Account"
-                              asp-action="Logout"
-                              method="post">
+                        </li>
 
-                            @Html.AntiForgeryToken()
 
-                            <button type="submit"
-                                    class="dropdown-item text-danger">
+                        <!-- MI PERFIL -->
 
-                                <i class="bi bi-box-arrow-right me-2"></i>
+                        <li>
 
-                                Cerrar sesión
+                            <a class="dropdown-item"
+                               asp-controller="Perfil"
+                               asp-action="Index">
 
-                            </button>
+                                <i class="bi bi-person me-2"></i>
 
-                        </form>
+                                Mi perfil
 
-                    </li>
+                            </a>
 
-                </ul>
+                        </li>
+
+
+                        <!-- EDITAR INFORMACIÓN -->
+
+                        <li>
+
+                            <a class="dropdown-item"
+                               asp-controller="Perfil"
+                               asp-action="Editar">
+
+                                <i class="bi bi-pencil-square me-2"></i>
+
+                                Editar mi información
+
+                            </a>
+
+                        </li>
+
+
+                        <li>
+
+                            <hr class="dropdown-divider" />
+
+                        </li>
+
+
+                        <!-- CERRAR SESIÓN -->
+
+                        <li>
+
+                            <form asp-controller="Account"
+                                  asp-action="Logout"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="dropdown-item text-danger">
+
+                                    <i class="bi bi-box-arrow-right me-2"></i>
+
+                                    Cerrar sesión
+
+                                </button>
+
+                            </form>
+
+                        </li>
+
+                    </ul>
+
+                </div>
 
             </div>
 
@@ -1423,77 +2122,193 @@
 
 
     <!-- ========================================================= -->
-    <!-- SIDEBAR RESPONSIVE -->
+    <!-- FUNCIONES DEL LAYOUT -->
     <!-- ========================================================= -->
 
     <script>
 
-            function toggleSidebar() {
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
 
-                const sidebar =
-                    document.getElementById("sidebar");
+        function toggleSidebar() {
 
-                const overlay =
-                    document.getElementById("sidebarOverlay");
+            const sidebar =
+                document.getElementById("sidebar");
 
-                sidebar.classList.toggle("show");
+            const overlay =
+                document.getElementById("sidebarOverlay");
 
-                overlay.classList.toggle("show");
+            sidebar.classList.toggle("show");
+
+            overlay.classList.toggle("show");
+
+        }
+
+
+        function closeSidebar() {
+
+            const sidebar =
+                document.getElementById("sidebar");
+
+            const overlay =
+                document.getElementById("sidebarOverlay");
+
+            sidebar.classList.remove("show");
+
+            overlay.classList.remove("show");
+
+        }
+
+
+        /* =========================================================
+           CAMBIAR TEMA
+        ========================================================= */
+
+        function toggleTheme() {
+
+            const html =
+                document.documentElement;
+
+            const icon =
+                document.getElementById("themeIcon");
+
+            const estaOscuro =
+                html.classList.toggle("dark-mode");
+
+
+            if (estaOscuro) {
+
+                localStorage.setItem(
+                    "temaRestaurante",
+                    "dark"
+                );
+
+                icon.classList.remove(
+                    "bi-moon-stars-fill"
+                );
+
+                icon.classList.add(
+                    "bi-sun-fill"
+                );
+
+            }
+            else {
+
+                localStorage.setItem(
+                    "temaRestaurante",
+                    "light"
+                );
+
+                icon.classList.remove(
+                    "bi-sun-fill"
+                );
+
+                icon.classList.add(
+                    "bi-moon-stars-fill"
+                );
 
             }
 
+        }
 
-            function closeSidebar() {
 
-                const sidebar =
-                    document.getElementById("sidebar");
+        /* =========================================================
+           CONFIGURAR ICONO AL CARGAR
+        ========================================================= */
 
-                const overlay =
-                    document.getElementById("sidebarOverlay");
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
 
-                sidebar.classList.remove("show");
+                const icon =
+                    document.getElementById("themeIcon");
 
-                overlay.classList.remove("show");
+                if (!icon) {
+
+                    return;
+
+                }
+
+
+                if (
+                    document.documentElement
+                        .classList
+                        .contains("dark-mode")
+                ) {
+
+                    icon.classList.remove(
+                        "bi-moon-stars-fill"
+                    );
+
+                    icon.classList.add(
+                        "bi-sun-fill"
+                    );
+
+                }
+                else {
+
+                    icon.classList.remove(
+                        "bi-sun-fill"
+                    );
+
+                    icon.classList.add(
+                        "bi-moon-stars-fill"
+                    );
+
+                }
 
             }
+        );
 
 
-            document.addEventListener(
-                "click",
-                function(event) {
+        /* =========================================================
+           CERRAR SIDEBAR AL HACER CLICK EN UN ENLACE
+        ========================================================= */
 
-                    const link =
-                        event.target.closest(".sidebar-menu a");
+        document.addEventListener(
+            "click",
+            function (event) {
 
-                    if (!link) {
-
-                        return;
-
-                    }
-
-
-                    if (window.innerWidth <= 900) {
-
-                        closeSidebar();
-
-                    }
-
-                }
-            );
+                const link =
+                    event.target.closest(
+                        ".sidebar-menu a"
+                    );
 
 
-            window.addEventListener(
-                "resize",
-                function() {
+                if (!link) {
 
-                    if (window.innerWidth > 900) {
-
-                        closeSidebar();
-
-                    }
+                    return;
 
                 }
-            );
+
+
+                if (window.innerWidth <= 900) {
+
+                    closeSidebar();
+
+                }
+
+            }
+        );
+
+
+        /* =========================================================
+           CERRAR SIDEBAR AL CAMBIAR TAMAÑO
+        ========================================================= */
+
+        window.addEventListener(
+            "resize",
+            function () {
+
+                if (window.innerWidth > 900) {
+
+                    closeSidebar();
+
+                }
+
+            }
+        );
 
     </script>
 

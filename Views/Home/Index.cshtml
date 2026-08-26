@@ -14,50 +14,779 @@
         ?? "";
 }
 
-<div class="container-fluid">
+<style>
 
-    <!-- ENCABEZADO -->
+    /* =========================================================
+       CONTENEDOR PRINCIPAL
+    ========================================================= */
 
-    <div class="mb-4">
+    .restaurant-dashboard {
+        color: #332522;
+    }
 
-        <h2 class="fw-bold mb-1">
-            Bienvenido, @nombreCompleto
-        </h2>
 
-        <p class="text-muted mb-0">
-            Este es el panel principal del sistema de gestión del restaurante.
-        </p>
+    /* =========================================================
+       ENCABEZADO
+    ========================================================= */
+
+    .dashboard-welcome {
+        position: relative;
+        overflow: hidden;
+
+        min-height: 155px;
+
+        padding: 30px;
+
+        margin-bottom: 25px;
+
+        border-radius: 18px;
+
+        background: linear-gradient(
+            135deg,
+            #671f1b 0%,
+            #8f2923 100%
+        );
+
+        color: #ffffff;
+
+        box-shadow:
+            0 10px 30px rgba(103, 31, 27, 0.18);
+
+        transition:
+            transform 0.25s ease,
+            box-shadow 0.25s ease;
+    }
+
+
+    .dashboard-welcome:hover {
+        transform: translateY(-2px);
+
+        box-shadow:
+            0 14px 35px rgba(103, 31, 27, 0.23);
+    }
+
+
+    .dashboard-welcome::before {
+        content: "";
+
+        position: absolute;
+
+        width: 240px;
+        height: 240px;
+
+        right: -100px;
+        top: -130px;
+
+        border-radius: 50%;
+
+        background: rgba(217, 164, 65, 0.14);
+
+        pointer-events: none;
+    }
+
+
+    .dashboard-welcome::after {
+        content: "";
+
+        position: absolute;
+
+        width: 170px;
+        height: 170px;
+
+        right: 100px;
+        bottom: -125px;
+
+        border-radius: 50%;
+
+        background: rgba(255, 255, 255, 0.05);
+
+        pointer-events: none;
+    }
+
+
+    .welcome-content {
+        position: relative;
+
+        z-index: 2;
+    }
+
+
+    .welcome-icon {
+        width: 54px;
+        height: 54px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        margin-bottom: 15px;
+
+        border-radius: 15px;
+
+        background: rgba(255, 255, 255, 0.12);
+
+        border: 1px solid rgba(255, 255, 255, 0.15);
+
+        color: #f2cf76;
+
+        font-size: 24px;
+    }
+
+
+    .dashboard-welcome h2 {
+        margin: 0 0 6px;
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif;
+
+        font-size: 28px;
+
+        font-weight: 700;
+
+        letter-spacing: 0.2px;
+    }
+
+
+    .dashboard-welcome p {
+        margin: 0;
+
+        max-width: 700px;
+
+        color: rgba(255, 255, 255, 0.76);
+
+        font-size: 14px;
+
+        line-height: 1.6;
+    }
+
+
+    .welcome-decoration {
+        position: absolute;
+
+        right: 35px;
+        bottom: 18px;
+
+        color: rgba(255, 255, 255, 0.09);
+
+        font-size: 75px;
+
+        z-index: 1;
+
+        pointer-events: none;
+    }
+
+
+    /* =========================================================
+       DIVISOR DECORATIVO
+    ========================================================= */
+
+    .restaurant-divider {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        gap: 10px;
+
+        margin: 4px 0 24px;
+
+        color: #c49743;
+
+        font-size: 10px;
+
+        font-weight: 700;
+
+        letter-spacing: 2px;
+    }
+
+
+    .restaurant-divider::before,
+    .restaurant-divider::after {
+        content: "";
+
+        width: 38px;
+        height: 1px;
+
+        background: #e5d6be;
+    }
+
+
+    /* =========================================================
+       TARJETAS DE INFORMACIÓN
+    ========================================================= */
+
+    .dashboard-info-card {
+        position: relative;
+
+        height: 100%;
+
+        overflow: hidden;
+
+        border: 1px solid #eee5dc;
+
+        border-radius: 16px;
+
+        background: #fffdf9;
+
+        box-shadow:
+            0 5px 18px rgba(53, 35, 31, 0.06);
+
+        transition:
+            transform 0.25s ease,
+            box-shadow 0.25s ease,
+            border-color 0.25s ease;
+    }
+
+
+    .dashboard-info-card:hover {
+        transform: translateY(-5px);
+
+        border-color: #dfccb0;
+
+        box-shadow:
+            0 12px 28px rgba(53, 35, 31, 0.12);
+    }
+
+
+    .dashboard-info-card::after {
+        content: "";
+
+        position: absolute;
+
+        width: 80px;
+        height: 80px;
+
+        right: -30px;
+        bottom: -35px;
+
+        border-radius: 50%;
+
+        background: rgba(217, 164, 65, 0.07);
+
+        pointer-events: none;
+    }
+
+
+    .dashboard-info-body {
+        padding: 22px;
+    }
+
+
+    .dashboard-info-icon {
+        width: 50px;
+        height: 50px;
+
+        flex-shrink: 0;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 14px;
+
+        font-size: 21px;
+    }
+
+
+    .dashboard-info-icon.user {
+        background: #f7e8e5;
+
+        color: #8f2923;
+    }
+
+
+    .dashboard-info-icon.role {
+        background: #f7efd9;
+
+        color: #a27625;
+    }
+
+
+    .dashboard-info-icon.email {
+        background: #e7f1ef;
+
+        color: #39786d;
+    }
+
+
+    .dashboard-info-label {
+        display: block;
+
+        margin-bottom: 3px;
+
+        color: #998a83;
+
+        font-size: 11px;
+
+        font-weight: 700;
+
+        letter-spacing: 0.7px;
+
+        text-transform: uppercase;
+    }
+
+
+    .dashboard-info-value {
+        color: #382622;
+
+        font-size: 15px;
+
+        font-weight: 700;
+
+        word-break: break-word;
+    }
+
+
+    /* =========================================================
+       PANELES
+    ========================================================= */
+
+    .dashboard-panel,
+    .session-panel {
+        height: 100%;
+
+        overflow: hidden;
+
+        border: 1px solid #eee5dc;
+
+        border-radius: 16px;
+
+        background: #fffdf9;
+
+        box-shadow:
+            0 5px 18px rgba(53, 35, 31, 0.06);
+    }
+
+
+    .dashboard-panel-header,
+    .session-header {
+        padding: 23px 24px 18px;
+
+        border-bottom: 1px solid #f0e8e1;
+    }
+
+
+    .dashboard-panel-title,
+    .session-title {
+        display: flex;
+
+        align-items: center;
+
+        gap: 11px;
+    }
+
+
+    .panel-title-icon,
+    .session-title-icon {
+        width: 42px;
+        height: 42px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 11px;
+
+        background: #f7e8e5;
+
+        color: #8f2923;
+
+        font-size: 19px;
+    }
+
+
+    .session-title-icon {
+        background: #f7efd9;
+
+        color: #a27625;
+    }
+
+
+    /* =========================================================
+       PANEL PRINCIPAL - TEXTO MÁS GRANDE
+    ========================================================= */
+
+    .dashboard-panel-header h5,
+    .session-header h5 {
+        margin: 0;
+
+        color: #392622;
+
+        font-size: 20px;
+
+        font-weight: 700;
+    }
+
+
+    .dashboard-panel-header p {
+        margin: 5px 0 0;
+
+        color: #958680;
+
+        font-size: 14px;
+
+        line-height: 1.5;
+    }
+
+
+    .dashboard-panel-body {
+        padding: 22px 24px 24px;
+    }
+
+
+    /* =========================================================
+       ACCIONES RÁPIDAS
+    ========================================================= */
+
+    .quick-action {
+        display: block;
+
+        height: 100%;
+
+        padding: 20px;
+
+        border: 1px solid #eee6df;
+
+        border-radius: 13px;
+
+        background: #ffffff;
+
+        color: inherit;
+
+        text-decoration: none;
+
+        transition:
+            transform 0.22s ease,
+            border-color 0.22s ease,
+            box-shadow 0.22s ease,
+            background-color 0.22s ease;
+    }
+
+
+    .quick-action:hover {
+        color: inherit;
+
+        text-decoration: none;
+
+        transform: translateY(-4px);
+
+        border-color: #dfc89f;
+
+        background: #fffdf9;
+
+        box-shadow:
+            0 9px 22px rgba(53, 35, 31, 0.09);
+    }
+
+
+    .quick-action-icon {
+        width: 46px;
+        height: 46px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        margin-bottom: 14px;
+
+        border-radius: 12px;
+
+        font-size: 20px;
+    }
+
+
+    .quick-action-icon.dashboard {
+        background: #f7e8e5;
+
+        color: #8f2923;
+    }
+
+
+    .quick-action-icon.security {
+        background: #f7efd9;
+
+        color: #a27625;
+    }
+
+
+    /* =========================================================
+       TÍTULOS DE LAS ACCIONES
+    ========================================================= */
+
+    .quick-action h6 {
+        margin: 0 0 7px;
+
+        color: #3a2824;
+
+        font-size: 17px;
+
+        font-weight: 700;
+    }
+
+
+    /* =========================================================
+       DESCRIPCIONES
+    ========================================================= */
+
+    .quick-action p {
+        margin: 0;
+
+        color: #93857f;
+
+        font-size: 14px;
+
+        line-height: 1.65;
+    }
+
+
+    /* =========================================================
+       TEXTO INFERIOR DE LAS ACCIONES
+    ========================================================= */
+
+    .quick-action-arrow {
+        margin-top: 16px;
+
+        color: #b48a3d;
+
+        font-size: 14px;
+
+        font-weight: 600;
+
+        transition: transform 0.2s ease;
+    }
+
+
+    .quick-action:hover .quick-action-arrow {
+        transform: translateX(4px);
+    }
+
+
+    /* =========================================================
+       MI SESIÓN
+    ========================================================= */
+
+    .session-body {
+        padding: 20px 24px 24px;
+    }
+
+
+    .session-item {
+        padding: 11px 0;
+
+        border-bottom: 1px solid #f1eae4;
+    }
+
+
+    .session-item:first-child {
+        padding-top: 0;
+    }
+
+
+    .session-item:last-of-type {
+        border-bottom: none;
+
+        padding-bottom: 0;
+    }
+
+
+    .session-label {
+        display: block;
+
+        margin-bottom: 3px;
+
+        color: #9a8d87;
+
+        font-size: 11px;
+
+        font-weight: 700;
+
+        text-transform: uppercase;
+
+        letter-spacing: 0.5px;
+    }
+
+
+    .session-value {
+        color: #3d2a26;
+
+        font-size: 13px;
+
+        font-weight: 600;
+
+        word-break: break-word;
+    }
+
+
+    /* =========================================================
+       BADGE DEL ROL
+    ========================================================= */
+
+    .restaurant-role-badge {
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 6px;
+
+        padding: 5px 10px;
+
+        border-radius: 20px;
+
+        background: #f7e8e5;
+
+        color: #7d2923;
+
+        font-size: 11px;
+
+        font-weight: 700;
+
+        border: 1px solid #efd5d1;
+    }
+
+
+    .restaurant-role-badge i {
+        font-size: 11px;
+    }
+
+
+    /* =========================================================
+       ESTADO DE SESIÓN
+    ========================================================= */
+
+    .session-status {
+        display: flex;
+
+        align-items: center;
+
+        gap: 8px;
+
+        margin-top: 20px;
+
+        padding: 10px 12px;
+
+        border-radius: 10px;
+
+        background: #f1f8f5;
+
+        color: #39786d;
+
+        font-size: 13px;
+
+        font-weight: 600;
+    }
+
+
+    .status-dot {
+        width: 7px;
+        height: 7px;
+
+        flex-shrink: 0;
+
+        border-radius: 50%;
+
+        background: #43a47f;
+
+        box-shadow:
+            0 0 0 4px rgba(67, 164, 127, 0.10);
+    }
+
+</style>
+
+
+<div class="container-fluid restaurant-dashboard">
+
+
+    <!-- =====================================================
+         ENCABEZADO
+    ====================================================== -->
+
+    <div class="dashboard-welcome">
+
+        <div class="welcome-content">
+
+            <div class="welcome-icon">
+
+                <i class="bi bi-shop"></i>
+
+            </div>
+
+
+            <h2>
+                Bienvenido, @nombreCompleto
+            </h2>
+
+
+            <p>
+                Este es el panel principal del sistema de gestión
+                del restaurante.
+            </p>
+
+        </div>
+
+
+        <div class="welcome-decoration">
+
+            <i class="bi bi-egg-fried"></i>
+
+        </div>
 
     </div>
 
 
-    <!-- INFORMACIÓN DEL USUARIO -->
+    <!-- =====================================================
+         DIVISOR DECORATIVO
+    ====================================================== -->
+
+    <div class="restaurant-divider">
+
+        <span>✦</span>
+
+        <span>RESTAURANTE</span>
+
+        <span>✦</span>
+
+    </div>
+
+
+    <!-- =====================================================
+         INFORMACIÓN DEL USUARIO
+    ====================================================== -->
 
     <div class="row g-4 mb-4">
 
-        <div class="col-md-4">
 
-            <div class="card border-0 shadow-sm h-100">
+        <!-- USUARIO -->
 
-                <div class="card-body">
+        <div class="col-12 col-md-4">
+
+            <div class="dashboard-info-card">
+
+                <div class="dashboard-info-body">
 
                     <div class="d-flex align-items-center">
 
-                        <div class="rounded-circle bg-primary text-white
-                            d-flex align-items-center justify-content-center"
-                             style="width:50px;height:50px;">
+                        <div class="dashboard-info-icon user">
 
-                            <i class="bi bi-person fs-4"></i>
+                            <i class="bi bi-person-fill"></i>
 
                         </div>
 
+
                         <div class="ms-3">
 
-                            <small class="text-muted">
+                            <span class="dashboard-info-label">
                                 Usuario
-                            </small>
+                            </span>
 
-                            <div class="fw-bold">
+
+                            <div class="dashboard-info-value">
                                 @usuario
                             </div>
 
@@ -72,29 +801,31 @@
         </div>
 
 
-        <div class="col-md-4">
+        <!-- ROL -->
 
-            <div class="card border-0 shadow-sm h-100">
+        <div class="col-12 col-md-4">
 
-                <div class="card-body">
+            <div class="dashboard-info-card">
+
+                <div class="dashboard-info-body">
 
                     <div class="d-flex align-items-center">
 
-                        <div class="rounded-circle bg-success text-white
-                            d-flex align-items-center justify-content-center"
-                             style="width:50px;height:50px;">
+                        <div class="dashboard-info-icon role">
 
-                            <i class="bi bi-shield-check fs-4"></i>
+                            <i class="bi bi-shield-check"></i>
 
                         </div>
 
+
                         <div class="ms-3">
 
-                            <small class="text-muted">
+                            <span class="dashboard-info-label">
                                 Rol
-                            </small>
+                            </span>
 
-                            <div class="fw-bold">
+
+                            <div class="dashboard-info-value">
                                 @rol
                             </div>
 
@@ -109,29 +840,31 @@
         </div>
 
 
-        <div class="col-md-4">
+        <!-- CORREO -->
 
-            <div class="card border-0 shadow-sm h-100">
+        <div class="col-12 col-md-4">
 
-                <div class="card-body">
+            <div class="dashboard-info-card">
+
+                <div class="dashboard-info-body">
 
                     <div class="d-flex align-items-center">
 
-                        <div class="rounded-circle bg-info text-white
-                            d-flex align-items-center justify-content-center"
-                             style="width:50px;height:50px;">
+                        <div class="dashboard-info-icon email">
 
-                            <i class="bi bi-envelope fs-4"></i>
+                            <i class="bi bi-envelope-fill"></i>
 
                         </div>
 
+
                         <div class="ms-3">
 
-                            <small class="text-muted">
+                            <span class="dashboard-info-label">
                                 Correo
-                            </small>
+                            </span>
 
-                            <div class="fw-bold text-break">
+
+                            <div class="dashboard-info-value">
                                 @correo
                             </div>
 
@@ -148,51 +881,89 @@
     </div>
 
 
-    <!-- PANEL PRINCIPAL -->
+    <!-- =====================================================
+         CONTENIDO PRINCIPAL
+    ====================================================== -->
 
     <div class="row g-4">
 
-        <div class="col-lg-8">
 
-            <div class="card border-0 shadow-sm">
+        <!-- =================================================
+             PANEL PRINCIPAL
+        ================================================== -->
 
-                <div class="card-header bg-white border-0 pt-4 px-4">
+        <div class="col-12 col-lg-8">
 
-                    <h5 class="fw-bold mb-1">
-                        Panel principal
-                    </h5>
+            <div class="dashboard-panel">
 
-                    <p class="text-muted mb-0">
-                        Acceso rápido a las funciones disponibles.
-                    </p>
+
+                <!-- CABECERA -->
+
+                <div class="dashboard-panel-header">
+
+                    <div class="dashboard-panel-title">
+
+                        <div class="panel-title-icon">
+
+                            <i class="bi bi-grid-1x2-fill"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h5>
+                                Panel principal
+                            </h5>
+
+
+                            <p>
+                                Acceso rápido a las funciones disponibles.
+                            </p>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
-                <div class="card-body p-4">
+
+                <!-- CONTENIDO -->
+
+                <div class="dashboard-panel-body">
 
                     <div class="row g-3">
 
-                        <div class="col-md-6">
 
-                            <div class="p-3 border rounded-3 h-100">
+                        <!-- DASHBOARD -->
 
-                                <div class="d-flex">
+                        <div class="col-12 col-md-6">
 
-                                    <div class="text-primary fs-3">
-                                        <i class="bi bi-speedometer2"></i>
-                                    </div>
+                            <div class="quick-action">
 
-                                    <div class="ms-3">
+                                <div class="quick-action-icon dashboard">
 
-                                        <h6 class="fw-bold">
-                                            Dashboard
-                                        </h6>
+                                    <i class="bi bi-speedometer2"></i>
 
-                                        <p class="text-muted small mb-0">
-                                            Resumen general del sistema.
-                                        </p>
+                                </div>
 
-                                    </div>
+
+                                <h6>
+                                    Dashboard
+                                </h6>
+
+
+                                <p>
+                                    Resumen general del sistema y acceso
+                                    a las principales funciones administrativas.
+                                </p>
+
+
+                                <div class="quick-action-arrow">
+
+                                    Ver panel
+
+                                    <i class="bi bi-arrow-right ms-1"></i>
 
                                 </div>
 
@@ -201,33 +972,42 @@
                         </div>
 
 
-                        <div class="col-md-6">
+                        <!-- SEGURIDAD -->
 
-                            <div class="p-3 border rounded-3 h-100">
+                        <div class="col-12 col-md-6">
 
-                                <div class="d-flex">
+                            <div class="quick-action">
 
-                                    <div class="text-success fs-3">
-                                        <i class="bi bi-shield-check"></i>
-                                    </div>
+                                <div class="quick-action-icon security">
 
-                                    <div class="ms-3">
+                                    <i class="bi bi-shield-lock-fill"></i>
 
-                                        <h6 class="fw-bold">
-                                            Seguridad
-                                        </h6>
+                                </div>
 
-                                        <p class="text-muted small mb-0">
-                                            Su acceso está protegido mediante autenticación.
-                                        </p>
 
-                                    </div>
+                                <h6>
+                                    Seguridad
+                                </h6>
+
+
+                                <p>
+                                    Su acceso está protegido mediante
+                                    autenticación y control de sesión.
+                                </p>
+
+
+                                <div class="quick-action-arrow">
+
+                                    Acceso protegido
+
+                                    <i class="bi bi-check-circle ms-1"></i>
 
                                 </div>
 
                             </div>
 
                         </div>
+
 
                     </div>
 
@@ -238,58 +1018,95 @@
         </div>
 
 
-        <!-- INFORMACIÓN DE SESIÓN -->
+        <!-- =================================================
+             MI SESIÓN
+        ================================================== -->
 
-        <div class="col-lg-4">
+        <div class="col-12 col-lg-4">
 
-            <div class="card border-0 shadow-sm">
+            <div class="session-panel">
 
-                <div class="card-header bg-white border-0 pt-4 px-4">
 
-                    <h5 class="fw-bold mb-0">
-                        Mi sesión
-                    </h5>
+                <!-- CABECERA -->
+
+                <div class="session-header">
+
+                    <div class="session-title">
+
+                        <div class="session-title-icon">
+
+                            <i class="bi bi-person-badge-fill"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h5>
+                                Mi sesión
+                            </h5>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
-                <div class="card-body p-4">
 
-                    <div class="mb-3">
+                <!-- CONTENIDO -->
 
-                        <small class="text-muted">
+                <div class="session-body">
+
+
+                    <!-- NOMBRE -->
+
+                    <div class="session-item">
+
+                        <span class="session-label">
                             Nombre
-                        </small>
+                        </span>
 
-                        <div class="fw-semibold">
+
+                        <div class="session-value">
                             @nombreCompleto
                         </div>
 
                     </div>
 
 
-                    <div class="mb-3">
+                    <!-- USUARIO -->
 
-                        <small class="text-muted">
+                    <div class="session-item">
+
+                        <span class="session-label">
                             Usuario
-                        </small>
+                        </span>
 
-                        <div class="fw-semibold">
+
+                        <div class="session-value">
                             @usuario
                         </div>
 
                     </div>
 
 
-                    <div class="mb-3">
+                    <!-- ROL -->
 
-                        <small class="text-muted">
+                    <div class="session-item">
+
+                        <span class="session-label">
                             Rol
-                        </small>
+                        </span>
+
 
                         <div>
 
-                            <span class="badge bg-primary">
+                            <span class="restaurant-role-badge">
+
+                                <i class="bi bi-shield-check"></i>
+
                                 @rol
+
                             </span>
 
                         </div>
@@ -297,23 +1114,39 @@
                     </div>
 
 
-                    <div>
+                    <!-- CORREO -->
 
-                        <small class="text-muted">
+                    <div class="session-item">
+
+                        <span class="session-label">
                             Correo
-                        </small>
+                        </span>
 
-                        <div class="fw-semibold text-break">
+
+                        <div class="session-value">
                             @correo
                         </div>
 
                     </div>
+
+
+                    <!-- ESTADO -->
+
+                    <div class="session-status">
+
+                        <span class="status-dot"></span>
+
+                        Sesión activa y protegida
+
+                    </div>
+
 
                 </div>
 
             </div>
 
         </div>
+
 
     </div>
 
