@@ -13,14 +13,83 @@ namespace WebApplication1.Data
             var context = scope.ServiceProvider
                 .GetRequiredService<RestauranteContext>();
 
-            // Obtener los roles existentes
-            var roles = await context.Rols
-                .ToDictionaryAsync(
-                    r => r.Nombre,
-                    r => r.IdRol
+            Console.WriteLine("");
+            Console.WriteLine("========================================");
+            Console.WriteLine("SEED: INICIANDO");
+            Console.WriteLine("========================================");
+
+            // ============================================================
+            // 1. PROBAR CONEXIÓN
+            // ============================================================
+
+            Console.WriteLine(
+                "SEED: Probando conexión a SQL Server..."
+            );
+
+            try
+            {
+                var conectado =
+                    await context.Database.CanConnectAsync();
+
+                Console.WriteLine(
+                    $"SEED: Resultado de conexión: {conectado}"
                 );
 
-            // Verificar que existan los cinco roles
+                if (!conectado)
+                {
+                    throw new Exception(
+                        "No se pudo conectar a la base de datos."
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    "SEED: ERROR AL CONECTAR CON SQL SERVER"
+                );
+
+                Console.WriteLine(ex.ToString());
+
+                throw;
+            }
+
+            // ============================================================
+            // 2. OBTENER ROLES
+            // ============================================================
+
+            Console.WriteLine(
+                "SEED: Consultando tabla Rol..."
+            );
+
+            Dictionary<string, int> roles;
+
+            try
+            {
+                roles = await context.Rols
+                    .ToDictionaryAsync(
+                        r => r.Nombre,
+                        r => r.IdRol
+                    );
+
+                Console.WriteLine(
+                    $"SEED: Roles encontrados: {roles.Count}"
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    "SEED: ERROR AL CONSULTAR ROLES"
+                );
+
+                Console.WriteLine(ex.ToString());
+
+                throw;
+            }
+
+            // ============================================================
+            // 3. VERIFICAR ROLES NECESARIOS
+            // ============================================================
+
             string[] rolesNecesarios =
             {
                 "Administrador",
@@ -30,8 +99,16 @@ namespace WebApplication1.Data
                 "Cocina"
             };
 
+            Console.WriteLine(
+                "SEED: Verificando roles necesarios..."
+            );
+
             foreach (var rol in rolesNecesarios)
             {
+                Console.WriteLine(
+                    $"SEED: Verificando '{rol}'..."
+                );
+
                 if (!roles.ContainsKey(rol))
                 {
                     throw new Exception(
@@ -39,6 +116,14 @@ namespace WebApplication1.Data
                     );
                 }
             }
+
+            Console.WriteLine(
+                "SEED: Los cinco roles existen correctamente."
+            );
+
+            // ============================================================
+            // 4. USUARIOS INICIALES
+            // ============================================================
 
             var usuarios = new[]
             {
@@ -51,6 +136,7 @@ namespace WebApplication1.Data
                     Usuario = "admin",
                     Password = "Admin123!"
                 },
+
                 new
                 {
                     Rol = "Gerente",
@@ -60,6 +146,7 @@ namespace WebApplication1.Data
                     Usuario = "gerente",
                     Password = "Gerente123!"
                 },
+
                 new
                 {
                     Rol = "Cajero",
@@ -69,6 +156,7 @@ namespace WebApplication1.Data
                     Usuario = "cajero",
                     Password = "Cajero123!"
                 },
+
                 new
                 {
                     Rol = "Mesero",
@@ -78,6 +166,7 @@ namespace WebApplication1.Data
                     Usuario = "mesero",
                     Password = "Mesero123!"
                 },
+
                 new
                 {
                     Rol = "Cocina",
@@ -89,56 +178,164 @@ namespace WebApplication1.Data
                 }
             };
 
+            // ============================================================
+            // 5. PROCESAR USUARIOS
+            // ============================================================
+
             foreach (var datos in usuarios)
             {
-                var usuarioExistente = await context.Usuarios
-                    .FirstOrDefaultAsync(
-                        u => u.Usuario1 == datos.Usuario
+                Console.WriteLine("");
+                Console.WriteLine(
+                    $"SEED: Procesando usuario '{datos.Usuario}'..."
+                );
+
+                Usuario? usuarioExistente;
+
+                try
+                {
+                    Console.WriteLine(
+                        $"SEED: Consultando usuario '{datos.Usuario}'..."
                     );
+
+                    usuarioExistente =
+                        await context.Usuarios
+                            .FirstOrDefaultAsync(
+                                u => u.Usuario1 == datos.Usuario
+                            );
+
+                    Console.WriteLine(
+                        $"SEED: Consulta terminada para '{datos.Usuario}'."
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(
+                        $"SEED: ERROR AL CONSULTAR USUARIO '{datos.Usuario}'"
+                    );
+
+                    Console.WriteLine(ex.ToString());
+
+                    throw;
+                }
+
+                // ========================================================
+                // USUARIO NO EXISTE
+                // ========================================================
 
                 if (usuarioExistente == null)
                 {
+                    Console.WriteLine(
+                        $"SEED: '{datos.Usuario}' no existe."
+                    );
+
+                    Console.WriteLine(
+                        $"SEED: Generando contraseña para '{datos.Usuario}'..."
+                    );
+
+                    string passwordHash =
+                        BCrypt.Net.BCrypt.HashPassword(
+                            datos.Password
+                        );
+
+                    Console.WriteLine(
+                        $"SEED: Contraseña generada para '{datos.Usuario}'."
+                    );
+
                     var nuevoUsuario = new Usuario
                     {
                         IdRol = roles[datos.Rol],
+
                         Nombres = datos.Nombres,
+
                         Apellidos = datos.Apellidos,
+
                         Correo = datos.Correo,
+
                         Usuario1 = datos.Usuario,
 
-                        PasswordHash =
-                            BCrypt.Net.BCrypt.HashPassword(
-                                datos.Password
-                            ),
+                        PasswordHash = passwordHash,
 
                         Estado = true,
+
                         FechaRegistro = DateTime.Now,
+
                         IntentosFallidos = 0,
 
-                        // Las cuentas creadas inicialmente deben de cambiar su contraseña.
                         DebeCambiarPassword = true,
 
                         FechaCambioPassword = null
                     };
 
                     context.Usuarios.Add(nuevoUsuario);
+
+                    Console.WriteLine(
+                        $"SEED: Usuario '{datos.Usuario}' agregado."
+                    );
                 }
                 else
                 {
-                    // No reemplazamos la contraseña existente.
-                    // Si el usuario todavía nunca ha realizado
-                    // un cambio de contraseña, lo obligamos a hacerlo.
-                    // Si ya realizó el cambio, FechaCambioPassword
-                    // tendrá un valor y no volvemos a marcarlo.
+                    // ====================================================
+                    // USUARIO YA EXISTE
+                    // ====================================================
+
+                    Console.WriteLine(
+                        $"SEED: Usuario '{datos.Usuario}' ya existe."
+                    );
 
                     if (usuarioExistente.FechaCambioPassword == null)
                     {
+                        Console.WriteLine(
+                            $"SEED: '{datos.Usuario}' debe cambiar contraseña."
+                        );
+
                         usuarioExistente.DebeCambiarPassword = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine(
+                            $"SEED: '{datos.Usuario}' ya cambió su contraseña."
+                        );
                     }
                 }
             }
 
-            await context.SaveChangesAsync();
+            // ============================================================
+            // 6. GUARDAR CAMBIOS
+            // ============================================================
+
+            Console.WriteLine("");
+            Console.WriteLine(
+                "SEED: Guardando cambios en la base de datos..."
+            );
+
+            try
+            {
+                await context.SaveChangesAsync();
+
+                Console.WriteLine(
+                    "SEED: Cambios guardados correctamente."
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    "SEED: ERROR EN SaveChangesAsync"
+                );
+
+                Console.WriteLine(ex.ToString());
+
+                throw;
+            }
+
+            // ============================================================
+            // 7. FINAL
+            // ============================================================
+
+            Console.WriteLine("");
+            Console.WriteLine("========================================");
+            Console.WriteLine("SEED: TERMINADO CORRECTAMENTE");
+            Console.WriteLine("========================================");
+            Console.WriteLine("");
         }
     }
 }

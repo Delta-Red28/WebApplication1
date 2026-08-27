@@ -15,43 +15,42 @@ public partial class BdRestauranteWebContext : DbContext
     {
     }
 
-    public virtual DbSet<Caja> Cajas { get; set; }
+    public virtual DbSet<Cliente> Clientes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Server=LAPTOP-I7ACGHOB\\SQLEXPRESS;Database=BD_RestauranteWeb;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Caja>(entity =>
+        modelBuilder.Entity<Cliente>(entity =>
         {
-            entity.HasKey(e => e.IdCaja).HasName("PK__Caja__3B7BF2C5FE28257D");
+            entity.HasKey(e => e.IdCliente).HasName("PK__Cliente__D594664244295BB6");
 
-            entity.ToTable("Caja");
+            entity.ToTable("Cliente");
 
-            entity.HasIndex(e => e.FechaApertura, "IX_Caja_Fecha");
+            entity.HasIndex(e => new { e.Estado, e.Nombres, e.Apellidos }, "IX_Cliente_Estado_Nombres");
 
-            entity.HasIndex(e => e.IdUsuario, "IX_Caja_Usuario");
+            entity.HasIndex(e => new { e.Nombres, e.Apellidos }, "IX_Cliente_Nombres");
 
-            entity.Property(e => e.Diferencia).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.DiferenciaCordobas).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.DiferenciaDolares).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.FechaApertura).HasDefaultValueSql("(getdate())");
-            entity.Property(e => e.MontoInicial).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.MontoInicialCordobas).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.MontoInicialDolares).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.Observacion).HasMaxLength(300);
-            entity.Property(e => e.TotalContado).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TotalContadoCordobas).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TotalContadoDolares).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TotalEgresos).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TotalEgresosCordobas).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TotalEgresosDolares).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TotalIngresos).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TotalIngresosCordobas).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TotalIngresosDolares).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TotalSistema).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TotalSistemaCordobas).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TotalSistemaDolares).HasColumnType("decimal(18, 2)");
+            entity.HasIndex(e => e.Telefono, "IX_Cliente_Telefono");
+
+            entity.HasIndex(e => e.Cedula, "UQ_Cliente_Cedula").IsUnique();
+
+            entity.HasIndex(e => e.Correo, "UQ_Cliente_Correo").IsUnique();
+
+            entity.Property(e => e.Apellidos).HasMaxLength(80);
+            entity.Property(e => e.Cedula).HasMaxLength(20);
+            entity.Property(e => e.Correo).HasMaxLength(150);
+            entity.Property(e => e.Direccion).HasMaxLength(250);
+            entity.Property(e => e.Estado).HasDefaultValue(true);
+            entity.Property(e => e.FechaRegistro).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.Nombres).HasMaxLength(80);
+            entity.Property(e => e.Observaciones).HasMaxLength(500);
+            entity.Property(e => e.Sexo)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.Telefono).HasMaxLength(20);
         });
 
         OnModelCreatingPartial(modelBuilder);

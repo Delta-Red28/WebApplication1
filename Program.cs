@@ -14,19 +14,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<RestauranteContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
+        builder.Configuration.GetConnectionString(
+            "DefaultConnection"
+        )
     ));
 
 
 // ============================================================
-// SERVICIOS DE LA APLICACIÓN
+// SERVICIOS
 // ============================================================
 
 builder.Services.AddScoped<InventarioService>();
 
 
 // ============================================================
-// AUTENTICACIÓN MEDIANTE COOKIES
+// AUTENTICACIÓN
 // ============================================================
 
 builder.Services.AddAuthentication(
@@ -34,12 +36,13 @@ builder.Services.AddAuthentication(
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/AccessDenied";
 
-        // Duración de la sesión
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.AccessDeniedPath =
+            "/Account/AccessDenied";
 
-        // Renueva la sesión mientras el usuario esté activo
+        options.ExpireTimeSpan =
+            TimeSpan.FromHours(8);
+
         options.SlidingExpiration = true;
     });
 
@@ -62,12 +65,46 @@ var app = builder.Build();
 
 
 // ============================================================
-// CONFIGURACIÓN DEL PIPELINE
+// PRUEBA SEEDDATA
+// ============================================================
+
+Console.WriteLine("");
+Console.WriteLine("########################################");
+Console.WriteLine("VOY A EJECUTAR SEEDDATA");
+Console.WriteLine("########################################");
+Console.WriteLine("");
+
+try
+{
+    await SeedData.InicializarAsync(app.Services);
+
+    Console.WriteLine("");
+    Console.WriteLine("########################################");
+    Console.WriteLine("SEEDDATA TERMINÓ CORRECTAMENTE");
+    Console.WriteLine("########################################");
+    Console.WriteLine("");
+}
+catch (Exception ex)
+{
+    Console.WriteLine("");
+    Console.WriteLine("########################################");
+    Console.WriteLine("ERROR EN SEEDDATA");
+    Console.WriteLine("########################################");
+    Console.WriteLine(ex.ToString());
+    Console.WriteLine("");
+
+    throw;
+}
+
+
+// ============================================================
+// PIPELINE
 // ============================================================
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+
     app.UseHsts();
 }
 
@@ -86,32 +123,13 @@ app.UseAuthentication();
 // ============================================================
 // CONTROL DE ESTADO DEL USUARIO
 // ============================================================
-//
-// Este middleware verifica:
-//
-// 1. Si el usuario está desactivado.
-//    -> Se cierra su sesión y vuelve al Login.
-//
-// 2. Si el usuario debe cambiar su contraseña.
-//    -> Solo podrá acceder a:
-//       - Login
-//       - CambiarPassword
-//       - Logout
-//       - AccessDenied
-//
-// Esto evita que un usuario desactivado pueda continuar
-// utilizando el sistema con una sesión que ya estaba abierta.
-// ============================================================
 
 app.Use(async (context, next) =>
 {
     if (context.User.Identity?.IsAuthenticated == true)
     {
-        var path = context.Request.Path.Value ?? string.Empty;
-
-        // =====================================================
-        // RUTAS QUE NO DEBEN SER BLOQUEADAS
-        // =====================================================
+        var path =
+            context.Request.Path.Value ?? string.Empty;
 
         bool esAccountPermitido =
             path.Equals(
@@ -137,67 +155,59 @@ app.Use(async (context, next) =>
                 StringComparison.OrdinalIgnoreCase);
 
 
-        // =====================================================
-        // OBTENER ID DEL USUARIO AUTENTICADO
-        // =====================================================
-
         var idUsuarioClaim =
             context.User.FindFirstValue(
                 ClaimTypes.NameIdentifier
             );
 
 
-        if (int.TryParse(idUsuarioClaim, out int idUsuario))
+        if (int.TryParse(
+            idUsuarioClaim,
+            out int idUsuario))
         {
             var dbContext =
                 context.RequestServices
-                    .GetRequiredService<RestauranteContext>();
+                    .GetRequiredService<
+                        RestauranteContext
+                    >();
 
 
-            // =================================================
-            // CONSULTAR ESTADO DEL USUARIO
-            // =================================================
+            var usuario =
+                await dbContext.Usuarios
+                    .AsNoTracking()
+                    .Where(
+                        u => u.IdUsuario == idUsuario
+                    )
+                    .Select(
+                        u => new
+                        {
+                            u.Estado,
+                            u.DebeCambiarPassword
+                        }
+                    )
+                    .FirstOrDefaultAsync();
 
-            var usuario = await dbContext.Usuarios
-                .AsNoTracking()
-                .Where(u => u.IdUsuario == idUsuario)
-                .Select(u => new
-                {
-                    u.Estado,
-                    u.DebeCambiarPassword
-                })
-                .FirstOrDefaultAsync();
-
-
-            // =================================================
-            // USUARIO NO EXISTE
-            // =================================================
 
             if (usuario == null)
             {
                 await context.SignOutAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme
+                    CookieAuthenticationDefaults
+                        .AuthenticationScheme
                 );
 
-                context.Response.Redirect("/Account/Login");
+                context.Response.Redirect(
+                    "/Account/Login"
+                );
 
                 return;
             }
 
 
-            // =================================================
-            // USUARIO DESACTIVADO
-            // =================================================
-            //
-            // Si el administrador o gerente desactiva al usuario
-            // mientras este tiene una sesión abierta, la próxima
-            // petición cerrará automáticamente su sesión.
-            // =================================================
-
             if (!usuario.Estado)
             {
                 await context.SignOutAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme
+                    CookieAuthenticationDefaults
+                        .AuthenticationScheme
                 );
 
                 context.Response.Redirect(
@@ -207,10 +217,6 @@ app.Use(async (context, next) =>
                 return;
             }
 
-
-            // =================================================
-            // USUARIO DEBE CAMBIAR CONTRASEÑA
-            // =================================================
 
             if (!esAccountPermitido &&
                 usuario.DebeCambiarPassword)
@@ -248,15 +254,10 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}")
-    .WithStaticAssets();
-
-
-// ============================================================
-// INICIALIZAR DATOS NECESARIOS
-// ============================================================
-
-await SeedData.InicializarAsync(app.Services);
+    pattern:
+        "{controller=Account}/{action=Login}/{id?}"
+)
+.WithStaticAssets();
 
 
 // ============================================================
