@@ -5,311 +5,518 @@
 <style>
 
     /* =====================================================
-       TARJETA DE SEGURIDAD
-    ====================================================== */
+           CONTENEDOR PRINCIPAL
+        ====================================================== */
 
     .security-card {
         overflow: hidden;
-
+        width: 100%;
+        max-width: 100%;
         margin-top: 25px;
-
         border: 1px solid #eee5dc;
-
         border-radius: 18px;
-
         background: #fffdf9;
-
-        box-shadow:
-            0 7px 24px rgba(53, 35, 31, 0.07);
+        box-shadow: 0 7px 24px rgba(53, 35, 31, 0.07);
+        box-sizing: border-box;
     }
 
 
     /* =====================================================
-       CABECERA
-    ====================================================== */
+           CABECERA
+        ====================================================== */
 
     .security-card-header {
         padding: 24px 28px 20px;
-
         border-bottom: 1px solid #f0e8e1;
-
         background: #fffdf9;
+        box-sizing: border-box;
     }
 
 
     .security-header-content {
         display: flex;
-
         align-items: center;
-
         gap: 12px;
+        width: 100%;
+        min-width: 0;
     }
 
 
     .security-icon {
         width: 42px;
         height: 42px;
-
         display: flex;
-
         align-items: center;
         justify-content: center;
-
         flex-shrink: 0;
-
         border-radius: 12px;
-
         background: #f7e8e5;
-
         color: #8f2923;
-
         font-size: 19px;
     }
 
 
     .security-card-header h5 {
         margin: 0;
-
         color: #392622;
-
         font-size: 20px;
-
         font-weight: 700;
+        line-height: 1.3;
     }
 
 
     .security-card-header p {
         margin: 4px 0 0;
-
         color: #958680;
-
         font-size: 14px;
-
         line-height: 1.5;
+        overflow-wrap: break-word;
     }
 
 
     /* =====================================================
-       CUERPO
-    ====================================================== */
+           CUERPO
+        ====================================================== */
 
     .security-card-body {
+        width: 100%;
         padding: 25px 28px;
+        box-sizing: border-box;
     }
 
 
     /* =====================================================
-       BLOQUE CONTRASEÑA
-    ====================================================== */
+           BLOQUE CONTRASEÑA
+        ====================================================== */
 
     .password-security-box {
         display: flex;
-
         align-items: center;
-
         justify-content: space-between;
-
         gap: 25px;
-
+        width: 100%;
+        max-width: 100%;
         padding: 20px;
-
         border: 1px solid #eee3da;
-
         border-radius: 14px;
-
-        background:
-            linear-gradient(
-                135deg,
-                #fffaf4 0%,
-                #fffdf9 100%
-            );
+        background: linear-gradient( 135deg, #fffaf4 0%, #fffdf9 100% );
+        box-sizing: border-box;
     }
 
 
+    /* =====================================================
+           INFORMACIÓN DE CONTRASEÑA
+        ====================================================== */
+
     .password-security-info {
         display: flex;
-
         align-items: center;
-
         gap: 15px;
-
         min-width: 0;
+        flex: 1 1 auto;
+        max-width: 100%;
     }
 
 
     .password-icon {
         width: 48px;
         height: 48px;
-
         display: flex;
-
         align-items: center;
         justify-content: center;
-
         flex-shrink: 0;
-
         border-radius: 13px;
-
         background: #f5e6c9;
-
         color: #9b6b2f;
-
         font-size: 20px;
+    }
+
+
+    .password-security-info > div:last-child {
+        min-width: 0;
+        max-width: 100%;
     }
 
 
     .password-security-info h6 {
         margin: 0 0 5px;
-
         color: #44312c;
-
         font-size: 16px;
-
         font-weight: 700;
+        line-height: 1.3;
     }
 
 
     .password-security-info p {
         margin: 0;
-
         color: #8f817b;
-
         font-size: 13px;
-
         line-height: 1.5;
+        overflow-wrap: break-word;
     }
 
 
     /* =====================================================
-       INDICADOR DE SEGURIDAD
-    ====================================================== */
+           INDICADOR DE SEGURIDAD
+        ====================================================== */
 
     .security-status {
         display: inline-flex;
-
         align-items: center;
-
         gap: 6px;
-
         margin-top: 8px;
-
         color: #6e625d;
-
         font-size: 11px;
-
         font-weight: 600;
+        max-width: 100%;
     }
 
 
     .security-status-dot {
         width: 7px;
         height: 7px;
-
+        flex-shrink: 0;
         border-radius: 50%;
-
         background: #43a47f;
-
-        box-shadow:
-            0 0 0 3px rgba(67, 164, 127, 0.10);
+        box-shadow: 0 0 0 3px rgba(67, 164, 127, 0.10);
     }
 
 
     /* =====================================================
-       BOTÓN
-    ====================================================== */
+           BOTÓN
+        ====================================================== */
 
     .security-password-btn {
         display: inline-flex;
-
         align-items: center;
-
         justify-content: center;
-
-        flex-shrink: 0;
-
+        flex: 0 0 auto;
         min-height: 46px;
-
+        max-width: 100%;
         padding: 10px 18px;
-
         border: 1px solid #8f2923;
-
         border-radius: 11px;
-
         background: #8f2923;
-
         color: #ffffff;
-
         font-size: 13px;
-
         font-weight: 700;
-
         text-decoration: none;
-
-        box-shadow:
-            0 5px 14px rgba(143, 41, 35, 0.18);
-
-        transition:
-            background-color 0.2s ease,
-            border-color 0.2s ease,
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
+        text-align: center;
+        white-space: nowrap;
+        box-sizing: border-box;
+        box-shadow: 0 5px 14px rgba(143, 41, 35, 0.18);
+        transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
 
 
-    .security-password-btn:hover {
-        background: #6f1e1a;
+        .security-password-btn:hover {
+            background: #6f1e1a;
+            border-color: #6f1e1a;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(143, 41, 35, 0.27);
+        }
 
-        border-color: #6f1e1a;
 
-        color: #ffffff;
+        .security-password-btn:active {
+            transform: translateY(0);
+        }
 
-        transform: translateY(-2px);
 
-        box-shadow:
-            0 8px 20px rgba(143, 41, 35, 0.27);
+    /* =====================================================
+           INFORMACIÓN INFERIOR
+        ====================================================== */
+
+    .security-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 17px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: #faf6ef;
+        color: #857770;
+        font-size: 12px;
+        line-height: 1.5;
+        box-sizing: border-box;
+        overflow-wrap: break-word;
     }
 
 
-    .security-password-btn:active {
-        transform: translateY(0);
+        .security-note i {
+            margin-top: 1px;
+            color: #b18435;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+
+    /* =====================================================
+           TABLET
+        ====================================================== */
+
+    @@media (max-width: 991.98px) {
+
+        .security-card-header {
+            padding: 22px 24px 19px;
+        }
+
+
+        .security-card-body {
+            padding: 24px;
+        }
+
+
+        .password-security-box {
+            gap: 18px;
+            padding: 18px;
+        }
+
+
+        .password-security-info {
+            gap: 12px;
+        }
+
+
+        .security-password-btn {
+            padding: 10px 15px;
+        }
     }
 
 
     /* =====================================================
-       INFORMACIÓN INFERIOR
-    ====================================================== */
+           CELULARES
+        ====================================================== */
 
-    .security-note {
-        display: flex;
+    @@media (max-width: 767.98px) {
 
-        align-items: flex-start;
+        .security-card {
+            margin-top: 18px;
+            border-radius: 14px;
+        }
+        /* -----------------------------------------
+               CABECERA
+            ----------------------------------------- */
 
-        gap: 9px;
+        .security-card-header {
+            padding: 18px 16px;
+        }
 
-        margin-top: 17px;
 
-        padding: 12px 14px;
+        .security-header-content {
+            align-items: flex-start;
+            gap: 10px;
+        }
 
-        border-radius: 10px;
 
-        background: #faf6ef;
+        .security-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            font-size: 17px;
+        }
 
-        color: #857770;
 
-        font-size: 12px;
+        .security-card-header h5 {
+            font-size: 17px;
+        }
 
-        line-height: 1.5;
+
+        .security-card-header p {
+            font-size: 12px;
+            line-height: 1.45;
+        }
+        /* -----------------------------------------
+               CUERPO
+            ----------------------------------------- */
+
+        .security-card-body {
+            padding: 18px 16px;
+        }
+        /* -----------------------------------------
+               BLOQUE CONTRASEÑA
+            ----------------------------------------- */
+
+        .password-security-box {
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 12px;
+        }
+        /* -----------------------------------------
+               INFORMACIÓN
+            ----------------------------------------- */
+
+        .password-security-info {
+            width: 100%;
+            gap: 11px;
+            align-items: flex-start;
+        }
+
+
+        .password-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            font-size: 17px;
+        }
+
+
+        .password-security-info h6 {
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+
+
+        .password-security-info p {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+
+        .security-status {
+            margin-top: 7px;
+            font-size: 10px;
+        }
+        /* -----------------------------------------
+               BOTÓN EN CELULAR
+            ----------------------------------------- */
+
+        .security-password-btn {
+            display: flex;
+            width: 100%;
+            max-width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            font-size: 12px;
+            white-space: normal;
+            line-height: 1.3;
+            border-radius: 10px;
+            box-sizing: border-box;
+        }
+
+
+            .security-password-btn i {
+                flex-shrink: 0;
+            }
+        /* -----------------------------------------
+               NOTA
+            ----------------------------------------- */
+
+        .security-note {
+            margin-top: 14px;
+            padding: 11px 12px;
+            gap: 8px;
+            font-size: 11px;
+            line-height: 1.5;
+            border-radius: 9px;
+        }
+
+
+            .security-note i {
+                font-size: 13px;
+            }
     }
 
 
-    .security-note i {
-        margin-top: 1px;
+    /* =====================================================
+           CELULARES PEQUEÑOS
+           320px - 375px
+        ====================================================== */
 
-        color: #b18435;
+    @@media (max-width: 375px) {
 
-        font-size: 14px;
+        .security-card-header {
+            padding: 16px 13px;
+        }
 
-        flex-shrink: 0;
+
+        .security-card-body {
+            padding: 16px 13px;
+        }
+
+
+        .security-icon {
+            width: 35px;
+            height: 35px;
+            font-size: 15px;
+        }
+
+
+        .security-card-header h5 {
+            font-size: 16px;
+        }
+
+
+        .security-card-header p {
+            font-size: 11px;
+        }
+
+
+        .password-security-box {
+            padding: 14px;
+            gap: 14px;
+        }
+
+
+        .password-security-info {
+            gap: 9px;
+        }
+
+
+        .password-icon {
+            width: 38px;
+            height: 38px;
+            font-size: 15px;
+        }
+
+
+        .password-security-info h6 {
+            font-size: 14px;
+        }
+
+
+        .password-security-info p {
+            font-size: 11px;
+        }
+
+
+        .security-status {
+            font-size: 9px;
+        }
+
+
+        .security-password-btn {
+            min-height: 43px;
+            padding: 9px 10px;
+            font-size: 11px;
+        }
+
+
+        .security-note {
+            padding: 10px;
+            font-size: 10px;
+        }
+    }
+
+
+    /* =====================================================
+           PROTECCIÓN CONTRA DESBORDAMIENTO
+        ====================================================== */
+
+    .security-card *,
+    .security-card *::before,
+    .security-card *::after {
+        box-sizing: border-box;
+    }
+
+
+    .security-card a {
+        max-width: 100%;
     }
 
 </style>

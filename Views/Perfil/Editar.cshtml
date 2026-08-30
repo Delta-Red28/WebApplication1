@@ -19,6 +19,9 @@
 
     .profile-page {
         color: #332522;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
     }
 
 
@@ -92,6 +95,8 @@
         position: relative;
 
         z-index: 2;
+
+        max-width: 100%;
     }
 
 
@@ -140,6 +145,8 @@
         font-size: 14px;
 
         line-height: 1.6;
+
+        max-width: 700px;
     }
 
 
@@ -165,6 +172,8 @@
 
     .profile-card {
         overflow: hidden;
+
+        width: 100%;
 
         border: 1px solid #eee5dc;
 
@@ -196,6 +205,8 @@
         align-items: center;
 
         gap: 12px;
+
+        min-width: 0;
     }
 
 
@@ -269,6 +280,10 @@
 
 
     .profile-input-group {
+        display: flex;
+
+        width: 100%;
+
         overflow: hidden;
 
         border: 1px solid #e4d9d0;
@@ -294,7 +309,12 @@
     .profile-input-group .input-group-text {
         min-width: 45px;
 
+        display: flex;
+
+        align-items: center;
         justify-content: center;
+
+        flex-shrink: 0;
 
         border: none;
 
@@ -307,6 +327,9 @@
 
 
     .profile-input {
+        width: 100%;
+        min-width: 0;
+
         height: 48px;
 
         border: none !important;
@@ -332,6 +355,9 @@
 
 
     .profile-input-plain {
+        width: 100%;
+        min-width: 0;
+
         height: 48px;
 
         border: 1px solid #e4d9d0;
@@ -370,6 +396,8 @@
         color: #a52a24;
 
         font-size: 12px;
+
+        word-break: break-word;
     }
 
 
@@ -394,6 +422,8 @@
         gap: 10px;
 
         margin-bottom: 18px;
+
+        min-width: 0;
     }
 
 
@@ -405,6 +435,8 @@
 
         align-items: center;
         justify-content: center;
+
+        flex-shrink: 0;
 
         border-radius: 10px;
 
@@ -433,6 +465,8 @@
         color: #9a8c86;
 
         font-size: 12px;
+
+        line-height: 1.5;
     }
 
 
@@ -441,6 +475,9 @@
     ========================================================= */
 
     .readonly-field {
+        width: 100%;
+        min-width: 0;
+
         height: 48px;
 
         border: 1px solid #e8e1db;
@@ -454,6 +491,8 @@
         font-size: 14px;
 
         box-shadow: none !important;
+
+        text-overflow: ellipsis;
     }
 
 
@@ -512,6 +551,8 @@
         width: 7px;
         height: 7px;
 
+        flex-shrink: 0;
+
         border-radius: 50%;
 
         background: #43a47f;
@@ -547,6 +588,8 @@
         color: #84251f;
 
         font-size: 13px;
+
+        overflow-wrap: break-word;
     }
 
 
@@ -576,9 +619,26 @@
     }
 
 
-    .profile-btn-cancel {
+    .profile-btn-cancel,
+    .profile-btn-save {
         min-height: 46px;
 
+        display: inline-flex;
+
+        align-items: center;
+        justify-content: center;
+
+        white-space: nowrap;
+
+        flex-shrink: 0;
+
+        font-size: 14px;
+
+        font-weight: 600;
+    }
+
+
+    .profile-btn-cancel {
         padding: 10px 18px;
 
         border: 1px solid #e2d9d2;
@@ -588,10 +648,6 @@
         background: #ffffff;
 
         color: #665852;
-
-        font-size: 14px;
-
-        font-weight: 600;
 
         transition:
             background-color 0.2s ease,
@@ -612,8 +668,6 @@
 
 
     .profile-btn-save {
-        min-height: 46px;
-
         padding: 10px 20px;
 
         border: none;
@@ -623,10 +677,6 @@
         background: #8f2923;
 
         color: #ffffff;
-
-        font-size: 14px;
-
-        font-weight: 700;
 
         box-shadow:
             0 5px 14px rgba(143, 41, 35, 0.20);
@@ -675,6 +725,8 @@
         font-size: 10px;
 
         letter-spacing: 2px;
+
+        text-align: center;
     }
 
 
@@ -685,8 +737,417 @@
         width: 35px;
         height: 1px;
 
+        flex-shrink: 0;
+
         background: #e5d6be;
     }
+
+
+    /* =========================================================
+       TABLETS
+    ========================================================= */
+
+    @@media (max-width: 991.98px) {
+
+        .profile-header {
+            padding: 25px 24px;
+        }
+
+
+        .profile-card-body {
+            padding: 24px;
+        }
+
+
+        .profile-card-header {
+            padding: 22px 24px 19px;
+        }
+
+
+        .profile-header-decoration {
+            right: 20px;
+            font-size: 65px;
+        }
+
+    }
+
+
+    /* =========================================================
+       CELULARES
+    ========================================================= */
+
+    @@media (max-width: 767.98px) {
+
+        /* -----------------------------------------
+           CONTENEDOR
+        ----------------------------------------- */
+
+        .profile-page {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+
+        /* -----------------------------------------
+           ENCABEZADO
+        ----------------------------------------- */
+
+        .profile-header {
+            padding: 22px 18px;
+
+            margin-bottom: 18px;
+
+            border-radius: 14px;
+        }
+
+
+        .profile-header-icon {
+            width: 46px;
+            height: 46px;
+
+            margin-bottom: 11px;
+
+            border-radius: 12px;
+
+            font-size: 20px;
+        }
+
+
+        .profile-header h2 {
+            font-size: 23px;
+
+            line-height: 1.25;
+        }
+
+
+        .profile-header p {
+            font-size: 13px;
+
+            line-height: 1.5;
+
+            padding-right: 10px;
+        }
+
+
+        .profile-header-decoration {
+            display: none;
+        }
+
+
+        /* -----------------------------------------
+           TARJETA
+        ----------------------------------------- */
+
+        .profile-card {
+            border-radius: 14px;
+        }
+
+
+        .profile-card-header {
+            padding: 18px 16px;
+        }
+
+
+        .profile-section-title {
+            align-items: flex-start;
+
+            gap: 10px;
+        }
+
+
+        .profile-section-icon {
+            width: 38px;
+            height: 38px;
+
+            border-radius: 10px;
+
+            font-size: 17px;
+        }
+
+
+        .profile-card-header h5 {
+            font-size: 17px;
+
+            line-height: 1.3;
+        }
+
+
+        .profile-card-header p {
+            font-size: 12px;
+
+            line-height: 1.5;
+        }
+
+
+        /* -----------------------------------------
+           CUERPO
+        ----------------------------------------- */
+
+        .profile-card-body {
+            padding: 18px 16px;
+        }
+
+
+        /* -----------------------------------------
+           CAMPOS
+        ----------------------------------------- */
+
+        .profile-form-label {
+            margin-bottom: 7px;
+
+            font-size: 13px;
+        }
+
+
+        .profile-input,
+        .profile-input-plain,
+        .readonly-field {
+            height: 45px;
+
+            font-size: 13px;
+        }
+
+
+        .profile-input-group .input-group-text {
+            min-width: 42px;
+
+            font-size: 14px;
+        }
+
+
+        .profile-input-group {
+            border-radius: 10px;
+        }
+
+
+        .profile-input-plain,
+        .readonly-field {
+            border-radius: 10px;
+        }
+
+
+        /* -----------------------------------------
+           SECCIÓN PROTEGIDA
+        ----------------------------------------- */
+
+        .protected-section {
+            margin-top: 24px;
+
+            padding-top: 20px;
+        }
+
+
+        .protected-title {
+            align-items: flex-start;
+
+            gap: 9px;
+
+            margin-bottom: 15px;
+        }
+
+
+        .protected-title-icon {
+            width: 34px;
+            height: 34px;
+
+            border-radius: 9px;
+
+            font-size: 14px;
+        }
+
+
+        .protected-title h6 {
+            font-size: 14px;
+
+            line-height: 1.35;
+        }
+
+
+        .protected-title p {
+            font-size: 11px;
+
+            line-height: 1.45;
+        }
+
+
+        .readonly-help {
+            font-size: 10px;
+
+            line-height: 1.45;
+        }
+
+
+        /* -----------------------------------------
+           ESTADO
+        ----------------------------------------- */
+
+        .account-status {
+            font-size: 11px;
+
+            padding: 6px 10px;
+        }
+
+
+        /* -----------------------------------------
+           BOTONES
+        ----------------------------------------- */
+
+        .profile-actions {
+            flex-direction: column;
+
+            align-items: stretch;
+
+            gap: 9px;
+
+            margin-top: 24px;
+
+            padding-top: 20px;
+        }
+
+
+        .profile-btn-cancel,
+        .profile-btn-save {
+            width: 100%;
+
+            min-height: 45px;
+
+            padding: 10px 14px;
+
+            font-size: 13px;
+
+            box-sizing: border-box;
+        }
+
+
+        /* -----------------------------------------
+           DECORACIÓN
+        ----------------------------------------- */
+
+        .profile-footer-decoration {
+            margin-top: 17px;
+
+            font-size: 9px;
+
+            letter-spacing: 1.5px;
+        }
+
+
+        .profile-footer-decoration::before,
+        .profile-footer-decoration::after {
+            width: 25px;
+        }
+
+    }
+
+
+    /* =========================================================
+       CELULARES PEQUEÑOS
+       Ej: 320px - 375px
+    ========================================================= */
+
+    @@media (max-width: 375px) {
+
+        .profile-page {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+
+        .profile-header {
+            padding: 20px 15px;
+
+            border-radius: 12px;
+        }
+
+
+        .profile-header h2 {
+            font-size: 21px;
+        }
+
+
+        .profile-header p {
+            font-size: 12px;
+        }
+
+
+        .profile-card-header {
+            padding: 16px 13px;
+        }
+
+
+        .profile-card-body {
+            padding: 16px 13px;
+        }
+
+
+        .profile-section-icon {
+            width: 35px;
+            height: 35px;
+
+            font-size: 15px;
+        }
+
+
+        .profile-card-header h5 {
+            font-size: 16px;
+        }
+
+
+        .profile-card-header p {
+            font-size: 11px;
+        }
+
+
+        .protected-title-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+
+        .protected-title h6 {
+            font-size: 13px;
+        }
+
+
+        .profile-input,
+        .profile-input-plain,
+        .readonly-field {
+            font-size: 12px;
+        }
+
+
+        .profile-footer-decoration {
+            gap: 6px;
+
+            font-size: 8px;
+        }
+
+
+        .profile-footer-decoration::before,
+        .profile-footer-decoration::after {
+            width: 20px;
+        }
+
+    }
+
+
+    /* =========================================================
+       EVITAR DESBORDAMIENTOS
+    ========================================================= */
+
+    .profile-page *,
+    .profile-page *::before,
+    .profile-page *::after {
+        box-sizing: border-box;
+    }
+
+
+    .profile-page input,
+    .profile-page button,
+    .profile-page a {
+        max-width: 100%;
+    }
+
 
 </style>
 

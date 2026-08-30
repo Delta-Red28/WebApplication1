@@ -2,15 +2,23 @@
     Layout = null;
     ViewData["Title"] = "Iniciar Sesión";
 
-    var errorGeneral = "";
+    string errorGeneral = "";
 
-    if (ViewData.ModelState.ContainsKey(""))
+    if (ViewData.ModelState.TryGetValue("", out var erroresGenerales))
     {
-        var erroresGenerales = ViewData.ModelState[""];
-
         if (erroresGenerales != null && erroresGenerales.Errors.Count > 0)
         {
             errorGeneral = erroresGenerales.Errors[0].ErrorMessage;
+        }
+    }
+
+    string usuarioActual = "";
+
+    if (ViewData.ModelState.TryGetValue("usuario", out var usuarioState))
+    {
+        if (usuarioState != null)
+        {
+            usuarioActual = usuarioState.AttemptedValue ?? "";
         }
     }
 }
@@ -23,7 +31,7 @@
     <meta charset="utf-8" />
 
     <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
+          content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <title>Iniciar Sesión - Restaurante</title>
 
@@ -47,1209 +55,658 @@
     <style>
 
         /* =====================================================
-           GENERAL
+           RESET
         ====================================================== */
 
-        .login-page,
-        .login-page * {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
         }
 
 
-        /* =====================================================
-           PÁGINA
-        ====================================================== */
-
-        .login-page {
-            min-height: 100vh;
-            min-height: 100svh;
-
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
             margin: 0;
-            padding: 30px 20px;
+            padding: 0;
+        }
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
 
-            position: relative;
-
-            overflow: hidden;
-
+        body {
             font-family:
                 "Segoe UI",
                 Arial,
                 Helvetica,
                 sans-serif;
 
+            background: #f4f5f7;
+
+            overflow-x: hidden;
+        }
+
+
+        /* =====================================================
+           PÁGINA PRINCIPAL
+        ====================================================== */
+
+        .login-page {
+
+            width: 100%;
+
+            min-height: 100vh;
+            min-height: 100svh;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px;
+
+            position: relative;
+
             background:
                 linear-gradient(
                     135deg,
-                    rgba(34, 12, 9, 0.96),
-                    rgba(103, 31, 27, 0.94)
-                ),
-                url("https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1920&q=80");
-
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+                    #eceff3 0%,
+                    #f8f8f8 50%,
+                    #e9ecef 100%
+                );
 
             opacity: 0;
 
             transition:
-                opacity 0.8s ease;
+                opacity .7s ease;
         }
 
 
-        .login-page.page-visible {
+        .login-page.visible {
             opacity: 1;
         }
 
 
         /* =====================================================
-           LUCES DECORATIVAS DEL FONDO
+           DECORACIÓN DEL FONDO
         ====================================================== */
 
-        .background-light-one {
+        .background-circle {
+
             position: fixed;
 
-            width: 520px;
-            height: 520px;
-
-            top: -270px;
-            right: -210px;
+            width: 500px;
+            height: 500px;
 
             border-radius: 50%;
 
-            background:
-                rgba(217, 164, 65, 0.08);
-
             pointer-events: none;
 
-            opacity: 0;
+            opacity: .45;
 
-            transform:
-                scale(0.5);
-
-            transition:
-                opacity 1.4s ease 0.2s,
-                transform 1.8s
-                cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+            filter: blur(2px);
         }
 
 
-        .page-visible .background-light-one {
-            opacity: 1;
+        .background-circle.one {
 
-            transform:
-                scale(1);
-        }
-
-
-        .background-light-two {
-            position: fixed;
-
-            width: 430px;
-            height: 430px;
-
-            bottom: -260px;
-            left: -210px;
-
-            border-radius: 50%;
+            top: -300px;
+            right: -180px;
 
             background:
-                rgba(255, 255, 255, 0.035);
-
-            pointer-events: none;
-
-            opacity: 0;
-
-            transform:
-                scale(0.5);
-
-            transition:
-                opacity 1.5s ease 0.35s,
-                transform 1.8s
-                cubic-bezier(0.22, 1, 0.36, 1) 0.35s;
+                rgba(100, 100, 100, .06);
         }
 
 
-        .page-visible .background-light-two {
-            opacity: 1;
+        .background-circle.two {
 
-            transform:
-                scale(1);
+            bottom: -320px;
+            left: -200px;
+
+            background:
+                rgba(0, 0, 0, .035);
         }
 
 
         /* =====================================================
-           CONTENEDOR
+           CONTENEDOR PRINCIPAL
         ====================================================== */
 
-        .login-container {
+        .login-wrapper {
+
             width: 100%;
-            max-width: 455px;
+
+            max-width: 1050px;
+
+            min-height: 620px;
 
             position: relative;
 
             z-index: 5;
-        }
 
+            display: grid;
 
-        /* =====================================================
-           TARJETA
-        ====================================================== */
-
-        .login-card {
-            width: 100%;
+            grid-template-columns:
+                48% 52%;
 
             overflow: hidden;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 26px;
 
-            border-radius:
-                26px;
-
-            background:
-                #fffdf9;
+            background: #ffffff;
 
             box-shadow:
-                0 35px 90px rgba(0, 0, 0, 0.45),
-                0 15px 35px rgba(0, 0, 0, 0.22);
+                0 30px 80px rgba(0, 0, 0, .16),
+                0 10px 30px rgba(0, 0, 0, .08);
 
             opacity: 0;
 
             transform:
-                translateY(70px)
-                scale(0.88);
-
-            filter:
-                blur(4px);
+                translateY(45px)
+                scale(.96);
 
             transition:
-                opacity 0.8s ease,
+                opacity .8s ease,
                 transform 1s
-                cubic-bezier(0.16, 1, 0.3, 1),
-                filter 0.8s ease;
+                cubic-bezier(.16, 1, .3, 1);
         }
 
 
-        .login-card.show {
+        .login-wrapper.show {
+
             opacity: 1;
 
             transform:
                 translateY(0)
                 scale(1);
-
-            filter:
-                blur(0);
         }
 
 
         /* =====================================================
-           SALIDA AL INICIAR SESIÓN
+           PANEL IZQUIERDO
         ====================================================== */
 
-        .login-card.login-exiting {
-            opacity: 0.25;
+        .login-brand {
 
-            transform:
-                translateY(-12px)
-                scale(0.98);
-
-            filter:
-                blur(1px);
-
-            transition:
-                opacity 0.35s ease,
-                transform 0.45s ease,
-                filter 0.35s ease;
-        }
-
-
-        /* =====================================================
-           HEADER
-        ====================================================== */
-
-        .login-header {
-            position: relative;
+            min-height: 620px;
 
             padding:
-                28px 30px 42px;
+                55px 50px;
 
-            text-align:
-                center;
+            position: relative;
 
-            color:
-                white;
+            overflow: hidden;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    #76261f,
-                    #4b1512
-                );
+            display: flex;
 
-            overflow:
-                hidden;
-        }
+            flex-direction: column;
 
+            justify-content: center;
 
-        /* =====================================================
-           BRILLO DEL HEADER
-        ====================================================== */
+            align-items: center;
 
-        .header-shine {
-            position:
-                absolute;
+            text-align: center;
 
-            top:
-                0;
-
-            left:
-                -120%;
-
-            width:
-                65%;
-
-            height:
-                100%;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    transparent,
-                    rgba(255, 255, 255, 0.10),
-                    transparent
-                );
-
-            transform:
-                skewX(-20deg);
-
-            transition:
-                left 1.2s ease;
-        }
-
-
-        .login-card.show .header-shine {
-            left:
-                150%;
-
-            transition-delay:
-                0.7s;
-        }
-
-
-        /* =====================================================
-           LÍNEA DORADA
-        ====================================================== */
-
-        .login-header-line {
-            position:
-                absolute;
-
-            left:
-                50%;
-
-            bottom:
-                0;
-
-            width:
-                85px;
-
-            height:
-                4px;
-
-            border-radius:
-                20px;
-
-            background:
-                #d9a441;
-
-            transform:
-                translateX(-50%)
-                scaleX(0);
-
-            transition:
-                transform 0.7s
-                cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-
-        .login-card.show .login-header-line {
-            transform:
-                translateX(-50%)
-                scaleX(1);
-
-            transition-delay:
-                1.1s;
-        }
-
-
-        /* =====================================================
-           ESCENA DE COCINA
-        ====================================================== */
-
-        .kitchen-scene {
-            width:
-                180px;
-
-            height:
-                138px;
-
-            margin:
-                0 auto 0;
-
-            position:
-                relative;
-        }
-
-
-        /* =====================================================
-           CAMPANA DE COCINA
-        ====================================================== */
-
-        .kitchen-hood {
-            position:
-                absolute;
-
-            left:
-                38px;
-
-            top:
-                28px;
-
-            width:
-                104px;
-
-            height:
-                54px;
-
-            border-radius:
-                18px 18px 8px 8px;
+            color: #ffffff;
 
             background:
                 linear-gradient(
                     145deg,
-                    #e7d9c2,
-                    #b7a993
+                    #76261f 0%,
+                    #4b1512 100%
                 );
-
-            border:
-                3px solid
-                rgba(255, 255, 255, 0.28);
-
-            box-shadow:
-                0 12px 22px
-                rgba(0, 0, 0, 0.24);
-
-            opacity:
-                0;
-
-            transform:
-                translateY(-40px)
-                scale(0.7);
-
-            transition:
-                opacity 0.45s ease 0.35s,
-                transform 0.8s
-                cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.35s;
-        }
-
-
-        .login-card.show .kitchen-hood {
-            opacity:
-                1;
-
-            transform:
-                translateY(0)
-                scale(1);
         }
 
 
         /* =====================================================
-           DETALLE DE LA CAMPANA
+           DECORACIÓN PANEL
         ====================================================== */
 
-        .hood-top {
-            position:
-                absolute;
+        .brand-circle {
 
-            top:
-                -10px;
+            position: absolute;
 
-            left:
-                48px;
+            border-radius: 50%;
 
-            width:
-                12px;
-
-            height:
-                13px;
-
-            background:
-                #c2b49f;
-
-            border-radius:
-                3px 3px 0 0;
-        }
-
-
-        .hood-light {
-            position:
-                absolute;
-
-            left:
-                20px;
-
-            right:
-                20px;
-
-            bottom:
-                8px;
-
-            height:
-                7px;
-
-            border-radius:
-                10px;
-
-            background:
-                #f2c95c;
-
-            box-shadow:
-                0 0 14px
-                rgba(242, 201, 92, 0.85);
-
-            opacity:
-                0;
-
-            transition:
-                opacity 0.5s ease 1s;
-        }
-
-
-        .login-card.show .hood-light {
-            opacity:
-                1;
-        }
-
-
-        /* =====================================================
-           ESTUFA
-        ====================================================== */
-
-        .stove {
-            position:
-                absolute;
-
-            left:
-                43px;
-
-            bottom:
-                17px;
-
-            width:
-                94px;
-
-            height:
-                15px;
-
-            border-radius:
-                5px;
-
-            background:
-                #302b28;
-
-            box-shadow:
-                0 7px 12px
-                rgba(0, 0, 0, 0.25);
-
-            opacity:
-                0;
-
-            transform:
-                scaleX(0.2);
-
-            transition:
-                opacity 0.45s ease 0.65s,
-                transform 0.65s
-                cubic-bezier(0.22, 1, 0.36, 1) 0.65s;
-        }
-
-
-        .login-card.show .stove {
-            opacity:
-                1;
-
-            transform:
-                scaleX(1);
-        }
-
-
-        /* =====================================================
-           SARTÉN
-        ====================================================== */
-
-        .pan {
-            position:
-                absolute;
-
-            left:
-                63px;
-
-            bottom:
-                30px;
-
-            width:
-                58px;
-
-            height:
-                18px;
-
-            border-radius:
-                50%;
-
-            background:
-                #292522;
-
-            border:
-                2px solid
-                #45403a;
-
-            opacity:
-                0;
-
-            transform:
-                translateY(20px)
-                scale(0.7);
-
-            transition:
-                opacity 0.4s ease 0.8s,
-                transform 0.7s
-                cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.8s;
-        }
-
-
-        .login-card.show .pan {
-            opacity:
-                1;
-
-            transform:
-                translateY(0)
-                scale(1);
-        }
-
-
-        .pan-handle {
-            position:
-                absolute;
-
-            top:
-                6px;
-
-            right:
-                -34px;
-
-            width:
-                38px;
-
-            height:
-                7px;
-
-            border-radius:
-                10px;
-
-            background:
-                #292522;
-
-            transform:
-                rotate(-4deg);
-        }
-
-
-        /* =====================================================
-           FUEGO DE LA ESTUFA
-        ====================================================== */
-
-        .fire {
-            position:
-                absolute;
-
-            left:
-                77px;
-
-            bottom:
-                43px;
-
-            width:
-                30px;
-
-            height:
-                28px;
-
-            opacity:
-                0;
-
-            transform:
-                translateY(10px)
-                scale(0.5);
-
-            transition:
-                opacity 0.5s ease 1s,
-                transform 0.6s
-                cubic-bezier(0.22, 1, 0.36, 1) 1s;
-        }
-
-
-        .login-card.show .fire {
-            opacity:
-                1;
-
-            transform:
-                translateY(0)
-                scale(1);
-        }
-
-
-        .fire::before {
-            content:
-                "";
-
-            position:
-                absolute;
-
-            left:
-                8px;
-
-            bottom:
-                0;
-
-            width:
-                17px;
-
-            height:
-                25px;
-
-            background:
-                #e65b2d;
-
-            border-radius:
-                60% 40% 60% 40%;
-
-            transform:
-                rotate(10deg);
-        }
-
-
-        .fire::after {
-            content:
-                "";
-
-            position:
-                absolute;
-
-            left:
-                12px;
-
-            bottom:
-                0;
-
-            width:
-                9px;
-
-            height:
-                17px;
-
-            background:
-                #ffd35a;
-
-            border-radius:
-                60% 40% 60% 40%;
-        }
-
-
-        /* =====================================================
-           PLATO
-        ====================================================== */
-
-        .plate {
-            position:
-                absolute;
-
-            right:
-                10px;
-
-            bottom:
-                15px;
-
-            width:
-                43px;
-
-            height:
-                43px;
-
-            border:
-                3px solid
-                rgba(255, 255, 255, 0.65);
-
-            border-radius:
-                50%;
-
-            opacity:
-                0;
-
-            transform:
-                translateX(25px)
-                rotate(30deg);
-
-            transition:
-                opacity 0.5s ease 1s,
-                transform 0.7s
-                cubic-bezier(0.22, 1, 0.36, 1) 1s;
-        }
-
-
-        .login-card.show .plate {
-            opacity:
-                0.8;
-
-            transform:
-                translateX(0)
-                rotate(0);
-        }
-
-
-        .plate::after {
-            content:
-                "";
-
-            position:
-                absolute;
-
-            left:
-                7px;
-
-            top:
-                7px;
-
-            width:
-                23px;
-
-            height:
-                23px;
+            pointer-events: none;
 
             border:
                 1px solid
-                rgba(255, 255, 255, 0.5);
+                rgba(255,255,255,.08);
+        }
 
-            border-radius:
-                50%;
+
+        .brand-circle.circle-one {
+
+            width: 390px;
+            height: 390px;
+
+            top: -190px;
+            left: -190px;
+
+            background:
+                rgba(255,255,255,.035);
+        }
+
+
+        .brand-circle.circle-two {
+
+            width: 500px;
+            height: 500px;
+
+            bottom: -310px;
+            right: -260px;
+
+            background:
+                rgba(0,0,0,.07);
         }
 
 
         /* =====================================================
-           CUBIERTOS
+           LOGO
         ====================================================== */
 
-        .fork {
-            position:
-                absolute;
+        .brand-logo {
 
-            left:
-                13px;
+            width: 95px;
+            height: 95px;
 
-            bottom:
-                15px;
+            margin-bottom: 28px;
 
-            width:
-                5px;
+            display: flex;
 
-            height:
-                47px;
+            align-items: center;
+            justify-content: center;
 
-            border-radius:
-                4px;
+            position: relative;
 
-            background:
-                #ded1bc;
+            z-index: 2;
 
-            opacity:
-                0;
-
-            transform:
-                translateX(-25px)
-                rotate(-20deg);
-
-            transition:
-                opacity 0.5s ease 1.05s,
-                transform 0.7s
-                cubic-bezier(0.22, 1, 0.36, 1) 1.05s;
-        }
-
-
-        .login-card.show .fork {
-            opacity:
-                0.85;
-
-            transform:
-                translateX(0)
-                rotate(-8deg);
-        }
-
-
-        .knife {
-            position:
-                absolute;
-
-            left:
-                26px;
-
-            bottom:
-                16px;
-
-            width:
-                4px;
-
-            height:
-                46px;
-
-            border-radius:
-                4px;
+            border-radius: 24px;
 
             background:
-                #c9bba6;
+                rgba(255,255,255,.13);
 
-            opacity:
-                0;
+            border:
+                1px solid
+                rgba(255,255,255,.22);
 
-            transform:
-                translateX(-25px)
-                rotate(20deg);
+            box-shadow:
+                0 18px 35px
+                rgba(0,0,0,.18);
 
-            transition:
-                opacity 0.5s ease 1.15s,
-                transform 0.7s
-                cubic-bezier(0.22, 1, 0.36, 1) 1.15s;
-        }
+            backdrop-filter:
+                blur(8px);
 
-
-        .login-card.show .knife {
-            opacity:
-                0.75;
-
-            transform:
-                translateX(0)
-                rotate(8deg);
-        }
-
-
-        /* =====================================================
-           VAPOR
-        ====================================================== */
-
-        .steam {
-            position:
-                absolute;
-
-            width:
-                12px;
-
-            height:
-                45px;
-
-            border-left:
-                3px solid
-                rgba(255, 255, 255, 0.72);
-
-            border-radius:
-                50%;
-
-            opacity:
-                0;
-
-            transform:
-                translateY(25px)
-                scale(0.6);
-
-            transition:
-                opacity 0.7s ease,
-                transform 1.7s ease;
-        }
-
-
-        .steam-one {
-            left:
-                66px;
-
-            top:
-                8px;
-        }
-
-
-        .steam-two {
-            left:
-                84px;
-
-            top:
-                0;
-
-            height:
-                50px;
-
-            transition-delay:
-                0.2s;
-        }
-
-
-        .steam-three {
-            left:
-                102px;
-
-            top:
-                10px;
-
-            height:
-                43px;
-
-            transition-delay:
-                0.4s;
-        }
-
-
-        .login-card.show .steam {
-            opacity:
-                0.65;
+            opacity: 0;
 
             transform:
                 translateY(-20px)
+                scale(.8);
+
+            transition:
+                opacity .6s ease .25s,
+                transform .8s
+                cubic-bezier(.175,.885,.32,1.275) .25s;
+        }
+
+
+        .login-wrapper.show .brand-logo {
+
+            opacity: 1;
+
+            transform:
+                translateY(0)
                 scale(1);
         }
 
 
-        /* =====================================================
-           DESTELLOS
-        ====================================================== */
+        .brand-logo i {
 
-        .spark {
-            position:
-                absolute;
+            font-size: 47px;
 
-            color:
-                #f4d687;
-
-            font-size:
-                17px;
-
-            opacity:
-                0;
-
-            transform:
-                scale(0)
-                rotate(-35deg);
-
-            transition:
-                opacity 0.35s ease,
-                transform 0.5s
-                cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-
-        .spark-one {
-            left:
-                22px;
-
-            top:
-                52px;
-        }
-
-
-        .spark-two {
-            right:
-                20px;
-
-            top:
-                55px;
-
-            font-size:
-                13px;
-        }
-
-
-        .spark-three {
-            left:
-                41px;
-
-            top:
-                18px;
-
-            font-size:
-                11px;
-        }
-
-
-        .login-card.show .spark-one {
-            opacity:
-                1;
-
-            transform:
-                scale(1)
-                rotate(0);
-
-            transition-delay:
-                1.1s;
-        }
-
-
-        .login-card.show .spark-two {
-            opacity:
-                1;
-
-            transform:
-                scale(1)
-                rotate(0);
-
-            transition-delay:
-                1.25s;
-        }
-
-
-        .login-card.show .spark-three {
-            opacity:
-                1;
-
-            transform:
-                scale(1)
-                rotate(0);
-
-            transition-delay:
-                1.4s;
+            color: #ffffff;
         }
 
 
         /* =====================================================
-           TÍTULO
+           TITULO BRAND
         ====================================================== */
 
-        .login-header h2 {
-            margin:
-                0;
+        .brand-title {
 
-            color:
-                white;
+            position: relative;
+
+            z-index: 2;
+
+            margin: 0;
+
+            color: #ffffff;
 
             font-family:
                 Georgia,
                 "Times New Roman",
                 serif;
 
-            font-size:
-                32px;
+            font-size: 40px;
 
-            font-weight:
-                700;
+            font-weight: 700;
 
-            letter-spacing:
-                0.3px;
+            letter-spacing: .3px;
 
-            opacity:
-                0;
+            opacity: 0;
 
             transform:
-                translateY(18px);
+                translateY(20px);
 
             transition:
-                opacity 0.6s ease,
-                transform 0.7s
-                cubic-bezier(0.22, 1, 0.36, 1);
+                opacity .6s ease .45s,
+                transform .7s ease .45s;
         }
 
 
-        .login-card.show .login-header h2 {
-            opacity:
-                1;
+        .login-wrapper.show .brand-title {
+
+            opacity: 1;
 
             transform:
                 translateY(0);
-
-            transition-delay:
-                0.85s;
         }
 
 
-        .login-header p {
+        .brand-subtitle {
+
+            position: relative;
+
+            z-index: 2;
+
             margin:
-                7px 0 0;
+                10px 0 0;
 
             color:
-                #efd9a2;
+                rgba(255,255,255,.78);
 
-            font-size:
-                11px;
+            font-size: 13px;
 
-            font-weight:
-                600;
+            letter-spacing: 2.5px;
 
-            letter-spacing:
-                2px;
+            text-transform: uppercase;
 
-            text-transform:
-                uppercase;
-
-            opacity:
-                0;
-
-            transform:
-                translateY(12px);
-
-            transition:
-                opacity 0.5s ease,
-                transform 0.6s ease;
-        }
-
-
-        .login-card.show .login-header p {
-            opacity:
-                1;
-
-            transform:
-                translateY(0);
-
-            transition-delay:
-                1s;
-        }
-
-
-        /* =====================================================
-           BODY
-        ====================================================== */
-
-        .login-body {
-            padding:
-                34px 40px 35px;
-
-            opacity:
-                0;
+            opacity: 0;
 
             transform:
                 translateY(15px);
 
             transition:
-                opacity 0.7s ease,
-                transform 0.7s
-                cubic-bezier(0.22, 1, 0.36, 1);
+                opacity .6s ease .6s,
+                transform .7s ease .6s;
         }
 
 
-        .login-card.show .login-body {
-            opacity:
-                1;
+        .login-wrapper.show .brand-subtitle {
+
+            opacity: 1;
 
             transform:
                 translateY(0);
+        }
 
-            transition-delay:
-                0.9s;
+
+        /* =====================================================
+           DESCRIPCIÓN
+        ====================================================== */
+
+        .brand-description {
+
+            max-width: 340px;
+
+            margin:
+                30px auto 0;
+
+            position: relative;
+
+            z-index: 2;
+
+            color:
+                rgba(255,255,255,.72);
+
+            font-size: 14px;
+
+            line-height: 1.7;
+
+            opacity: 0;
+
+            transform:
+                translateY(15px);
+
+            transition:
+                opacity .6s ease .75s,
+                transform .7s ease .75s;
+        }
+
+
+        .login-wrapper.show .brand-description {
+
+            opacity: 1;
+
+            transform:
+                translateY(0);
+        }
+
+
+        /* =====================================================
+           CARACTERÍSTICAS
+        ====================================================== */
+
+        .brand-features {
+
+            width: 100%;
+
+            max-width: 350px;
+
+            margin-top: 38px;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 12px;
+
+            position: relative;
+
+            z-index: 2;
+        }
+
+
+        .feature {
+
+            padding:
+                14px 7px;
+
+            border-radius:
+                12px;
+
+            background:
+                rgba(255,255,255,.07);
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
+            opacity: 0;
+
+            transform:
+                translateY(15px);
+
+            transition:
+                opacity .5s ease,
+                transform .6s ease,
+                background .2s ease,
+                transform .2s ease;
+        }
+
+
+        .feature:nth-child(1) {
+            transition-delay: .9s;
+        }
+
+
+        .feature:nth-child(2) {
+            transition-delay: 1s;
+        }
+
+
+        .feature:nth-child(3) {
+            transition-delay: 1.1s;
+        }
+
+
+        .login-wrapper.show .feature {
+
+            opacity: 1;
+
+            transform:
+                translateY(0);
+        }
+
+
+        .feature:hover {
+
+            background:
+                rgba(255,255,255,.11);
+
+            transform:
+                translateY(-2px);
+        }
+
+
+        .feature i {
+
+            display: block;
+
+            margin-bottom: 6px;
+
+            font-size: 18px;
+
+            color:
+                rgba(255,255,255,.9);
+        }
+
+
+        .feature span {
+
+            display: block;
+
+            color:
+                rgba(255,255,255,.72);
+
+            font-size: 10px;
+
+            line-height: 1.3;
+        }
+
+
+        /* =====================================================
+           PANEL DERECHO
+        ====================================================== */
+
+        .login-form-panel {
+
+            min-width: 0;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding:
+                55px 65px;
+
+            background:
+                #ffffff;
+        }
+
+
+        .login-form-content {
+
+            width: 100%;
+
+            max-width: 420px;
+
+            opacity: 0;
+
+            transform:
+                translateX(25px);
+
+            transition:
+                opacity .7s ease .4s,
+                transform .8s
+                cubic-bezier(.22,1,.36,1) .4s;
+        }
+
+
+        .login-wrapper.show .login-form-content {
+
+            opacity: 1;
+
+            transform:
+                translateX(0);
+        }
+
+
+        /* =====================================================
+           CABECERA FORMULARIO
+        ====================================================== */
+
+        .form-top {
+
+            margin-bottom:
+                30px;
+        }
+
+
+        .form-top .small-title {
+
+            margin: 0 0 8px;
+
+            color:
+                #9b3028;
+
+            font-size: 11px;
+
+            font-weight: 700;
+
+            letter-spacing: 2px;
+
+            text-transform:
+                uppercase;
+        }
+
+
+        .form-top h2 {
+
+            margin: 0;
+
+            color:
+                #302522;
+
+            font-size: 30px;
+
+            font-weight: 700;
+        }
+
+
+        .form-top p {
+
+            margin:
+                8px 0 0;
+
+            color:
+                #8d8581;
+
+            font-size: 14px;
         }
 
 
@@ -1257,83 +714,37 @@
            DECORACIÓN
         ====================================================== */
 
-        .food-decoration {
-            display:
-                flex;
+        .form-decoration {
 
-            align-items:
-                center;
+            display: flex;
 
-            justify-content:
-                center;
+            align-items: center;
 
-            gap:
-                10px;
+            justify-content: flex-start;
+
+            gap: 10px;
 
             margin-bottom:
-                15px;
+                25px;
 
             color:
-                #c99738;
+                #b28745;
 
-            font-size:
-                12px;
+            font-size: 12px;
         }
 
 
-        .food-decoration::before,
-        .food-decoration::after {
-            content:
-                "";
+        .form-decoration::before,
+        .form-decoration::after {
 
-            width:
-                42px;
+            content: "";
 
-            height:
-                1px;
+            width: 40px;
+
+            height: 1px;
 
             background:
-                #dfcca5;
-        }
-
-
-        /* =====================================================
-           BIENVENIDA
-        ====================================================== */
-
-        .welcome-text {
-            text-align:
-                center;
-
-            margin-bottom:
-                28px;
-        }
-
-
-        .welcome-text h5 {
-            margin:
-                0 0 6px;
-
-            color:
-                #38221e;
-
-            font-size:
-                19px;
-
-            font-weight:
-                700;
-        }
-
-
-        .welcome-text p {
-            margin:
-                0;
-
-            color:
-                #897873;
-
-            font-size:
-                14px;
+                #e1d8d2;
         }
 
 
@@ -1342,17 +753,14 @@
         ====================================================== */
 
         .login-error {
-            display:
-                flex;
 
-            align-items:
-                flex-start;
+            display: flex;
 
-            gap:
-                10px;
+            align-items: flex-start;
 
-            margin-bottom:
-                22px;
+            gap: 10px;
+
+            margin-bottom: 22px;
 
             padding:
                 13px 14px;
@@ -1369,45 +777,57 @@
             color:
                 #8c2923;
 
-            font-size:
-                13px;
+            font-size: 13px;
 
             line-height:
                 1.5;
+
+            animation:
+                errorAppear .35s ease;
         }
 
 
         .login-error i {
-            flex-shrink:
-                0;
 
-            margin-top:
-                1px;
+            flex-shrink: 0;
 
-            font-size:
-                17px;
+            margin-top: 1px;
+
+            font-size: 17px;
+        }
+
+
+        @@keyframes errorAppear {
+
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
         }
 
 
         /* =====================================================
-           LABELS
+           LABEL
         ====================================================== */
 
-        .login-page .form-label {
-            display:
-                block;
+        .login-form-panel .form-label {
 
-            margin-bottom:
-                8px;
+            display: block;
+
+            margin-bottom: 8px;
 
             color:
                 #49332e;
 
-            font-size:
-                14px;
+            font-size: 14px;
 
-            font-weight:
-                600;
+            font-weight: 600;
         }
 
 
@@ -1415,15 +835,16 @@
            INPUT GROUP
         ====================================================== */
 
-        .login-page .input-group {
-            min-height:
-                52px;
+        .login-form-panel .input-group {
 
-            overflow:
-                hidden;
+            width: 100%;
+
+            min-height: 54px;
+
+            overflow: hidden;
 
             border:
-                1px solid #e1d8d2;
+                1px solid #ded8d4;
 
             border-radius:
                 12px;
@@ -1432,34 +853,40 @@
                 #ffffff;
 
             transition:
-                border-color 0.2s ease,
-                box-shadow 0.2s ease;
+                border-color .2s ease,
+                box-shadow .2s ease,
+                transform .2s ease;
         }
 
 
-        .login-page .input-group:hover {
+        .login-form-panel .input-group:hover {
+
             border-color:
-                #cbbcb4;
+                #c9bfba;
         }
 
 
-        .login-page .input-group:focus-within {
+        .login-form-panel .input-group:focus-within {
+
             border-color:
                 #9b3028;
 
             box-shadow:
                 0 0 0 4px
-                rgba(155, 48, 40, 0.10);
+                rgba(155,48,40,.09);
+
+            transform:
+                translateY(-1px);
         }
 
 
         /* =====================================================
-           ICONOS DE INPUT
+           ICONO INPUT
         ====================================================== */
 
-        .login-page .input-group-text {
-            border:
-                none;
+        .login-form-panel .input-group-text {
+
+            border: none;
 
             background:
                 transparent;
@@ -1467,14 +894,11 @@
             color:
                 #aa7a36;
 
-            font-size:
-                17px;
+            padding-left: 16px;
 
-            padding-left:
-                15px;
+            padding-right: 10px;
 
-            padding-right:
-                10px;
+            font-size: 17px;
         }
 
 
@@ -1482,18 +906,17 @@
            INPUT
         ====================================================== */
 
-        .login-page .form-control {
-            height:
-                50px;
+        .login-form-panel .form-control {
 
-            border:
-                none !important;
+            height: 52px;
 
-            outline:
-                none !important;
+            min-width: 0;
 
-            box-shadow:
-                none !important;
+            border: none !important;
+
+            outline: none !important;
+
+            box-shadow: none !important;
 
             background:
                 transparent;
@@ -1501,89 +924,81 @@
             color:
                 #35231f;
 
-            font-size:
-                14px;
+            font-size: 14px;
         }
 
 
-        .login-page .form-control::placeholder {
+        .login-form-panel .form-control::placeholder {
+
             color:
                 #b6aaa5;
         }
 
 
         /* =====================================================
-           PASSWORD TOGGLE
+           BOTÓN PASSWORD
         ====================================================== */
 
-        .login-page .password-toggle {
-            border:
-                none;
+        .password-toggle {
 
-            background:
-                transparent;
+            border: none !important;
+
+            cursor: pointer;
 
             color:
-                #a67a3a;
+                #a67a3a !important;
 
-            cursor:
-                pointer;
+            background:
+                transparent !important;
 
             padding:
-                0 15px;
+                0 16px;
 
             transition:
-                color 0.2s ease,
-                background-color 0.2s ease;
+                color .2s ease,
+                background .2s ease;
         }
 
 
-        .login-page .password-toggle:hover {
+        .password-toggle:hover {
+
             color:
-                #671f1b;
+                #671f1b !important;
 
             background:
-                rgba(103, 31, 27, 0.04);
+                rgba(103,31,27,.04) !important;
         }
 
 
-        .login-page .password-toggle:focus {
-            outline:
-                none;
+        .password-toggle:focus {
 
-            box-shadow:
-                none;
-        }
+            outline: none !important;
 
-
-        .login-page .password-toggle i {
-            font-size:
-                17px;
+            box-shadow: none !important;
         }
 
 
         /* =====================================================
-           ERRORES DE CAMPOS
+           ERRORES CAMPOS
         ====================================================== */
 
-        .login-page .field-validation-error {
-            display:
-                block;
+        .field-validation-error {
 
-            margin-top:
-                6px;
+            display: block;
 
-            padding-left:
-                2px;
+            margin-top: 6px;
+
+            padding-left: 2px;
 
             color:
                 #a52a24;
 
-            font-size:
-                12px;
+            font-size: 12px;
 
-            font-weight:
-                500;
+            font-weight: 500;
+
+            animation:
+                errorAppear .3s ease;
         }
 
 
@@ -1592,20 +1007,18 @@
         ====================================================== */
 
         .btn-login {
-            width:
-                100%;
 
-            height:
-                53px;
+            width: 100%;
 
-            margin-top:
-                3px;
+            min-height: 54px;
 
-            border:
-                none;
+            margin-top: 4px;
 
-            border-radius:
-                12px;
+            border: none !important;
+
+            border-radius: 12px;
+
+            color: #ffffff !important;
 
             background:
                 linear-gradient(
@@ -1614,32 +1027,26 @@
                     #751f1b
                 );
 
-            color:
-                white;
+            font-size: 15px;
 
-            font-size:
-                15px;
+            font-weight: 700;
 
-            font-weight:
-                700;
-
-            letter-spacing:
-                0.2px;
+            letter-spacing: .2px;
 
             box-shadow:
-                0 8px 18px
-                rgba(117, 31, 27, 0.22);
+                0 9px 20px
+                rgba(117,31,27,.22);
 
             transition:
-                transform 0.2s ease,
-                box-shadow 0.2s ease,
-                background 0.2s ease;
+                transform .2s ease,
+                box-shadow .2s ease,
+                background .2s ease;
         }
 
 
         .btn-login:hover {
-            color:
-                white;
+
+            color: #ffffff !important;
 
             background:
                 linear-gradient(
@@ -1652,24 +1059,25 @@
                 translateY(-2px);
 
             box-shadow:
-                0 12px 25px
-                rgba(117, 31, 27, 0.30);
+                0 13px 25px
+                rgba(117,31,27,.30);
         }
 
 
         .btn-login:active {
+
             transform:
                 translateY(0);
         }
 
 
         /* =====================================================
-           BOTÓN CARGANDO
+           LOADING BOTÓN
         ====================================================== */
 
         .btn-login.loading {
-            pointer-events:
-                none;
+
+            pointer-events: none;
 
             background:
                 linear-gradient(
@@ -1678,197 +1086,56 @@
                     #571714
                 );
 
-            box-shadow:
-                0 5px 14px
-                rgba(87, 23, 20, 0.20);
+            cursor:
+                wait;
         }
 
 
         .login-spinner {
-            display:
-                none;
 
-            width:
-                16px;
+            display: none;
 
-            height:
-                16px;
+            width: 16px;
 
-            margin-right:
-                8px;
+            height: 16px;
 
-            vertical-align:
-                -3px;
+            margin-right: 8px;
+
+            vertical-align: -3px;
 
             border:
                 2px solid
-                rgba(255, 255, 255, 0.30);
+                rgba(255,255,255,.30);
 
             border-top-color:
                 #ffffff;
 
             border-radius:
                 50%;
+
+            animation:
+                loginSpin .7s linear infinite;
         }
 
 
         .btn-login.loading .login-spinner {
-            display:
-                inline-block;
+
+            display: inline-block;
         }
 
 
         .btn-login.loading .login-icon {
-            display:
-                none;
+
+            display: none;
         }
 
 
-        /* =====================================================
-           OVERLAY DE ENTRADA
-        ====================================================== */
+        @@keyframes loginSpin {
 
-        .login-success-overlay {
-            position:
-                fixed;
+            to {
+                transform: rotate(360deg);
+            }
 
-            inset:
-                0;
-
-            z-index:
-                100;
-
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            justify-content:
-                center;
-
-            background:
-                rgba(35, 11, 9, 0.35);
-
-            backdrop-filter:
-                blur(2px);
-
-            opacity:
-                0;
-
-            pointer-events:
-                none;
-
-            transition:
-                opacity 0.3s ease;
-        }
-
-
-        .login-success-overlay.active {
-            opacity:
-                1;
-        }
-
-
-        /* =====================================================
-           MENSAJE DE BIENVENIDA
-        ====================================================== */
-
-        .success-message {
-            padding:
-                21px 30px;
-
-            border-radius:
-                18px;
-
-            background:
-                rgba(255, 253, 249, 0.98);
-
-            box-shadow:
-                0 20px 60px
-                rgba(0, 0, 0, 0.30);
-
-            text-align:
-                center;
-
-            transform:
-                translateY(15px)
-                scale(0.92);
-
-            transition:
-                transform 0.4s
-                cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-
-        .login-success-overlay.active .success-message {
-            transform:
-                translateY(0)
-                scale(1);
-        }
-
-
-        .success-icon {
-            width:
-                50px;
-
-            height:
-                50px;
-
-            margin:
-                0 auto 10px;
-
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            justify-content:
-                center;
-
-            border-radius:
-                50%;
-
-            background:
-                #8f2923;
-
-            color:
-                white;
-
-            font-size:
-                23px;
-
-            box-shadow:
-                0 7px 18px
-                rgba(143, 41, 35, 0.25);
-        }
-
-
-        .success-message strong {
-            display:
-                block;
-
-            color:
-                #3c2521;
-
-            font-size:
-                16px;
-        }
-
-
-        .success-message span {
-            display:
-                block;
-
-            margin-top:
-                3px;
-
-            color:
-                #8b7c76;
-
-            font-size:
-                12px;
         }
 
 
@@ -1877,23 +1144,23 @@
         ====================================================== */
 
         .footer-text {
-            margin-top:
-                24px;
 
-            text-align:
-                center;
+            margin-top: 25px;
+
+            text-align: center;
 
             color:
                 #a0928c;
 
-            font-size:
-                11px;
+            font-size: 11px;
+
+            line-height: 1.5;
         }
 
 
         .footer-text span {
-            margin:
-                0 4px;
+
+            margin: 0 4px;
 
             color:
                 #c3943b;
@@ -1901,72 +1168,718 @@
 
 
         /* =====================================================
-           RESPONSIVE
+           OVERLAY LOGIN
         ====================================================== */
 
-        .login-page.mobile {
+        .login-success-overlay {
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 100;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 20px;
+
+            background:
+                rgba(35,11,9,.42);
+
+            backdrop-filter:
+                blur(6px);
+
+            -webkit-backdrop-filter:
+                blur(6px);
+
+            opacity: 0;
+
+            visibility: hidden;
+
+            pointer-events: none;
+
+            transition:
+                opacity .35s ease,
+                visibility .35s ease;
+        }
+
+
+        .login-success-overlay.active {
+
+            opacity: 1;
+
+            visibility: visible;
+
+            pointer-events: all;
+        }
+
+
+        /* =====================================================
+           MENSAJE LOADING
+        ====================================================== */
+
+        .success-message {
+
+            width: 100%;
+
+            max-width: 340px;
+
             padding:
-                18px 13px;
-        }
+                32px 28px;
 
+            border-radius:
+                20px;
 
-        .login-page.mobile .login-header {
-            padding:
-                24px 20px 38px;
-        }
+            background:
+                rgba(255,253,249,.98);
 
+            box-shadow:
+                0 25px 70px
+                rgba(0,0,0,.30);
 
-        .login-page.mobile .login-body {
-            padding:
-                30px 23px 28px;
-        }
+            text-align: center;
 
-
-        .login-page.mobile .login-header h2 {
-            font-size:
-                28px;
-        }
-
-
-        .login-page.mobile .login-header p {
-            font-size:
-                10px;
-
-            letter-spacing:
-                1.5px;
-        }
-
-
-        .login-page.mobile .kitchen-scene {
             transform:
-                scale(0.90);
+                translateY(18px)
+                scale(.92);
+
+            opacity: 0;
+
+            transition:
+                transform .45s
+                cubic-bezier(.22,1,.36,1),
+                opacity .35s ease;
         }
 
 
-        .login-page.small-mobile .login-header {
-            padding:
-                20px 16px 34px;
-        }
+        .login-success-overlay.active
+        .success-message {
 
-
-        .login-page.small-mobile .login-body {
-            padding-left:
-                18px;
-
-            padding-right:
-                18px;
-        }
-
-
-        .login-page.small-mobile .login-header h2 {
-            font-size:
-                25px;
-        }
-
-
-        .login-page.small-mobile .kitchen-scene {
             transform:
-                scale(0.80);
+                translateY(0)
+                scale(1);
+
+            opacity: 1;
+        }
+
+
+        /* =====================================================
+           SPINNER GRANDE
+        ====================================================== */
+
+        .success-spinner {
+
+            width: 58px;
+
+            height: 58px;
+
+            margin:
+                0 auto 18px;
+
+            position: relative;
+
+            border:
+                4px solid
+                #eaded9;
+
+            border-top-color:
+                #8f2923;
+
+            border-right-color:
+                #b28745;
+
+            border-radius:
+                50%;
+
+            animation:
+                successSpin .85s linear infinite;
+        }
+
+
+        @@keyframes successSpin {
+
+            to {
+                transform:
+                    rotate(360deg);
+            }
+
+        }
+
+
+        /* =====================================================
+           CÍRCULO INTERNO
+        ====================================================== */
+
+        .success-spinner::after {
+
+            content: "";
+
+            position: absolute;
+
+            top: 50%;
+            left: 50%;
+
+            width: 8px;
+            height: 8px;
+
+            transform:
+                translate(-50%, -50%);
+
+            border-radius: 50%;
+
+            background:
+                #8f2923;
+
+            box-shadow:
+                0 0 10px
+                rgba(143,41,35,.30);
+        }
+
+
+        /* =====================================================
+           TEXTO SUCCESS
+        ====================================================== */
+
+        .success-message strong {
+
+            display: block;
+
+            color:
+                #3c2521;
+
+            font-size: 17px;
+
+            font-weight: 700;
+        }
+
+
+        .success-message span {
+
+            display: block;
+
+            margin-top: 6px;
+
+            color:
+                #8b7c76;
+
+            font-size: 12px;
+        }
+
+
+        /* =====================================================
+           PUNTO ANIMADO
+        ====================================================== */
+
+        .loading-dots {
+
+            display: inline-flex;
+
+            gap: 4px;
+
+            margin-left: 3px;
+
+            vertical-align: middle;
+        }
+
+
+        .loading-dots span {
+
+            width: 4px;
+
+            height: 4px;
+
+            margin: 0;
+
+            display: block;
+
+            border-radius: 50%;
+
+            background:
+                #a67a3a;
+
+            animation:
+                dotPulse 1.2s infinite ease-in-out;
+        }
+
+
+        .loading-dots span:nth-child(1) {
+
+            animation-delay:
+                0s;
+        }
+
+
+        .loading-dots span:nth-child(2) {
+
+            animation-delay:
+                .15s;
+        }
+
+
+        .loading-dots span:nth-child(3) {
+
+            animation-delay:
+                .30s;
+        }
+
+
+        @@keyframes dotPulse {
+
+            0%,
+            60%,
+            100% {
+                opacity: .25;
+                transform: scale(.75);
+            }
+
+            30% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+        }
+
+
+        /* =====================================================
+           TABLET
+        ====================================================== */
+
+        @@media (max-width: 900px) {
+
+            .login-page {
+
+                padding: 20px;
+            }
+
+
+            .login-wrapper {
+
+                max-width: 760px;
+
+                min-height: 560px;
+
+                grid-template-columns:
+                    42% 58%;
+            }
+
+
+            .login-brand {
+
+                min-height: 560px;
+
+                padding:
+                    40px 25px;
+            }
+
+
+            .brand-logo {
+
+                width: 78px;
+                height: 78px;
+
+                margin-bottom: 22px;
+            }
+
+
+            .brand-logo i {
+
+                font-size: 38px;
+            }
+
+
+            .brand-title {
+
+                font-size: 30px;
+            }
+
+
+            .brand-description {
+
+                font-size: 13px;
+            }
+
+
+            .brand-features {
+
+                grid-template-columns:
+                    1fr;
+
+                max-width: 180px;
+
+                margin-top: 25px;
+            }
+
+
+            .feature {
+
+                padding: 9px;
+            }
+
+
+            .feature i {
+
+                display: inline-block;
+
+                margin-right: 5px;
+
+                margin-bottom: 0;
+            }
+
+
+            .login-form-panel {
+
+                padding:
+                    40px 38px;
+            }
+
+        }
+
+
+        /* =====================================================
+           MÓVIL
+        ====================================================== */
+
+        @@media (max-width: 700px) {
+
+            .login-page {
+
+                min-height: 100svh;
+
+                padding:
+                    15px;
+
+                align-items: flex-start;
+            }
+
+
+            .login-wrapper {
+
+                width: 100%;
+
+                max-width: 500px;
+
+                min-height: auto;
+
+                display: flex;
+
+                flex-direction: column;
+
+                border-radius: 20px;
+
+                margin:
+                    auto 0;
+            }
+
+
+            .login-brand {
+
+                min-height: auto;
+
+                padding:
+                    38px 25px 35px;
+            }
+
+
+            .brand-circle.circle-one {
+
+                width: 280px;
+                height: 280px;
+
+                top: -180px;
+                left: -150px;
+            }
+
+
+            .brand-circle.circle-two {
+
+                width: 300px;
+                height: 300px;
+
+                right: -200px;
+                bottom: -230px;
+            }
+
+
+            .brand-logo {
+
+                width: 70px;
+                height: 70px;
+
+                margin-bottom: 17px;
+
+                border-radius: 18px;
+            }
+
+
+            .brand-logo i {
+
+                font-size: 34px;
+            }
+
+
+            .brand-title {
+
+                font-size: 29px;
+            }
+
+
+            .brand-subtitle {
+
+                margin-top: 7px;
+
+                font-size: 9px;
+
+                letter-spacing: 2px;
+            }
+
+
+            .brand-description {
+
+                max-width: 320px;
+
+                margin-top: 18px;
+
+                font-size: 12px;
+
+                line-height: 1.5;
+            }
+
+
+            .brand-features {
+
+                display: none;
+            }
+
+
+            .login-form-panel {
+
+                padding:
+                    32px 25px 28px;
+            }
+
+
+            .login-form-content {
+
+                max-width: none;
+            }
+
+
+            .form-top {
+
+                margin-bottom: 24px;
+            }
+
+
+            .form-top .small-title {
+
+                font-size: 10px;
+
+                letter-spacing: 1.7px;
+            }
+
+
+            .form-top h2 {
+
+                font-size: 25px;
+            }
+
+
+            .form-top p {
+
+                font-size: 13px;
+            }
+
+
+            .form-decoration {
+
+                margin-bottom: 21px;
+            }
+
+
+            .footer-text {
+
+                margin-top: 20px;
+            }
+
+
+            .success-message {
+
+                max-width: 310px;
+
+                padding:
+                    28px 22px;
+            }
+
+        }
+
+
+        /* =====================================================
+           CELULARES PEQUEÑOS
+        ====================================================== */
+
+        @@media (max-width: 400px) {
+
+            .login-page {
+
+                padding:
+                    10px;
+            }
+
+
+            .login-wrapper {
+
+                border-radius:
+                    17px;
+            }
+
+
+            .login-brand {
+
+                padding:
+                    28px 18px 27px;
+            }
+
+
+            .brand-logo {
+
+                width: 60px;
+                height: 60px;
+
+                margin-bottom: 14px;
+            }
+
+
+            .brand-logo i {
+
+                font-size: 29px;
+            }
+
+
+            .brand-title {
+
+                font-size: 25px;
+            }
+
+
+            .brand-description {
+
+                display: none;
+            }
+
+
+            .login-form-panel {
+
+                padding:
+                    27px 18px 24px;
+            }
+
+
+            .form-top h2 {
+
+                font-size: 23px;
+            }
+
+
+            .login-form-panel .input-group {
+
+                min-height: 50px;
+            }
+
+
+            .login-form-panel .form-control {
+
+                height: 48px;
+
+                font-size: 13px;
+            }
+
+
+            .btn-login {
+
+                min-height: 51px;
+            }
+
+
+            .success-spinner {
+
+                width: 52px;
+
+                height: 52px;
+            }
+
+        }
+
+
+        /* =====================================================
+           MUY PEQUEÑO
+        ====================================================== */
+
+        @@media (max-height: 650px) and (min-width: 701px) {
+
+            .login-page {
+
+                padding:
+                    15px;
+            }
+
+
+            .login-wrapper {
+
+                min-height:
+                    540px;
+            }
+
+
+            .login-brand {
+
+                min-height:
+                    540px;
+
+                padding:
+                    30px 40px;
+            }
+
+
+            .brand-description {
+
+                margin-top:
+                    20px;
+            }
+
+
+            .brand-features {
+
+                margin-top:
+                    22px;
+            }
+
+        }
+
+
+        /* =====================================================
+           ACCESIBILIDAD
+        ====================================================== */
+
+        @@media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+
+                animation-duration:
+                    .01ms !important;
+
+                animation-iteration-count:
+                    1 !important;
+
+                transition-duration:
+                    .01ms !important;
+            }
+
         }
 
     </style>
@@ -1974,377 +1887,437 @@
 </head>
 
 
-<body class="login-page">
+<body>
 
 
     <!-- =====================================================
-         FONDO
+         PÁGINA
     ====================================================== -->
 
-    <div class="background-light-one"></div>
+    <main class="login-page"
+          id="loginPage">
 
-    <div class="background-light-two"></div>
+
+        <!-- =================================================
+             DECORACIÓN
+        ================================================== -->
+
+        <div class="background-circle one"></div>
+
+        <div class="background-circle two"></div>
 
 
-    <!-- =====================================================
-         LOGIN
-    ====================================================== -->
+        <!-- =================================================
+             CONTENEDOR
+        ================================================== -->
 
-    <div class="login-container">
-
-        <div class="card login-card"
-             id="loginCard">
+        <div class="login-wrapper"
+             id="loginWrapper">
 
 
             <!-- =================================================
-                 HEADER
+                 PANEL IZQUIERDO
             ================================================== -->
 
-            <div class="login-header">
+            <section class="login-brand">
 
 
-                <div class="header-shine"></div>
+                <div class="brand-circle circle-one"></div>
+
+                <div class="brand-circle circle-two"></div>
 
 
                 <!-- =================================================
-                     ESCENA DE COCINA
+                     LOGO
                 ================================================== -->
 
-                <div class="kitchen-scene">
+                <div class="brand-logo">
 
-
-                    <!-- Vapor -->
-
-                    <span class="steam steam-one"></span>
-
-                    <span class="steam steam-two"></span>
-
-                    <span class="steam steam-three"></span>
-
-
-                    <!-- Destellos -->
-
-                    <span class="spark spark-one">
-                        ✦
-                    </span>
-
-                    <span class="spark spark-two">
-                        ✦
-                    </span>
-
-                    <span class="spark spark-three">
-                        •
-                    </span>
-
-
-                    <!-- Campana -->
-
-                    <div class="kitchen-hood">
-
-                        <div class="hood-top"></div>
-
-                        <div class="hood-light"></div>
-
-                    </div>
-
-
-                    <!-- Estufa -->
-
-                    <div class="stove"></div>
-
-
-                    <!-- Sartén -->
-
-                    <div class="pan">
-
-                        <div class="pan-handle"></div>
-
-                    </div>
-
-
-                    <!-- Fuego -->
-
-                    <div class="fire"></div>
-
-
-                    <!-- Plato -->
-
-                    <div class="plate"></div>
-
-
-                    <!-- Cubiertos -->
-
-                    <div class="fork"></div>
-
-                    <div class="knife"></div>
+                    <i class="bi bi-shop-window"></i>
 
                 </div>
 
 
                 <!-- =================================================
-                     TÍTULO
+                     TITULO
                 ================================================== -->
 
-                <h2>
+                <h1 class="brand-title">
+
                     Restaurante
-                </h2>
+
+                </h1>
 
 
-                <p>
+                <p class="brand-subtitle">
+
                     Sistema de Gestión
+
                 </p>
 
 
-                <div class="login-header-line"></div>
+                <!-- =================================================
+                     DESCRIPCIÓN
+                ================================================== -->
 
-            </div>
+                <p class="brand-description">
+
+                    Administra tu restaurante de forma sencilla,
+                    rápida y segura desde un solo lugar.
+
+                </p>
+
+
+                <!-- =================================================
+                     CARACTERÍSTICAS
+                ================================================== -->
+
+                <div class="brand-features">
+
+
+                    <div class="feature">
+
+                        <i class="bi bi-person-check-fill"></i>
+
+                        <span>
+                            Acceso personalizado
+                        </span>
+
+                    </div>
+
+
+                    <div class="feature">
+
+                        <i class="bi bi-speedometer2"></i>
+
+                        <span>
+                            Gestión rápida
+                        </span>
+
+                    </div>
+
+
+                    <div class="feature">
+
+                        <i class="bi bi-shield-lock-fill"></i>
+
+                        <span>
+                            Sesión protegida
+                        </span>
+
+                    </div>
+
+
+                </div>
+
+
+            </section>
 
 
             <!-- =================================================
-                 BODY
+                 PANEL DERECHO
             ================================================== -->
 
-            <div class="login-body">
+            <section class="login-form-panel">
 
 
-                <div class="food-decoration">
-                    •
-                </div>
-
-
-                <!-- =================================================
-                     BIENVENIDA
-                ================================================== -->
-
-                <div class="welcome-text">
-
-                    <h5>
-                        Bienvenido al sistema
-                    </h5>
-
-                    <p>
-                        Inicia sesión para continuar
-                    </p>
-
-                </div>
-
-
-                <!-- =================================================
-                     ERROR GENERAL
-                ================================================== -->
-
-                @if (!string.IsNullOrWhiteSpace(errorGeneral))
-                {
-                    <div class="login-error"
-                         role="alert">
-
-                        <i class="bi bi-exclamation-circle-fill"></i>
-
-                        <div>
-                            @errorGeneral
-                        </div>
-
-                    </div>
-                }
-
-
-                <!-- =================================================
-                     FORMULARIO
-                ================================================== -->
-
-                <form asp-controller="Account"
-                      asp-action="Login"
-                      method="post"
-                      id="loginForm">
-
-
-                    @Html.AntiForgeryToken()
+                <div class="login-form-content">
 
 
                     <!-- =================================================
-                         RETURN URL
+                         CABECERA
                     ================================================== -->
 
-                    <input type="hidden"
-                           name="returnUrl"
-                           value="@ViewBag.ReturnUrl" />
+                    <div class="form-top">
 
+                        <p class="small-title">
+                            Acceso administrativo
+                        </p>
 
-                    <!-- =================================================
-                         USUARIO
-                    ================================================== -->
+                        <h2>
+                            Bienvenido
+                        </h2>
 
-                    <div class="mb-4">
-
-                        <label for="usuario"
-                               class="form-label">
-
-                            Usuario
-
-                        </label>
-
-
-                        <div class="input-group">
-
-                            <span class="input-group-text">
-
-                                <i class="bi bi-person-fill"></i>
-
-                            </span>
-
-
-                            <input type="text"
-                                   id="usuario"
-                                   name="usuario"
-                                   class="form-control"
-                                   placeholder="Ingrese su usuario"
-                                   autocomplete="username"
-                                   value="@ViewData.ModelState["usuario"]?.AttemptedValue" />
-
-                        </div>
-
-
-                        @if (ViewData.ModelState.ContainsKey("usuario") &&
-                             ViewData.ModelState["usuario"] != null &&
-                             ViewData.ModelState["usuario"]!.Errors.Count > 0)
-                        {
-                            <span class="field-validation-error">
-
-                                @ViewData.ModelState["usuario"]!.Errors[0].ErrorMessage
-
-                            </span>
-                        }
+                        <p>
+                            Ingresa tus datos para continuar.
+                        </p>
 
                     </div>
 
 
                     <!-- =================================================
-                         CONTRASEÑA
+                         DECORACIÓN
                     ================================================== -->
 
-                    <div class="mb-4">
+                    <div class="form-decoration">
 
-                        <label for="password"
-                               class="form-label">
-
-                            Contraseña
-
-                        </label>
-
-
-                        <div class="input-group">
-
-                            <span class="input-group-text">
-
-                                <i class="bi bi-lock-fill"></i>
-
-                            </span>
-
-
-                            <input type="password"
-                                   id="password"
-                                   name="password"
-                                   class="form-control"
-                                   placeholder="Ingrese su contraseña"
-                                   autocomplete="current-password" />
-
-
-                            <button type="button"
-                                    class="input-group-text password-toggle"
-                                    id="togglePassword"
-                                    aria-label="Mostrar contraseña"
-                                    title="Mostrar contraseña">
-
-                                <i class="bi bi-eye-fill"></i>
-
-                            </button>
-
-                        </div>
-
-
-                        @if (ViewData.ModelState.ContainsKey("password") &&
-                             ViewData.ModelState["password"] != null &&
-                             ViewData.ModelState["password"]!.Errors.Count > 0)
-                        {
-                            <span class="field-validation-error">
-
-                                @ViewData.ModelState["password"]!.Errors[0].ErrorMessage
-
-                            </span>
-                        }
+                        ✦
 
                     </div>
 
 
                     <!-- =================================================
-                         BOTÓN
+                         ERROR GENERAL
                     ================================================== -->
 
-                    <button type="submit"
-                            class="btn btn-login"
-                            id="loginButton">
+                    @if (!string.IsNullOrWhiteSpace(errorGeneral))
+                    {
+                        <div class="login-error"
+                             role="alert">
 
-                        <span class="login-spinner"></span>
+                            <i class="bi bi-exclamation-circle-fill"></i>
 
-                        <i class="bi bi-box-arrow-in-right me-2 login-icon"></i>
+                            <div>
+                                @errorGeneral
+                            </div>
 
-                        <span class="login-button-text">
-                            Iniciar Sesión
-                        </span>
-
-                    </button>
-
-                </form>
+                        </div>
+                    }
 
 
-                <!-- =================================================
-                     FOOTER
-                ================================================== -->
+                    <!-- =================================================
+                         FORMULARIO
+                    ================================================== -->
 
-                <div class="footer-text">
+                    <form asp-controller="Account"
+                          asp-action="Login"
+                          method="post"
+                          id="loginForm">
 
-                    <span>✦</span>
 
-                    Panel administrativo del restaurante
+                        @Html.AntiForgeryToken()
 
-                    <span>✦</span>
+
+                        <!-- =================================================
+                             RETURN URL
+                        ================================================== -->
+
+                        <input type="hidden"
+                               name="returnUrl"
+                               value="@ViewBag.ReturnUrl" />
+
+
+                        <!-- =================================================
+                             USUARIO
+                        ================================================== -->
+
+                        <div class="mb-4">
+
+
+                            <label for="usuario"
+                                   class="form-label">
+
+                                Usuario
+
+                            </label>
+
+
+                            <div class="input-group">
+
+
+                                <span class="input-group-text">
+
+                                    <i class="bi bi-person-fill"></i>
+
+                                </span>
+
+
+                                <input type="text"
+                                       id="usuario"
+                                       name="usuario"
+                                       class="form-control"
+                                       placeholder="Ingrese su usuario"
+                                       autocomplete="username"
+                                       value="@usuarioActual" />
+
+                            </div>
+
+
+                            @if (ViewData.ModelState.TryGetValue("usuario", out var usuarioErrors))
+                            {
+                                if (usuarioErrors != null &&
+                                    usuarioErrors.Errors.Count > 0)
+                                {
+                                    <span class="field-validation-error">
+
+                                        @usuarioErrors.Errors[0].ErrorMessage
+
+                                    </span>
+                                }
+                            }
+
+
+                        </div>
+
+
+                        <!-- =================================================
+                             CONTRASEÑA
+                        ================================================== -->
+
+                        <div class="mb-4">
+
+
+                            <label for="password"
+                                   class="form-label">
+
+                                Contraseña
+
+                            </label>
+
+
+                            <div class="input-group">
+
+
+                                <span class="input-group-text">
+
+                                    <i class="bi bi-lock-fill"></i>
+
+                                </span>
+
+
+                                <input type="password"
+                                       id="password"
+                                       name="password"
+                                       class="form-control"
+                                       placeholder="Ingrese su contraseña"
+                                       autocomplete="current-password" />
+
+
+                                <button type="button"
+                                        class="input-group-text password-toggle"
+                                        id="togglePassword"
+                                        aria-label="Mostrar contraseña"
+                                        title="Mostrar contraseña">
+
+                                    <i class="bi bi-eye-fill"></i>
+
+                                </button>
+
+
+                            </div>
+
+
+                            @if (ViewData.ModelState.TryGetValue("password", out var passwordErrors))
+                            {
+                                if (passwordErrors != null &&
+                                    passwordErrors.Errors.Count > 0)
+                                {
+                                    <span class="field-validation-error">
+
+                                        @passwordErrors.Errors[0].ErrorMessage
+
+                                    </span>
+                                }
+                            }
+
+
+                        </div>
+
+
+                        <!-- =================================================
+                             BOTÓN
+                        ================================================== -->
+
+                        <button type="submit"
+                                class="btn btn-login"
+                                id="loginButton">
+
+
+                            <span class="login-spinner"></span>
+
+
+                            <i class="bi bi-box-arrow-in-right me-2 login-icon"></i>
+
+
+                            <span class="login-button-text">
+
+                                Iniciar Sesión
+
+                            </span>
+
+
+                        </button>
+
+
+                    </form>
+
+
+                    <!-- =================================================
+                         FOOTER
+                    ================================================== -->
+
+                    <div class="footer-text">
+
+                        <span>✦</span>
+
+                        Panel administrativo del restaurante
+
+                        <span>✦</span>
+
+                    </div>
+
 
                 </div>
 
 
-            </div>
+            </section>
+
 
         </div>
 
-    </div>
+
+    </main>
 
 
     <!-- =====================================================
-         OVERLAY AL INICIAR SESIÓN
+         OVERLAY LOGIN
     ====================================================== -->
 
     <div class="login-success-overlay"
-         id="loginSuccessOverlay">
+         id="loginSuccessOverlay"
+         aria-hidden="true">
 
-        <div class="success-message">
 
-            <div class="success-icon">
+        <div class="success-message"
+             role="status"
+             aria-live="polite">
 
-                <i class="bi bi-check-lg"></i>
 
-            </div>
+            <!-- =================================================
+                 SPINNER
+            ================================================== -->
 
+            <div class="success-spinner"></div>
+
+
+            <!-- =================================================
+                 MENSAJE
+            ================================================== -->
 
             <strong>
+
                 ¡Bienvenido al sistema!
+
             </strong>
 
 
             <span>
-                Entrando a la cocina...
+
+                Entrando al panel
+
+                <span class="loading-dots">
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </span>
+
             </span>
 
+
         </div>
+
 
     </div>
 
@@ -2363,13 +2336,13 @@
 
             /* =====================================================
                ELEMENTOS
-            ====================================================== */
+            ===================================================== */
 
             const loginPage =
-                document.querySelector(".login-page");
+                document.getElementById("loginPage");
 
-            const loginCard =
-                document.getElementById("loginCard");
+            const loginWrapper =
+                document.getElementById("loginWrapper");
 
             const loginForm =
                 document.getElementById("loginForm");
@@ -2390,152 +2363,34 @@
 
 
             /* =====================================================
-               ENTRADA DE LA PÁGINA
-            ====================================================== */
+               ANIMACIÓN DE ENTRADA
+            ===================================================== */
 
-            if (loginPage) {
+            setTimeout(function () {
 
-                setTimeout(function () {
+                if (loginPage) {
 
-                    loginPage.classList.add(
-                        "page-visible"
-                    );
-
-                }, 50);
-
-            }
-
-
-            /* =====================================================
-               ENTRADA DE LA TARJETA
-            ====================================================== */
-
-            if (loginCard) {
-
-                setTimeout(function () {
-
-                    loginCard.classList.add(
-                        "show"
-                    );
-
-                }, 180);
-
-            }
-
-
-            /* =====================================================
-               RESPONSIVE
-            ====================================================== */
-
-            function actualizarResponsive() {
-
-                if (!loginPage) {
-                    return;
-                }
-
-
-                if (window.innerWidth <= 576) {
-
-                    loginPage.classList.add(
-                        "mobile"
-                    );
-
-                }
-                else {
-
-                    loginPage.classList.remove(
-                        "mobile"
-                    );
+                    loginPage.classList.add("visible");
 
                 }
 
+            }, 50);
 
-                if (window.innerWidth <= 360) {
 
-                    loginPage.classList.add(
-                        "small-mobile"
-                    );
+            setTimeout(function () {
 
-                }
-                else {
+                if (loginWrapper) {
 
-                    loginPage.classList.remove(
-                        "small-mobile"
-                    );
+                    loginWrapper.classList.add("show");
 
                 }
 
-            }
-
-
-            actualizarResponsive();
-
-
-            window.addEventListener(
-                "resize",
-                actualizarResponsive
-            );
-
-
-            /* =====================================================
-               VAPOR
-            ====================================================== */
-
-            const steamElements =
-                document.querySelectorAll(
-                    ".steam"
-                );
-
-
-            function animarVapor() {
-
-                steamElements.forEach(
-                    function (steam) {
-
-                        steam.style.opacity =
-                            "0.65";
-
-                        steam.style.transform =
-                            "translateY(-22px) scale(1)";
-
-                    }
-                );
-
-
-                setTimeout(function () {
-
-                    steamElements.forEach(
-                        function (steam) {
-
-                            steam.style.opacity =
-                                "0";
-
-                            steam.style.transform =
-                                "translateY(18px) scale(0.65)";
-
-                        }
-                    );
-
-                }, 1800);
-
-            }
-
-
-            setTimeout(
-                animarVapor,
-                1700
-            );
-
-
-            setInterval(
-                animarVapor,
-                4500
-            );
+            }, 120);
 
 
             /* =====================================================
                MOSTRAR / OCULTAR CONTRASEÑA
-            ====================================================== */
+            ===================================================== */
 
             if (
                 togglePassword &&
@@ -2575,12 +2430,10 @@
                                 "bi-eye-slash-fill"
                             );
 
-
                             togglePassword.setAttribute(
                                 "aria-label",
                                 "Ocultar contraseña"
                             );
-
 
                             togglePassword.setAttribute(
                                 "title",
@@ -2598,12 +2451,10 @@
                                 "bi-eye-fill"
                             );
 
-
                             togglePassword.setAttribute(
                                 "aria-label",
                                 "Mostrar contraseña"
                             );
-
 
                             togglePassword.setAttribute(
                                 "title",
@@ -2619,8 +2470,8 @@
 
 
             /* =====================================================
-               INICIAR SESIÓN
-            ====================================================== */
+               SUBMIT
+            ===================================================== */
 
             if (
                 loginForm &&
@@ -2629,7 +2480,7 @@
 
                 loginForm.addEventListener(
                     "submit",
-                    function () {
+                    function (event) {
 
 
                         /* -----------------------------------------
@@ -2642,13 +2493,61 @@
                             )
                         ) {
 
+                            event.preventDefault();
+
                             return;
 
                         }
 
 
                         /* -----------------------------------------
-                           CAMBIAR ESTADO DEL BOTÓN
+                           OBTENER CAMPOS
+                        ----------------------------------------- */
+
+                        const usuario =
+                            document.getElementById("usuario");
+
+                        const password =
+                            document.getElementById("password");
+
+
+                        /* -----------------------------------------
+                           VALIDACIÓN BÁSICA
+                        ----------------------------------------- */
+
+                        if (
+                            !usuario ||
+                            !password
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const usuarioValue =
+                            usuario.value.trim();
+
+                        const passwordValue =
+                            password.value.trim();
+
+
+                        /* -----------------------------------------
+                           NO MOSTRAR LOADING SI ESTÁ VACÍO
+                        ----------------------------------------- */
+
+                        if (
+                            usuarioValue === "" ||
+                            passwordValue === ""
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        /* -----------------------------------------
+                           ESTADO LOADING DEL BOTÓN
                         ----------------------------------------- */
 
                         loginButton.classList.add(
@@ -2665,47 +2564,38 @@
                         if (buttonText) {
 
                             buttonText.textContent =
-                                "Entrando a cocina...";
+                                "Iniciando sesión...";
 
                         }
 
 
                         /* -----------------------------------------
-                           ANIMACIÓN DE SALIDA
+                           DESACTIVAR CAMPOS
                         ----------------------------------------- */
 
-                        if (loginCard) {
+                        usuario.readOnly = true;
 
-                            setTimeout(
-                                function () {
-
-                                    loginCard.classList.add(
-                                        "login-exiting"
-                                    );
-
-                                },
-                                100
-                            );
-
-                        }
+                        password.readOnly = true;
 
 
                         /* -----------------------------------------
-                           MENSAJE DE BIENVENIDA
+                           MOSTRAR OVERLAY
                         ----------------------------------------- */
 
                         if (successOverlay) {
 
-                            setTimeout(
-                                function () {
+                            setTimeout(function () {
 
-                                    successOverlay.classList.add(
-                                        "active"
-                                    );
+                                successOverlay.classList.add(
+                                    "active"
+                                );
 
-                                },
-                                180
-                            );
+                                successOverlay.setAttribute(
+                                    "aria-hidden",
+                                    "false"
+                                );
+
+                            }, 180);
 
                         }
 
@@ -2714,9 +2604,42 @@
 
             }
 
+
+            /* =====================================================
+               ENTER EN LOS CAMPOS
+            ===================================================== */
+
+            const inputs =
+                document.querySelectorAll(
+                    "#usuario, #password"
+                );
+
+
+            inputs.forEach(function (input) {
+
+                input.addEventListener(
+                    "keydown",
+                    function (event) {
+
+                        if (
+                            event.key === "Enter" &&
+                            loginButton &&
+                            !loginButton.classList.contains("loading")
+                        ) {
+
+                            loginForm.requestSubmit();
+
+                        }
+
+                    }
+                );
+
+            });
+
         });
 
     </script>
+
 
 </body>
 
