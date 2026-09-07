@@ -6,6 +6,36 @@
     var pedidos = Model?.ToList()
         ?? new List<WebApplication1.Models.Pedido>();
 
+    // =========================================================
+    // ESTADOS
+    // =========================================================
+
+    const int ESTADO_PENDIENTE = 1;
+    const int ESTADO_EN_COCINA = 2;
+    const int ESTADO_PREPARANDOSE = 3;
+    const int ESTADO_LISTO = 4;
+    const int ESTADO_ENTREGADO = 5;
+    const int ESTADO_FACTURADO = 6;
+    const int ESTADO_CANCELADO = 7;
+
+    // =========================================================
+    // FILTRO DE MES
+    // =========================================================
+
+    int mesSeleccionado =
+        ViewBag.MesSeleccionado != null
+            ? (int)ViewBag.MesSeleccionado
+            : DateTime.Today.Month;
+
+    int anioSeleccionado =
+        ViewBag.AnioSeleccionado != null
+            ? (int)ViewBag.AnioSeleccionado
+            : DateTime.Today.Year;
+
+    // =========================================================
+    // DASHBOARD
+    // =========================================================
+
     decimal totalVendidoMes =
         ViewBag.TotalVendidoMes != null
             ? (decimal)ViewBag.TotalVendidoMes
@@ -46,6 +76,10 @@
             ? (decimal)ViewBag.TicketPromedioHoy
             : 0m;
 
+    // =========================================================
+    // ESTADOS
+    // =========================================================
+
     int pedidosPendientes =
         ViewBag.PedidosPendientes != null
             ? (int)ViewBag.PedidosPendientes
@@ -76,8 +110,58 @@
             ? (int)ViewBag.PedidosFacturados
             : 0;
 
+    // =========================================================
+    // BÚSQUEDA
+    // =========================================================
+
     string buscar =
         ViewBag.Buscar as string ?? "";
+
+    // =========================================================
+    // NOMBRES DE MESES
+    // =========================================================
+
+    var nombreMes = new[]
+    {
+        "",
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre"
+    };
+
+    string mesTexto =
+        mesSeleccionado >= 1 &&
+        mesSeleccionado <= 12
+            ? nombreMes[mesSeleccionado]
+            : "Mes seleccionado";
+
+    // =========================================================
+    // PERMISOS
+    // =========================================================
+
+    var puedeCrear =
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente") ||
+        User.IsInRole("Mesero");
+
+    var puedeEditar =
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente") ||
+        User.IsInRole("Mesero");
+
+    var puedeEntregar =
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente") ||
+        User.IsInRole("Mesero");
 }
 
 <div class="container-fluid py-4">
@@ -86,46 +170,270 @@
     <!-- ENCABEZADO -->
     <!-- ========================================================= -->
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
 
         <div>
-
             <h2 class="fw-bold mb-1">
-
-                <i class="bi bi-receipt me-2"></i>
-
+                <i class="bi bi-receipt-cutoff me-2"></i>
                 Pedidos
-
             </h2>
 
             <p class="text-muted mb-0">
-
                 Administración y seguimiento de pedidos.
-
             </p>
-
         </div>
 
+        <div class="d-flex gap-2 mt-3 mt-md-0">
 
-        <a asp-action="Create"
-           class="btn btn-primary">
+            @if (puedeCrear)
+            {
+                <a asp-action="Create"
+                   class="btn btn-primary">
 
-            <i class="bi bi-plus-circle me-1"></i>
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Nuevo pedido
 
-            Nuevo pedido
+                </a>
+            }
 
-        </a>
+        </div>
 
     </div>
 
 
     <!-- ========================================================= -->
-    <!-- DASHBOARD -->
+    <!-- MENSAJES -->
+    <!-- ========================================================= -->
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Mensaje"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- FILTROS -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white py-3">
+
+            <h5 class="mb-0 fw-semibold">
+
+                <i class="bi bi-funnel me-2"></i>
+
+                Filtros y estadísticas
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Index"
+                  method="get"
+                  class="row g-3 align-items-end">
+
+                <!-- MES -->
+
+                <div class="col-lg-4 col-md-6">
+
+                    <label class="form-label fw-semibold">
+
+                        <i class="bi bi-calendar-month me-1"></i>
+
+                        Mes
+
+                    </label>
+
+                    <select name="mes"
+                            class="form-select">
+
+                        @for (int i = 1; i <= 12; i++)
+                        {
+                            if (i == mesSeleccionado)
+                            {
+                                <option value="@i" selected>
+                                    @nombreMes[i]
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@i">
+                                    @nombreMes[i]
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </div>
+
+
+                <!-- AÑO -->
+
+                <div class="col-lg-3 col-md-6">
+
+                    <label class="form-label fw-semibold">
+
+                        <i class="bi bi-calendar3 me-1"></i>
+
+                        Año
+
+                    </label>
+
+                    <select name="anio"
+                            class="form-select">
+
+                        @{
+                            int anioActual = DateTime.Today.Year;
+
+                            var anios =
+                                ViewBag.AniosDisponibles
+                                as IEnumerable<int>
+                                ??
+                                Enumerable
+                                    .Range(
+                                        anioActual - 5,
+                                        7)
+                                    .OrderByDescending(x => x);
+                        }
+
+                        @foreach (var anio in anios)
+                        {
+                            if (anio == anioSeleccionado)
+                            {
+                                <option value="@anio" selected>
+                                    @anio
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@anio">
+                                    @anio
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </div>
+
+
+                <!-- APLICAR -->
+
+                <div class="col-lg-3 col-md-6">
+
+                    <button type="submit"
+                            class="btn btn-primary w-100">
+
+                        <i class="bi bi-bar-chart me-1"></i>
+
+                        Ver estadísticas
+
+                    </button>
+
+                </div>
+
+
+                <!-- ACTUAL -->
+
+                <div class="col-lg-2 col-md-6">
+
+                    <a asp-action="Index"
+                       asp-route-mes="@DateTime.Today.Month"
+                       asp-route-anio="@DateTime.Today.Year"
+                       class="btn btn-outline-secondary w-100">
+
+                        <i class="bi bi-calendar-check me-1"></i>
+
+                        Actual
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- PERIODO -->
+    <!-- ========================================================= -->
+
+    <div class="alert alert-light border shadow-sm mb-4">
+
+        <div class="d-flex align-items-center">
+
+            <div class="me-3">
+
+                <i class="bi bi-calendar3 text-primary fs-3"></i>
+
+            </div>
+
+            <div>
+
+                <div class="fw-bold">
+
+                    Estadísticas de
+                    @mesTexto
+                    @anioSeleccionado
+
+                </div>
+
+                <small class="text-muted">
+
+                    Los indicadores corresponden al período seleccionado.
+
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- DASHBOARD PRINCIPAL -->
     <!-- ========================================================= -->
 
     <div class="row g-3 mb-4">
 
-        <!-- VENTAS MES -->
+        <!-- VENDIDO MES -->
 
         <div class="col-xl-3 col-md-6">
 
@@ -133,15 +441,15 @@
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start">
 
                         <div>
 
                             <small class="text-muted">
-                                Vendido este mes
+                                Vendido en @mesTexto
                             </small>
 
-                            <h4 class="fw-bold text-success mb-0">
+                            <h4 class="fw-bold text-success mb-0 mt-1">
 
                                 C$ @totalVendidoMes.ToString("N2")
 
@@ -164,7 +472,7 @@
         </div>
 
 
-        <!-- VENTAS HOY -->
+        <!-- VENDIDO HOY -->
 
         <div class="col-xl-3 col-md-6">
 
@@ -172,7 +480,7 @@
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start">
 
                         <div>
 
@@ -180,7 +488,7 @@
                                 Vendido hoy
                             </small>
 
-                            <h4 class="fw-bold mb-0">
+                            <h4 class="fw-bold mb-0 mt-1">
 
                                 C$ @totalVendidoHoy.ToString("N2")
 
@@ -211,15 +519,15 @@
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start">
 
                         <div>
 
                             <small class="text-muted">
-                                Pedidos del mes
+                                Pedidos de @mesTexto
                             </small>
 
-                            <h4 class="fw-bold mb-0">
+                            <h4 class="fw-bold mb-0 mt-1">
 
                                 @cantidadPedidosMes
 
@@ -250,15 +558,15 @@
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start">
 
                         <div>
 
                             <small class="text-muted">
-                                Cancelados del mes
+                                Cancelados de @mesTexto
                             </small>
 
-                            <h4 class="fw-bold text-danger mb-0">
+                            <h4 class="fw-bold text-danger mb-0 mt-1">
 
                                 @pedidosCanceladosMes
 
@@ -291,37 +599,57 @@
 
         <div class="card-header bg-white py-3">
 
-            <h5 class="mb-0 fw-semibold">
+            <div class="d-flex justify-content-between align-items-center">
 
-                <i class="bi bi-bar-chart me-2"></i>
+                <div>
 
-                Estados de pedidos este mes
+                    <h5 class="mb-0 fw-semibold">
 
-            </h5>
+                        <i class="bi bi-diagram-3 me-2"></i>
+
+                        Estados de pedidos
+
+                    </h5>
+
+                    <small class="text-muted">
+
+                        @mesTexto @anioSeleccionado
+
+                    </small>
+
+                </div>
+
+            </div>
 
         </div>
-
 
         <div class="card-body">
 
             <div class="row g-3">
 
-                <div class="col-lg-2 col-md-4 col-6">
 
-                    <div class="border rounded p-3 text-center">
+                <!-- PENDIENTES -->
 
-                        <div class="text-warning fs-3">
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+
+                    <div class="border rounded-3 p-3 text-center h-100">
+
+                        <div class="text-warning fs-3 mb-1">
 
                             <i class="bi bi-clock"></i>
 
                         </div>
 
                         <div class="fw-bold fs-4">
+
                             @pedidosPendientes
+
                         </div>
 
                         <small class="text-muted">
+
                             Pendientes
+
                         </small>
 
                     </div>
@@ -329,22 +657,28 @@
                 </div>
 
 
-                <div class="col-lg-2 col-md-4 col-6">
+                <!-- EN COCINA -->
 
-                    <div class="border rounded p-3 text-center">
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
 
-                        <div class="text-info fs-3">
+                    <div class="border rounded-3 p-3 text-center h-100">
+
+                        <div class="text-info fs-3 mb-1">
 
                             <i class="bi bi-fire"></i>
 
                         </div>
 
                         <div class="fw-bold fs-4">
+
                             @pedidosEnCocina
+
                         </div>
 
                         <small class="text-muted">
+
                             En cocina
+
                         </small>
 
                     </div>
@@ -352,22 +686,28 @@
                 </div>
 
 
-                <div class="col-lg-2 col-md-4 col-6">
+                <!-- PREPARÁNDOSE -->
 
-                    <div class="border rounded p-3 text-center">
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
 
-                        <div class="text-primary fs-3">
+                    <div class="border rounded-3 p-3 text-center h-100">
+
+                        <div class="text-primary fs-3 mb-1">
 
                             <i class="bi bi-gear"></i>
 
                         </div>
 
                         <div class="fw-bold fs-4">
+
                             @pedidosPreparandose
+
                         </div>
 
                         <small class="text-muted">
+
                             Preparándose
+
                         </small>
 
                     </div>
@@ -375,22 +715,28 @@
                 </div>
 
 
-                <div class="col-lg-2 col-md-4 col-6">
+                <!-- LISTOS -->
 
-                    <div class="border rounded p-3 text-center">
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
 
-                        <div class="text-primary fs-3">
+                    <div class="border rounded-3 p-3 text-center h-100">
+
+                        <div class="text-success fs-3 mb-1">
 
                             <i class="bi bi-check2-circle"></i>
 
                         </div>
 
                         <div class="fw-bold fs-4">
+
                             @pedidosListos
+
                         </div>
 
                         <small class="text-muted">
+
                             Listos
+
                         </small>
 
                     </div>
@@ -398,22 +744,28 @@
                 </div>
 
 
-                <div class="col-lg-2 col-md-4 col-6">
+                <!-- ENTREGADOS -->
 
-                    <div class="border rounded p-3 text-center">
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
 
-                        <div class="text-success fs-3">
+                    <div class="border rounded-3 p-3 text-center h-100">
+
+                        <div class="text-secondary fs-3 mb-1">
 
                             <i class="bi bi-box-seam"></i>
 
                         </div>
 
                         <div class="fw-bold fs-4">
+
                             @pedidosEntregados
+
                         </div>
 
                         <small class="text-muted">
+
                             Entregados
+
                         </small>
 
                     </div>
@@ -421,23 +773,173 @@
                 </div>
 
 
-                <div class="col-lg-2 col-md-4 col-6">
+                <!-- FACTURADOS -->
 
-                    <div class="border rounded p-3 text-center">
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
 
-                        <div class="text-success fs-3">
+                    <div class="border rounded-3 p-3 text-center h-100">
+
+                        <div class="text-dark fs-3 mb-1">
 
                             <i class="bi bi-cash-coin"></i>
 
                         </div>
 
                         <div class="fw-bold fs-4">
+
                             @pedidosFacturados
+
                         </div>
 
                         <small class="text-muted">
+
                             Facturados
+
                         </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN ADICIONAL -->
+    <!-- ========================================================= -->
+
+    <div class="row g-3 mb-4">
+
+
+        <!-- TICKET PROMEDIO -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="text-primary fs-1 me-3">
+
+                            <i class="bi bi-receipt-cutoff"></i>
+
+                        </div>
+
+                        <div>
+
+                            <small class="text-muted">
+                                Ticket promedio
+                            </small>
+
+                            <h4 class="fw-bold mb-0">
+
+                                C$ @ticketPromedioMes.ToString("N2")
+
+                            </h4>
+
+                            <small class="text-muted">
+
+                                @mesTexto @anioSeleccionado
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PEDIDOS HOY -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="text-info fs-1 me-3">
+
+                            <i class="bi bi-calendar-day"></i>
+
+                        </div>
+
+                        <div>
+
+                            <small class="text-muted">
+                                Pedidos realizados hoy
+                            </small>
+
+                            <h4 class="fw-bold mb-0">
+
+                                @cantidadPedidosHoy
+
+                            </h4>
+
+                            <small class="text-muted">
+
+                                Total correspondiente al día actual
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CANCELADOS HOY -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="text-danger fs-1 me-3">
+
+                            <i class="bi bi-x-circle"></i>
+
+                        </div>
+
+                        <div>
+
+                            <small class="text-muted">
+                                Cancelados hoy
+                            </small>
+
+                            <h4 class="fw-bold mb-0 text-danger">
+
+                                @pedidosCanceladosHoy
+
+                            </h4>
+
+                            <small class="text-muted">
+
+                                No depende del mes seleccionado
+
+                            </small>
+
+                        </div>
 
                     </div>
 
@@ -456,28 +958,52 @@
 
     <div class="card shadow-sm border-0 mb-4">
 
+        <div class="card-header bg-white py-3">
+
+            <h5 class="mb-0 fw-semibold">
+
+                <i class="bi bi-search me-2"></i>
+
+                Buscar pedidos
+
+            </h5>
+
+        </div>
+
         <div class="card-body">
 
             <form asp-action="Index"
                   method="get"
-                  class="row g-3">
+                  class="row g-3 align-items-end">
 
-                <div class="col-md-10">
+                <input type="hidden"
+                       name="mes"
+                       value="@mesSeleccionado" />
 
-                    <label class="form-label">
-                        Buscar pedido
+                <input type="hidden"
+                       name="anio"
+                       value="@anioSeleccionado" />
+
+
+                <div class="col-lg-10">
+
+                    <label class="form-label fw-semibold">
+
+                        Buscar
+
                     </label>
 
                     <input type="text"
                            name="buscar"
                            value="@buscar"
                            class="form-control"
-                           placeholder="Número, cliente, usuario, estado, mesa o fecha..." />
+                           autocomplete="off"
+                           placeholder="Número, cliente, usuario, estado, tipo, mesa o fecha..." />
 
                 </div>
 
 
-                <div class="col-md-2 d-flex align-items-end">
+                <div class="col-lg-2">
 
                     <button type="submit"
                             class="btn btn-primary w-100">
@@ -492,30 +1018,69 @@
 
             </form>
 
+
+            @if (!string.IsNullOrWhiteSpace(buscar))
+            {
+                <div class="mt-3">
+
+                    <span class="text-muted small">
+
+                        Resultados para:
+
+                    </span>
+
+                    <span class="badge bg-primary">
+
+                        @buscar
+
+                    </span>
+
+                    <a asp-action="Index"
+                       asp-route-mes="@mesSeleccionado"
+                       asp-route-anio="@anioSeleccionado"
+                       class="btn btn-sm btn-link text-decoration-none">
+
+                        Limpiar búsqueda
+
+                    </a>
+
+                </div>
+            }
+
         </div>
 
     </div>
 
 
     <!-- ========================================================= -->
-    <!-- TABLA -->
+    <!-- LISTA DE PEDIDOS -->
     <!-- ========================================================= -->
 
     <div class="card shadow-sm border-0">
 
         <div class="card-header bg-white py-3">
 
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
 
-                <h5 class="mb-0 fw-semibold">
+                <div>
 
-                    <i class="bi bi-list-ul me-2"></i>
+                    <h5 class="mb-0 fw-semibold">
 
-                    Lista de pedidos
+                        <i class="bi bi-list-ul me-2"></i>
 
-                </h5>
+                        Lista de pedidos
 
-                <span class="text-muted">
+                    </h5>
+
+                    <small class="text-muted">
+
+                        Pedidos encontrados con los filtros actuales.
+
+                    </small>
+
+                </div>
+
+                <span class="badge bg-light text-dark border">
 
                     @pedidos.Count pedido(s)
 
@@ -530,13 +1095,20 @@
 
             @if (!pedidos.Any())
             {
-                <div class="text-center py-5">
+                <div class="text-center py-5 px-3">
 
-                    <i class="bi bi-receipt display-5 text-muted"></i>
+                    <i class="bi bi-receipt display-4 text-muted"></i>
 
-                    <p class="text-muted mt-3 mb-0">
+                    <h5 class="mt-3 mb-1">
 
-                        No se encontraron pedidos.
+                        No se encontraron pedidos
+
+                    </h5>
+
+                    <p class="text-muted mb-0">
+
+                        Prueba cambiando los filtros o realizando
+                        una nueva búsqueda.
 
                     </p>
 
@@ -552,7 +1124,7 @@
 
                             <tr>
 
-                                <th>
+                                <th class="ps-3">
                                     Pedido
                                 </th>
 
@@ -580,7 +1152,7 @@
                                     Total
                                 </th>
 
-                                <th class="text-center">
+                                <th class="text-center pe-3">
                                     Acciones
                                 </th>
 
@@ -593,18 +1165,54 @@
 
                             @foreach (var pedido in pedidos)
                             {
+                                var estado =
+                                    pedido.IdEstadoPedido;
+
                                 var estadoPedido =
                                     pedido.IdEstadoPedidoNavigation?.Nombre
                                     ?? "Sin estado";
 
-                                var cancelado =
-                                    estadoPedido.Trim().Equals(
-                                        "Cancelado",
-                                        StringComparison.OrdinalIgnoreCase);
+                                var estaCancelado =
+                                    estado == ESTADO_CANCELADO;
+
+                                var estaFacturado =
+                                    estado == ESTADO_FACTURADO;
+
+                                var estaEntregado =
+                                    estado == ESTADO_ENTREGADO;
+
+
+                                // =================================================
+                                // EDITAR
+                                // Solo pedidos pendientes
+                                // =================================================
+
+                                var puedeEditarPedido =
+                                    puedeEditar &&
+                                    estado == ESTADO_PENDIENTE;
+
+
+                                // =================================================
+                                // ENTREGAR
+                                //
+                                // ÚNICA TRANSICIÓN DESDE ESTE INDEX:
+                                //
+                                // LISTO -> ENTREGADO
+                                // =================================================
+
+                                var puedeEntregarPedido =
+                                    puedeEntregar &&
+                                    estado == ESTADO_LISTO;
+
 
                                 <tr>
 
-                                    <td>
+
+                                    <!-- ================================================= -->
+                                    <!-- PEDIDO -->
+                                    <!-- ================================================= -->
+
+                                    <td class="ps-3">
 
                                         <div class="fw-bold">
 
@@ -613,12 +1221,22 @@
 
                                         </div>
 
+                                        <small class="text-muted">
+
+                                            ID @pedido.IdPedido
+
+                                        </small>
+
                                     </td>
 
 
+                                    <!-- ================================================= -->
+                                    <!-- FECHA -->
+                                    <!-- ================================================= -->
+
                                     <td>
 
-                                        <div>
+                                        <div class="fw-semibold">
 
                                             @pedido.FechaPedido.ToString(
                                                 "dd/MM/yyyy")
@@ -635,6 +1253,10 @@
                                     </td>
 
 
+                                    <!-- ================================================= -->
+                                    <!-- CLIENTE -->
+                                    <!-- ================================================= -->
+
                                     <td>
 
                                         @if (pedido.IdClienteNavigation != null)
@@ -646,10 +1268,13 @@
 
                                             </div>
 
+
                                             @if (!string.IsNullOrWhiteSpace(
                                                 pedido.IdClienteNavigation.Telefono))
                                             {
                                                 <small class="text-muted">
+
+                                                    <i class="bi bi-telephone me-1"></i>
 
                                                     @pedido.IdClienteNavigation.Telefono
 
@@ -659,12 +1284,18 @@
                                         else
                                         {
                                             <span class="text-muted">
+
                                                 Sin cliente
+
                                             </span>
                                         }
 
                                     </td>
 
+
+                                    <!-- ================================================= -->
+                                    <!-- MESA -->
+                                    <!-- ================================================= -->
 
                                     <td>
 
@@ -672,8 +1303,36 @@
                                         {
                                             <span class="badge bg-light text-dark border">
 
+                                                <i class="bi bi-grid-3x3-gap me-1"></i>
+
                                                 Mesa
                                                 @pedido.IdMesaNavigation.NumeroMesa
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                —
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================================= -->
+                                    <!-- TIPO -->
+                                    <!-- ================================================= -->
+
+                                    <td>
+
+                                        @if (pedido.IdTipoPedidoNavigation != null)
+                                        {
+                                            <span>
+
+                                                @pedido.IdTipoPedidoNavigation.Nombre
 
                                             </span>
                                         }
@@ -687,126 +1346,147 @@
                                     </td>
 
 
+                                    <!-- ================================================= -->
+                                    <!-- ESTADO -->
+                                    <!-- ================================================= -->
+
                                     <td>
 
-                                        @(pedido.IdTipoPedidoNavigation?.Nombre
-                                            ?? "—")
+                                        @switch (estado)
+                                        {
+                                            case ESTADO_PENDIENTE:
+
+                                                <span class="badge bg-warning text-dark">
+
+                                                    <i class="bi bi-clock me-1"></i>
+
+                                                    Pendiente
+
+                                                </span>
+
+                                                break;
+
+
+                                            case ESTADO_EN_COCINA:
+
+                                                <span class="badge bg-info text-dark">
+
+                                                    <i class="bi bi-fire me-1"></i>
+
+                                                    En cocina
+
+                                                </span>
+
+                                                break;
+
+
+                                            case ESTADO_PREPARANDOSE:
+
+                                                <span class="badge bg-primary">
+
+                                                    <i class="bi bi-gear me-1"></i>
+
+                                                    Preparándose
+
+                                                </span>
+
+                                                break;
+
+
+                                            case ESTADO_LISTO:
+
+                                                <span class="badge bg-success">
+
+                                                    <i class="bi bi-check2-circle me-1"></i>
+
+                                                    Listo
+
+                                                </span>
+
+                                                break;
+
+
+                                            case ESTADO_ENTREGADO:
+
+                                                <span class="badge bg-secondary">
+
+                                                    <i class="bi bi-box-seam me-1"></i>
+
+                                                    Entregado
+
+                                                </span>
+
+                                                break;
+
+
+                                            case ESTADO_FACTURADO:
+
+                                                <span class="badge bg-dark">
+
+                                                    <i class="bi bi-cash-coin me-1"></i>
+
+                                                    Facturado
+
+                                                </span>
+
+                                                break;
+
+
+                                            case ESTADO_CANCELADO:
+
+                                                <span class="badge bg-danger">
+
+                                                    <i class="bi bi-x-circle me-1"></i>
+
+                                                    Cancelado
+
+                                                </span>
+
+                                                break;
+
+
+                                            default:
+
+                                                <span class="badge bg-secondary">
+
+                                                    @estadoPedido
+
+                                                </span>
+
+                                                break;
+                                        }
 
                                     </td>
 
 
-                                    <td>
-
-                                        @if (cancelado)
-                                        {
-                                            <span class="badge bg-danger">
-
-                                                <i class="bi bi-x-circle me-1"></i>
-
-                                                Cancelado
-
-                                            </span>
-                                        }
-                                        else if (estadoPedido.Equals(
-                                            "Pendiente",
-                                            StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            <span class="badge bg-warning text-dark">
-
-                                                <i class="bi bi-clock me-1"></i>
-
-                                                Pendiente
-
-                                            </span>
-                                        }
-                                        else if (estadoPedido.Equals(
-                                            "En cocina",
-                                            StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            <span class="badge bg-info text-dark">
-
-                                                <i class="bi bi-fire me-1"></i>
-
-                                                En cocina
-
-                                            </span>
-                                        }
-                                        else if (estadoPedido.Equals(
-                                            "Preparándose",
-                                            StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            <span class="badge bg-primary">
-
-                                                Preparándose
-
-                                            </span>
-                                        }
-                                        else if (estadoPedido.Equals(
-                                            "Listo",
-                                            StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            <span class="badge bg-primary">
-
-                                                <i class="bi bi-check2-circle me-1"></i>
-
-                                                Listo
-
-                                            </span>
-                                        }
-                                        else if (estadoPedido.Equals(
-                                            "Entregado",
-                                            StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            <span class="badge bg-success">
-
-                                                <i class="bi bi-box-seam me-1"></i>
-
-                                                Entregado
-
-                                            </span>
-                                        }
-                                        else if (estadoPedido.Equals(
-                                            "Facturado",
-                                            StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            <span class="badge bg-success">
-
-                                                <i class="bi bi-cash-coin me-1"></i>
-
-                                                Facturado
-
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">
-
-                                                @estadoPedido
-
-                                            </span>
-                                        }
-
-                                    </td>
-
+                                    <!-- ================================================= -->
+                                    <!-- TOTAL -->
+                                    <!-- ================================================= -->
 
                                     <td class="text-end">
 
                                         <span class="fw-bold
-                                            @(cancelado
-                                                ? "text-muted"
+                                            @(estaCancelado
+                                                ? "text-muted text-decoration-line-through"
                                                 : "text-success")">
 
-                                            C$
-                                            @pedido.Total.ToString("N2")
+                                            C$ @pedido.Total.ToString("N2")
 
                                         </span>
 
                                     </td>
 
 
-                                    <td class="text-center">
+                                    <!-- ================================================= -->
+                                    <!-- ACCIONES -->
+                                    <!-- ================================================= -->
 
-                                        <div class="btn-group">
+                                    <td class="text-center pe-3">
+
+                                        <div class="d-flex justify-content-center gap-1">
+
+
+                                            <!-- VER -->
 
                                             <a asp-action="Details"
                                                asp-route-id="@pedido.IdPedido"
@@ -818,19 +1498,48 @@
                                             </a>
 
 
-                                            @if (!cancelado &&
-                                                 !estadoPedido.Equals(
-                                                     "Facturado",
-                                                     StringComparison.OrdinalIgnoreCase))
+                                            <!-- EDITAR -->
+
+                                            @if (puedeEditarPedido)
                                             {
                                                 <a asp-action="Edit"
                                                    asp-route-id="@pedido.IdPedido"
                                                    class="btn btn-sm btn-outline-warning"
-                                                   title="Editar">
+                                                   title="Editar pedido">
 
                                                     <i class="bi bi-pencil"></i>
 
                                                 </a>
+                                            }
+
+
+                                            <!-- ENTREGAR -->
+
+                                            @if (puedeEntregarPedido)
+                                            {
+                                                <form asp-action="CambiarEstado"
+                                                      method="post"
+                                                      class="d-inline formulario-entregar">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden"
+                                                           name="id"
+                                                           value="@pedido.IdPedido" />
+
+                                                    <input type="hidden"
+                                                           name="idEstado"
+                                                           value="@ESTADO_ENTREGADO" />
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-outline-success"
+                                                            title="Marcar como entregado">
+
+                                                        <i class="bi bi-box-seam"></i>
+
+                                                    </button>
+
+                                                </form>
                                             }
 
                                         </div>
@@ -851,4 +1560,336 @@
 
     </div>
 
+
+    <!-- ========================================================= -->
+    <!-- FLUJO DEL PEDIDO -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm border-0 mt-4">
+
+        <div class="card-header bg-white py-3">
+
+            <div class="d-flex align-items-center">
+
+                <i class="bi bi-diagram-3 fs-4 me-2 text-primary"></i>
+
+                <div>
+
+                    <h5 class="mb-0 fw-bold">
+
+                        Flujo del pedido
+
+                    </h5>
+
+                    <small class="text-muted">
+
+                        Cada área controla su propia etapa.
+
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-3 text-center">
+
+
+                <!-- PENDIENTE -->
+
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+
+                    <div class="p-3 rounded bg-warning-subtle h-100">
+
+                        <div class="text-warning fs-2 mb-2">
+
+                            <i class="bi bi-clock"></i>
+
+                        </div>
+
+                        <strong>
+                            Pendiente
+                        </strong>
+
+                        <div class="small text-muted mt-1">
+
+                            Pedido creado.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- EN COCINA -->
+
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+
+                    <div class="p-3 rounded bg-info-subtle h-100">
+
+                        <div class="text-info fs-2 mb-2">
+
+                            <i class="bi bi-fire"></i>
+
+                        </div>
+
+                        <strong>
+                            En cocina
+                        </strong>
+
+                        <div class="small text-muted mt-1">
+
+                            Cocina recibió el pedido.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- PREPARÁNDOSE -->
+
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+
+                    <div class="p-3 rounded bg-primary-subtle h-100">
+
+                        <div class="text-primary fs-2 mb-2">
+
+                            <i class="bi bi-gear"></i>
+
+                        </div>
+
+                        <strong>
+                            Preparándose
+                        </strong>
+
+                        <div class="small text-muted mt-1">
+
+                            Cocina está preparando.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- LISTO -->
+
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+
+                    <div class="p-3 rounded bg-success-subtle h-100">
+
+                        <div class="text-success fs-2 mb-2">
+
+                            <i class="bi bi-check2-circle"></i>
+
+                        </div>
+
+                        <strong>
+                            Listo
+                        </strong>
+
+                        <div class="small text-muted mt-1">
+
+                            Esperando al mesero.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ENTREGADO -->
+
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+
+                    <div class="p-3 rounded bg-secondary-subtle h-100">
+
+                        <div class="text-secondary fs-2 mb-2">
+
+                            <i class="bi bi-box-seam"></i>
+
+                        </div>
+
+                        <strong>
+                            Entregado
+                        </strong>
+
+                        <div class="small text-muted mt-1">
+
+                            Mesero entregó el pedido.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- FACTURADO -->
+
+                <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+
+                    <div class="p-3 rounded bg-dark-subtle h-100">
+
+                        <div class="text-dark fs-2 mb-2">
+
+                            <i class="bi bi-cash-coin"></i>
+
+                        </div>
+
+                        <strong>
+                            Facturado
+                        </strong>
+
+                        <div class="small text-muted mt-1">
+
+                            Caja completó la venta.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN DE REGLAS -->
+    <!-- ========================================================= -->
+
+    <div class="alert alert-info border-0 shadow-sm mt-4 mb-0">
+
+        <div class="d-flex align-items-start">
+
+            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+
+            <div>
+
+                <div class="fw-bold mb-1">
+
+                    Flujo controlado por módulos
+
+                </div>
+
+                <div class="small">
+
+                    Los pedidos nuevos comienzan en
+                    <strong>Pendiente</strong>.
+
+                    Cocina controla las transiciones
+                    <strong>
+                        Pendiente → En cocina → Preparándose → Listo
+                    </strong>.
+
+                    Desde Pedidos solamente se permite
+                    <strong>
+                        Listo → Entregado
+                    </strong>.
+
+                    Finalmente, el módulo de facturación controla
+                    <strong>
+                        Entregado → Facturado
+                    </strong>.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
+
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                const formularios =
+                    document.querySelectorAll(
+                        ".formulario-entregar"
+                    );
+
+                formularios.forEach(
+                    function (formulario) {
+
+                        formulario.addEventListener(
+                            "submit",
+                            function (evento) {
+
+                                const confirmar =
+                                    window.confirm(
+                                        "¿Desea marcar este pedido como ENTREGADO?"
+                                    );
+
+                                if (!confirmar) {
+
+                                    evento.preventDefault();
+
+                                    return;
+                                }
+
+
+                                const boton =
+                                    formulario.querySelector(
+                                        "button"
+                                    );
+
+                                if (!boton) {
+                                    return;
+                                }
+
+
+                                if (
+                                    boton.dataset.enviando ===
+                                    "true"
+                                ) {
+
+                                    evento.preventDefault();
+
+                                    return;
+                                }
+
+
+                                boton.dataset.enviando =
+                                    "true";
+
+                                boton.disabled =
+                                    true;
+
+
+                                boton.innerHTML =
+                                    '<span class="spinner-border spinner-border-sm me-1"></span>' +
+                                    'Entregando...';
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    </script>
+
+}

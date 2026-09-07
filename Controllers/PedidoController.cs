@@ -27,116 +27,186 @@ namespace WebApplication1.Controllers
         private const int ESTADO_FACTURADO = 6;
         private const int ESTADO_CANCELADO = 7;
 
+        // =========================================================
+        // CONSTRUCTOR
+        // =========================================================
 
         public PedidoController(RestauranteContext context)
         {
             _context = context;
         }
 
-
         // =========================================================
         // INDEX
-        // LISTADO + DASHBOARD
         // =========================================================
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? buscar)
+        public async Task<IActionResult> Index(
+            string? buscar,
+            int? mes,
+            int? anio)
         {
             var hoy = DateTime.Today;
 
-            var inicioMes = new DateTime(
-                hoy.Year,
-                hoy.Month,
-                1);
+            int mesSeleccionado =
+                mes.HasValue &&
+                mes.Value >= 1 &&
+                mes.Value <= 12
+                    ? mes.Value
+                    : hoy.Month;
+
+            int anioSeleccionado =
+                anio.HasValue &&
+                anio.Value >= 2000 &&
+                anio.Value <= 2100
+                    ? anio.Value
+                    : hoy.Year;
+
+            var inicioMes =
+                new DateTime(
+                    anioSeleccionado,
+                    mesSeleccionado,
+                    1);
 
             var inicioMesSiguiente =
                 inicioMes.AddMonths(1);
 
+            var inicioDiaActual =
+                hoy;
+
             var inicioDiaSiguiente =
                 hoy.AddDays(1);
-
 
             // =====================================================
             // OBTENER PEDIDOS
             // =====================================================
 
-            var pedidos = await _context.Pedidos
-                .AsNoTracking()
-                .Include(p => p.IdClienteNavigation)
-                .Include(p => p.IdMesaNavigation)
-                .Include(p => p.IdEstadoPedidoNavigation)
-                .Include(p => p.IdTipoPedidoNavigation)
-                .Include(p => p.IdUsuarioNavigation)
-                .OrderByDescending(p => p.FechaPedido)
-                .ToListAsync();
+            var pedidos =
+                await _context.Pedidos
+                    .AsNoTracking()
+                    .Include(p =>
+                        p.IdClienteNavigation)
+                    .Include(p =>
+                        p.IdMesaNavigation)
+                    .Include(p =>
+                        p.IdEstadoPedidoNavigation)
+                    .Include(p =>
+                        p.IdTipoPedidoNavigation)
+                    .Include(p =>
+                        p.IdUsuarioNavigation)
+                    .OrderByDescending(p =>
+                        p.FechaPedido)
+                    .ToListAsync();
 
+            // =====================================================
+            // FACTURAS EXISTENTES
+            //
+            // Se cargan una sola vez para determinar qué pedidos
+            // están disponibles para cobrar.
+            // =====================================================
+
+            var pedidosConFactura =
+                await _context.Facturas
+                    .AsNoTracking()
+                    .Select(f =>
+                        f.IdPedido)
+                    .ToHashSetAsync();
+
+            // =====================================================
+            // PEDIDOS DISPONIBLES PARA COBRO
+            //
+            // REGLA:
+            //
+            // Un pedido solamente puede ir a Caja/Facturación
+            // cuando está LISTO y todavía no tiene factura.
+            //
+            // NO se permite esperar a que esté Entregado.
+            // =====================================================
+
+            var pedidosParaCobrar =
+                pedidos
+                    .Where(p =>
+                        p.IdEstadoPedido ==
+                            ESTADO_LISTO
+                        &&
+                        !pedidosConFactura.Contains(
+                            p.IdPedido))
+                    .Select(p =>
+                        p.IdPedido)
+                    .ToHashSet();
+
+            ViewBag.PedidosParaCobrar =
+                pedidosParaCobrar;
 
             // =====================================================
             // PEDIDOS DEL MES
             // =====================================================
 
-            var pedidosMes = pedidos
-                .Where(p =>
-                    p.FechaPedido >= inicioMes &&
-                    p.FechaPedido < inicioMesSiguiente)
-                .ToList();
-
+            var pedidosMes =
+                pedidos
+                    .Where(p =>
+                        p.FechaPedido >= inicioMes &&
+                        p.FechaPedido < inicioMesSiguiente)
+                    .ToList();
 
             // =====================================================
             // PEDIDOS DE HOY
             // =====================================================
 
-            var pedidosHoy = pedidos
-                .Where(p =>
-                    p.FechaPedido >= hoy &&
-                    p.FechaPedido < inicioDiaSiguiente)
-                .ToList();
-
+            var pedidosHoy =
+                pedidos
+                    .Where(p =>
+                        p.FechaPedido >= inicioDiaActual &&
+                        p.FechaPedido < inicioDiaSiguiente)
+                    .ToList();
 
             // =====================================================
             // CANCELADOS
             // =====================================================
 
-            var pedidosCanceladosMes = pedidosMes
-                .Where(p =>
-                    EsEstadoCancelado(
-                        p.IdEstadoPedidoNavigation?.Nombre))
-                .ToList();
+            var pedidosCanceladosMes =
+                pedidosMes
+                    .Where(p =>
+                        EsEstadoCancelado(
+                            p.IdEstadoPedidoNavigation?.Nombre))
+                    .ToList();
 
-            var pedidosCanceladosHoy = pedidosHoy
-                .Where(p =>
-                    EsEstadoCancelado(
-                        p.IdEstadoPedidoNavigation?.Nombre))
-                .ToList();
-
+            var pedidosCanceladosHoy =
+                pedidosHoy
+                    .Where(p =>
+                        EsEstadoCancelado(
+                            p.IdEstadoPedidoNavigation?.Nombre))
+                    .ToList();
 
             // =====================================================
-            // PEDIDOS QUE CUENTAN COMO VENTA
+            // VENTAS
             // =====================================================
 
-            var pedidosVentaMes = pedidosMes
-                .Where(p =>
-                    !EsEstadoCancelado(
-                        p.IdEstadoPedidoNavigation?.Nombre))
-                .ToList();
+            var pedidosVentaMes =
+                pedidosMes
+                    .Where(p =>
+                        !EsEstadoCancelado(
+                            p.IdEstadoPedidoNavigation?.Nombre))
+                    .ToList();
 
-            var pedidosVentaHoy = pedidosHoy
-                .Where(p =>
-                    !EsEstadoCancelado(
-                        p.IdEstadoPedidoNavigation?.Nombre))
-                .ToList();
-
+            var pedidosVentaHoy =
+                pedidosHoy
+                    .Where(p =>
+                        !EsEstadoCancelado(
+                            p.IdEstadoPedidoNavigation?.Nombre))
+                    .ToList();
 
             // =====================================================
             // TOTALES
             // =====================================================
 
             decimal totalVendidoMes =
-                pedidosVentaMes.Sum(p => p.Total);
+                pedidosVentaMes.Sum(p =>
+                    p.Total);
 
             decimal totalVendidoHoy =
-                pedidosVentaHoy.Sum(p => p.Total);
-
+                pedidosVentaHoy.Sum(p =>
+                    p.Total);
 
             int cantidadPedidosMes =
                 pedidosVentaMes.Count;
@@ -144,24 +214,23 @@ namespace WebApplication1.Controllers
             int cantidadPedidosHoy =
                 pedidosVentaHoy.Count;
 
-
             int cantidadCanceladosMes =
                 pedidosCanceladosMes.Count;
 
             int cantidadCanceladosHoy =
                 pedidosCanceladosHoy.Count;
 
-
             decimal ticketPromedioMes =
                 cantidadPedidosMes > 0
-                    ? totalVendidoMes / cantidadPedidosMes
+                    ? totalVendidoMes /
+                      cantidadPedidosMes
                     : 0m;
 
             decimal ticketPromedioHoy =
                 cantidadPedidosHoy > 0
-                    ? totalVendidoHoy / cantidadPedidosHoy
+                    ? totalVendidoHoy /
+                      cantidadPedidosHoy
                     : 0m;
-
 
             // =====================================================
             // ESTADOS
@@ -203,9 +272,8 @@ namespace WebApplication1.Controllers
                         p.IdEstadoPedidoNavigation?.Nombre,
                         "Facturado"));
 
-
             // =====================================================
-            // VIEWBAG DASHBOARD
+            // VIEWBAG
             // =====================================================
 
             ViewBag.TotalVendidoMes =
@@ -250,122 +318,181 @@ namespace WebApplication1.Controllers
             ViewBag.PedidosFacturados =
                 pedidosFacturados;
 
+            // =====================================================
+            // SELECTOR DE MES
+            // =====================================================
+
+            ViewBag.MesSeleccionado =
+                mesSeleccionado;
+
+            ViewBag.AnioSeleccionado =
+                anioSeleccionado;
+
+            var nombreMes =
+                CultureInfo
+                    .GetCultureInfo("es-ES")
+                    .DateTimeFormat
+                    .GetMonthName(mesSeleccionado);
+
+            ViewBag.NombreMes =
+                CultureInfo
+                    .GetCultureInfo("es-ES")
+                    .TextInfo
+                    .ToTitleCase(nombreMes);
+
+            // =====================================================
+            // AÑOS DISPONIBLES
+            // =====================================================
+
+            int primerAnio =
+                pedidos.Any()
+                    ? pedidos.Min(p =>
+                        p.FechaPedido.Year)
+                    : hoy.Year;
+
+            int ultimoAnio =
+                Math.Max(
+                    hoy.Year,
+                    anioSeleccionado);
+
+            ViewBag.AniosDisponibles =
+                Enumerable
+                    .Range(
+                        primerAnio,
+                        ultimoAnio - primerAnio + 1)
+                    .OrderByDescending(a =>
+                        a)
+                    .ToList();
 
             // =====================================================
             // BÚSQUEDA
             // =====================================================
 
-            var pedidosFiltrados = pedidos;
+            var pedidosFiltrados =
+                pedidos;
 
             if (!string.IsNullOrWhiteSpace(buscar))
             {
-                buscar = buscar.Trim();
+                buscar =
+                    buscar.Trim();
 
                 var termino =
                     NormalizarTexto(buscar);
 
-                pedidosFiltrados = pedidos
-                    .Where(p =>
-                    {
-                        var numeroPedido =
-                            NormalizarTexto(
-                                p.NumeroPedido);
+                pedidosFiltrados =
+                    pedidos
+                        .Where(p =>
+                        {
+                            var numeroPedido =
+                                NormalizarTexto(
+                                    p.NumeroPedido);
 
-                        var nombreCliente =
-                            p.IdClienteNavigation != null
-                                ? NormalizarTexto(
-                                    $"{p.IdClienteNavigation.Nombres} {p.IdClienteNavigation.Apellidos}")
-                                : "";
+                            var nombreCliente =
+                                p.IdClienteNavigation != null
+                                    ? NormalizarTexto(
+                                        $"{p.IdClienteNavigation.Nombres} " +
+                                        $"{p.IdClienteNavigation.Apellidos}")
+                                    : "";
 
-                        var nombreUsuario =
-                            p.IdUsuarioNavigation != null
-                                ? NormalizarTexto(
-                                    $"{p.IdUsuarioNavigation.Nombres} {p.IdUsuarioNavigation.Apellidos}")
-                                : "";
+                            var nombreUsuario =
+                                p.IdUsuarioNavigation != null
+                                    ? NormalizarTexto(
+                                        $"{p.IdUsuarioNavigation.Nombres} " +
+                                        $"{p.IdUsuarioNavigation.Apellidos}")
+                                    : "";
 
-                        var usuario =
-                            p.IdUsuarioNavigation != null
-                                ? NormalizarTexto(
-                                    p.IdUsuarioNavigation.Usuario1)
-                                : "";
+                            var usuario =
+                                p.IdUsuarioNavigation != null
+                                    ? NormalizarTexto(
+                                        p.IdUsuarioNavigation.Usuario1)
+                                    : "";
 
-                        var estado =
-                            NormalizarTexto(
-                                p.IdEstadoPedidoNavigation?.Nombre);
+                            var estado =
+                                NormalizarTexto(
+                                    p.IdEstadoPedidoNavigation?.Nombre);
 
-                        var tipoPedido =
-                            NormalizarTexto(
-                                p.IdTipoPedidoNavigation?.Nombre);
+                            var tipoPedido =
+                                NormalizarTexto(
+                                    p.IdTipoPedidoNavigation?.Nombre);
 
-                        var mesa =
-                            p.IdMesaNavigation != null
-                                ? p.IdMesaNavigation.NumeroMesa
-                                    .ToString()
-                                : "";
+                            var mesa =
+                                p.IdMesaNavigation != null
+                                    ? p.IdMesaNavigation
+                                        .NumeroMesa
+                                        .ToString()
+                                    : "";
 
-                        var fecha =
-                            p.FechaPedido.ToString(
-                                "dd/MM/yyyy");
+                            var fecha =
+                                p.FechaPedido
+                                    .ToString("dd/MM/yyyy");
 
-                        var fechaSinFormato =
-                            p.FechaPedido.ToString(
-                                "ddMMyyyy");
+                            var fechaSinFormato =
+                                p.FechaPedido
+                                    .ToString("ddMMyyyy");
 
-                        return
-                            numeroPedido.Contains(termino)
-                            ||
-                            nombreCliente.Contains(termino)
-                            ||
-                            nombreUsuario.Contains(termino)
-                            ||
-                            usuario.Contains(termino)
-                            ||
-                            estado.Contains(termino)
-                            ||
-                            tipoPedido.Contains(termino)
-                            ||
-                            mesa.Contains(termino)
-                            ||
-                            fecha.Contains(termino)
-                            ||
-                            fechaSinFormato.Contains(termino);
-                    })
-                    .ToList();
+                            return
+                                numeroPedido.Contains(termino)
+                                ||
+                                nombreCliente.Contains(termino)
+                                ||
+                                nombreUsuario.Contains(termino)
+                                ||
+                                usuario.Contains(termino)
+                                ||
+                                estado.Contains(termino)
+                                ||
+                                tipoPedido.Contains(termino)
+                                ||
+                                mesa.Contains(termino)
+                                ||
+                                fecha.Contains(termino)
+                                ||
+                                fechaSinFormato.Contains(termino);
+                        })
+                        .ToList();
             }
 
-            ViewBag.Buscar = buscar;
+            ViewBag.Buscar =
+                buscar;
 
-            return View(pedidosFiltrados);
+            return View(
+                pedidosFiltrados);
         }
-
 
         // =========================================================
         // DETAILS
         // =========================================================
 
         [HttpGet]
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(
+            int? id)
         {
             if (id == null)
                 return NotFound();
 
-
-            var pedido = await _context.Pedidos
-                .AsNoTracking()
-                .Include(p => p.IdClienteNavigation)
-                .Include(p => p.IdMesaNavigation)
-                .Include(p => p.IdUsuarioNavigation)
-                .Include(p => p.IdEstadoPedidoNavigation)
-                .Include(p => p.IdTipoPedidoNavigation)
-                .Include(p => p.DetallePedidos)
-                    .ThenInclude(d => d.IdProductoNavigation)
-                .FirstOrDefaultAsync(
-                    p => p.IdPedido == id);
-
+            var pedido =
+                await _context.Pedidos
+                    .AsNoTracking()
+                    .Include(p =>
+                        p.IdClienteNavigation)
+                    .Include(p =>
+                        p.IdMesaNavigation)
+                    .Include(p =>
+                        p.IdUsuarioNavigation)
+                    .Include(p =>
+                        p.IdEstadoPedidoNavigation)
+                    .Include(p =>
+                        p.IdTipoPedidoNavigation)
+                    .Include(p =>
+                        p.DetallePedidos)
+                        .ThenInclude(d =>
+                            d.IdProductoNavigation)
+                    .FirstOrDefaultAsync(
+                        p =>
+                            p.IdPedido == id);
 
             if (pedido == null)
                 return NotFound();
-
 
             // =====================================================
             // COMPROBAR FACTURA
@@ -375,73 +502,216 @@ namespace WebApplication1.Controllers
                 await _context.Facturas
                     .AsNoTracking()
                     .AnyAsync(f =>
-                        f.IdPedido == pedido.IdPedido);
-
+                        f.IdPedido ==
+                        pedido.IdPedido);
 
             ViewBag.TieneFactura =
                 tieneFactura;
 
+            // =====================================================
+            // SIGUIENTE ESTADO
+            //
+            // PedidoController solamente maneja:
+            //
+            // FACTURADO -> ENTREGADO
+            //
+            // Cocina maneja:
+            //
+            // PENDIENTE -> EN COCINA
+            // EN COCINA -> PREPARÁNDOSE
+            // PREPARÁNDOSE -> LISTO
+            //
+            // Facturación maneja:
+            //
+            // LISTO -> FACTURADO
+            // =====================================================
+
+            var siguienteEstado =
+                ObtenerSiguienteEstadoPedido(
+                    pedido.IdEstadoPedido);
+
+            ViewBag.SiguienteEstadoId =
+                siguienteEstado?.Id;
+
+            ViewBag.SiguienteEstadoNombre =
+                siguienteEstado?.Nombre ?? "";
 
             // =====================================================
-            // ESTADOS PARA EL COMBO
+            // ESTADOS DISPONIBLES
+            //
+            // Solo se muestra la transición que realmente puede
+            // ejecutar PedidoController.
             // =====================================================
 
             ViewBag.EstadosPedido =
-                await _context.EstadoPedidos
-                    .AsNoTracking()
-                    .OrderBy(e =>
-                        e.IdEstadoPedido)
-                    .Select(e =>
+                siguienteEstado.HasValue
+                    ? new List<SelectListItem>
+                    {
                         new SelectListItem
                         {
                             Value =
-                                e.IdEstadoPedido.ToString(),
+                                siguienteEstado.Value.Id.ToString(),
 
                             Text =
-                                e.Nombre ?? ""
-                        })
-                    .ToListAsync();
-
+                                siguienteEstado.Value.Nombre
+                        }
+                    }
+                    : new List<SelectListItem>();
 
             // =====================================================
-            // SIGUIENTE ESTADO
+            // PUEDE AVANZAR
             // =====================================================
 
-            ViewBag.SiguienteEstado =
-                ObtenerSiguienteEstado(
-                    pedido.IdEstadoPedido);
+            bool usuarioPuedeAvanzar =
+                User.IsInRole("Administrador") ||
+                User.IsInRole("Gerente") ||
+                User.IsInRole("Mesero");
 
+            bool puedeAvanzarEstado =
+                siguienteEstado.HasValue &&
+                usuarioPuedeAvanzar &&
+                !EsEstadoCancelado(
+                    pedido.IdEstadoPedidoNavigation?.Nombre) &&
+                pedido.IdEstadoPedido !=
+                    ESTADO_ENTREGADO;
 
-            return View(pedido);
+            ViewBag.PuedeAvanzarEstado =
+                puedeAvanzarEstado;
+
+            // =====================================================
+            // PUEDE EDITAR
+            // =====================================================
+
+            ViewBag.PuedeEditar =
+                pedido.IdEstadoPedido ==
+                ESTADO_PENDIENTE &&
+                !tieneFactura;
+
+            // =====================================================
+            // PUEDE FACTURAR
+            //
+            // El pedido debe estar LISTO.
+            // Nunca se factura después de entregar.
+            // =====================================================
+
+            bool usuarioPuedeFacturar =
+                User.IsInRole("Administrador") ||
+                User.IsInRole("Gerente");
+
+            ViewBag.PuedeFacturar =
+                pedido.IdEstadoPedido ==
+                    ESTADO_LISTO &&
+                !tieneFactura &&
+                usuarioPuedeFacturar;
+
+            return View(
+                pedido);
         }
 
+        // =========================================================
+        // IR A COBRAR / FACTURAR
+        //
+        // Flujo:
+        //
+        // LISTO -> FACTURACIÓN -> PAGO -> FACTURADO
+        //                                |
+        //                                v
+        //                            ENTREGADO
+        //
+        // PedidoController NO entrega un pedido que no esté
+        // facturado/pagado.
+        // =========================================================
+
+        [HttpGet]
+        [Authorize(Roles = "Administrador,Gerente")]
+        public async Task<IActionResult> IrACobrar(
+            int id)
+        {
+            var pedido =
+                await _context.Pedidos
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                        p =>
+                            p.IdPedido == id);
+
+            if (pedido == null)
+                return NotFound();
+
+            // =====================================================
+            // DEBE ESTAR LISTO
+            // =====================================================
+
+            if (pedido.IdEstadoPedido !=
+                ESTADO_LISTO)
+            {
+                TempData["Error"] =
+                    "El pedido debe estar Listo antes de enviarlo a Caja.";
+
+                return RedirectToAction(
+                    nameof(Index));
+            }
+
+            // =====================================================
+            // COMPROBAR SI YA TIENE FACTURA
+            // =====================================================
+
+            var tieneFactura =
+                await _context.Facturas
+                    .AsNoTracking()
+                    .AnyAsync(f =>
+                        f.IdPedido ==
+                        pedido.IdPedido);
+
+            if (tieneFactura)
+            {
+                TempData["Error"] =
+                    "Este pedido ya tiene una factura registrada.";
+
+                return RedirectToAction(
+                    nameof(Index));
+            }
+
+            // =====================================================
+            // IR A FACTURACIÓN
+            // =====================================================
+
+            return RedirectToAction(
+                "Create",
+                "Facturacion",
+                new
+                {
+                    idPedido =
+                        pedido.IdPedido
+                });
+        }
 
         // =========================================================
         // CREATE - GET
         // =========================================================
 
         [HttpGet]
+        [Authorize(Roles = "Administrador,Gerente,Mesero")]
         public async Task<IActionResult> Create()
         {
-            var model = new PedidoViewModel
-            {
-                FechaPedido = DateTime.Now
-            };
-
+            var model =
+                new PedidoViewModel
+                {
+                    FechaPedido =
+                        DateTime.Now
+                };
 
             model.Detalles ??=
                 new List<DetallePedidoViewModel>();
 
-
             model.Detalles.Add(
                 new DetallePedidoViewModel());
 
+            await CargarCombos(
+                model);
 
-            await CargarCombos(model);
-
-            return View(model);
+            return View(
+                model);
         }
-
 
         // =========================================================
         // CREATE - POST
@@ -449,13 +719,13 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador,Gerente,Mesero")]
         public async Task<IActionResult> Create(
             PedidoViewModel model)
         {
             var detalles =
                 model.Detalles
                 ?? new List<DetallePedidoViewModel>();
-
 
             // =====================================================
             // CLIENTE
@@ -469,9 +739,8 @@ namespace WebApplication1.Controllers
                     "Debe seleccionar un cliente.");
             }
 
-
             // =====================================================
-            // TIPO DE PEDIDO
+            // TIPO PEDIDO
             // =====================================================
 
             if (model.IdTipoPedido <= 0)
@@ -480,7 +749,6 @@ namespace WebApplication1.Controllers
                     nameof(model.IdTipoPedido),
                     "Debe seleccionar un tipo de pedido.");
             }
-
 
             // =====================================================
             // DETALLES
@@ -494,11 +762,6 @@ namespace WebApplication1.Controllers
                     "El pedido debe contener al menos un producto.");
             }
 
-
-            // =====================================================
-            // VALIDAR CANTIDADES Y DESCUENTOS
-            // =====================================================
-
             foreach (var detalle in detalles)
             {
                 if (detalle.Cantidad < 0)
@@ -508,16 +771,15 @@ namespace WebApplication1.Controllers
                         "La cantidad de un producto no puede ser negativa.");
                 }
 
-
                 if (detalle.Cantidad > 0 &&
                     detalle.Cantidad !=
-                    Math.Truncate(detalle.Cantidad))
+                    Math.Truncate(
+                        detalle.Cantidad))
                 {
                     ModelState.AddModelError(
                         "",
                         "La cantidad de los productos debe ser un número entero.");
                 }
-
 
                 if (detalle.Descuento < 0)
                 {
@@ -527,18 +789,14 @@ namespace WebApplication1.Controllers
                 }
             }
 
-
-            // =====================================================
-            // VALIDACIÓN MODELSTATE
-            // =====================================================
-
             if (!ModelState.IsValid)
             {
-                await CargarCombos(model);
+                await CargarCombos(
+                    model);
 
-                return View(model);
+                return View(
+                    model);
             }
-
 
             // =====================================================
             // USUARIO AUTENTICADO
@@ -548,7 +806,6 @@ namespace WebApplication1.Controllers
                 User.FindFirst(
                     ClaimTypes.NameIdentifier);
 
-
             if (claim == null ||
                 !int.TryParse(
                     claim.Value,
@@ -556,7 +813,6 @@ namespace WebApplication1.Controllers
             {
                 return Unauthorized();
             }
-
 
             // =====================================================
             // DETALLES VÁLIDOS
@@ -568,7 +824,6 @@ namespace WebApplication1.Controllers
                         d.Cantidad > 0)
                     .ToList();
 
-
             var idsProductos =
                 detallesValidos
                     .Select(d =>
@@ -576,18 +831,18 @@ namespace WebApplication1.Controllers
                     .Distinct()
                     .ToList();
 
-
             if (!idsProductos.Any())
             {
                 ModelState.AddModelError(
                     "",
                     "Debe seleccionar al menos un producto.");
 
-                await CargarCombos(model);
+                await CargarCombos(
+                    model);
 
-                return View(model);
+                return View(
+                    model);
             }
-
 
             // =====================================================
             // PRODUCTOS ACTIVOS
@@ -597,11 +852,12 @@ namespace WebApplication1.Controllers
                 await _context.Productos
                     .Where(p =>
                         idsProductos.Contains(
-                            p.IdProducto) &&
+                            p.IdProducto)
+                        &&
                         p.Estado)
                     .ToDictionaryAsync(
-                        p => p.IdProducto);
-
+                        p =>
+                            p.IdProducto);
 
             if (productos.Count !=
                 idsProductos.Count)
@@ -610,11 +866,12 @@ namespace WebApplication1.Controllers
                     "",
                     "Uno o más productos no existen o están inactivos.");
 
-                await CargarCombos(model);
+                await CargarCombos(
+                    model);
 
-                return View(model);
+                return View(
+                    model);
             }
-
 
             // =====================================================
             // TRANSACCIÓN
@@ -630,60 +887,59 @@ namespace WebApplication1.Controllers
                 // CREAR PEDIDO
                 // =================================================
 
-                var pedido = new Pedido
-                {
-                    IdCliente =
-                        model.IdCliente,
+                var pedido =
+                    new Pedido
+                    {
+                        IdCliente =
+                            model.IdCliente,
 
-                    IdMesa =
-                        model.IdMesa,
+                        IdMesa =
+                            model.IdMesa,
 
-                    IdUsuario =
-                        idUsuario,
+                        IdUsuario =
+                            idUsuario,
 
-                    IdTipoPedido =
-                        model.IdTipoPedido,
+                        IdTipoPedido =
+                            model.IdTipoPedido,
 
-                    IdEstadoPedido =
-                        await ObtenerEstadoInicial(),
+                        IdEstadoPedido =
+                            await ObtenerEstadoInicial(),
 
-                    NumeroPedido =
-                        await GenerarNumeroPedido(),
+                        NumeroPedido =
+                            await GenerarNumeroPedido(),
 
-                    Observacion =
-                        model.Observacion,
+                        Observacion =
+                            model.Observacion,
 
-                    Subtotal =
-                        0m,
+                        Subtotal =
+                            0m,
 
-                    Descuento =
-                        0m,
+                        Descuento =
+                            0m,
 
-                    Impuesto =
-                        0m,
+                        Impuesto =
+                            0m,
 
-                    Total =
-                        0m,
+                        Total =
+                            0m,
 
-                    FechaPedido =
-                        DateTime.Now
-                };
-
+                        FechaPedido =
+                            DateTime.Now
+                    };
 
                 _context.Pedidos.Add(
                     pedido);
 
                 await _context.SaveChangesAsync();
 
+                decimal subtotalPedido =
+                    0m;
 
-                // =================================================
-                // TOTALES
-                // =================================================
+                decimal descuentoPedido =
+                    0m;
 
-                decimal subtotalPedido = 0m;
-                decimal descuentoPedido = 0m;
-                decimal impuestoPedido = 0m;
-
+                decimal impuestoPedido =
+                    0m;
 
                 // =================================================
                 // DETALLES
@@ -699,7 +955,6 @@ namespace WebApplication1.Controllers
                             "Uno de los productos seleccionados no es válido.");
                     }
 
-
                     decimal cantidad =
                         item.Cantidad;
 
@@ -707,13 +962,13 @@ namespace WebApplication1.Controllers
                         producto.PrecioVenta;
 
                     decimal subtotalLinea =
-                        precio * cantidad;
+                        precio *
+                        cantidad;
 
                     decimal descuentoLinea =
                         Math.Max(
                             0m,
                             item.Descuento);
-
 
                     if (descuentoLinea >
                         subtotalLinea)
@@ -722,15 +977,15 @@ namespace WebApplication1.Controllers
                             subtotalLinea;
                     }
 
-
                     decimal impuestoLinea =
                         0m;
 
                     decimal totalLinea =
                         subtotalLinea
-                        - descuentoLinea
-                        + impuestoLinea;
-
+                        -
+                        descuentoLinea
+                        +
+                        impuestoLinea;
 
                     var detalle =
                         new DetallePedido
@@ -763,10 +1018,8 @@ namespace WebApplication1.Controllers
                                 item.Observacion
                         };
 
-
                     _context.DetallePedidos.Add(
                         detalle);
-
 
                     subtotalPedido +=
                         subtotalLinea;
@@ -778,9 +1031,8 @@ namespace WebApplication1.Controllers
                         impuestoLinea;
                 }
 
-
                 // =================================================
-                // TOTALES PEDIDO
+                // TOTALES
                 // =================================================
 
                 pedido.Subtotal =
@@ -794,18 +1046,17 @@ namespace WebApplication1.Controllers
 
                 pedido.Total =
                     subtotalPedido
-                    - descuentoPedido
-                    + impuestoPedido;
-
+                    -
+                    descuentoPedido
+                    +
+                    impuestoPedido;
 
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
 
-
                 TempData["Mensaje"] =
                     "Pedido creado correctamente.";
-
 
                 return RedirectToAction(
                     nameof(Index));
@@ -814,30 +1065,29 @@ namespace WebApplication1.Controllers
             {
                 await transaction.RollbackAsync();
 
-
                 ModelState.AddModelError(
                     "",
                     "Ocurrió un error al guardar el pedido.");
 
+                await CargarCombos(
+                    model);
 
-                await CargarCombos(model);
-
-                return View(model);
+                return View(
+                    model);
             }
         }
-
 
         // =========================================================
         // EDIT - GET
         // =========================================================
 
         [HttpGet]
+        [Authorize(Roles = "Administrador,Gerente,Mesero")]
         public async Task<IActionResult> Edit(
             int? id)
         {
             if (id == null)
                 return NotFound();
-
 
             var pedido =
                 await _context.Pedidos
@@ -849,30 +1099,22 @@ namespace WebApplication1.Controllers
                         p =>
                             p.IdPedido == id);
 
-
             if (pedido == null)
                 return NotFound();
 
-
-            // =====================================================
-            // NO EDITAR CANCELADOS
-            // =====================================================
-
-            if (EsEstadoCancelado(
-                pedido.IdEstadoPedidoNavigation?.Nombre))
+            if (pedido.IdEstadoPedido !=
+                ESTADO_PENDIENTE)
             {
                 TempData["Error"] =
-                    "No se puede modificar un pedido cancelado.";
+                    "Este pedido ya fue enviado a Cocina y no puede editarse.";
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
-
-
-            // =====================================================
-            // NO EDITAR FACTURADOS
-            // =====================================================
 
             var tieneFactura =
                 await _context.Facturas
@@ -881,7 +1123,6 @@ namespace WebApplication1.Controllers
                         f.IdPedido ==
                         pedido.IdPedido);
 
-
             if (tieneFactura)
             {
                 TempData["Error"] =
@@ -889,13 +1130,11 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
-
-
-            // =====================================================
-            // CREAR VIEWMODEL
-            // =====================================================
 
             var model =
                 new PedidoViewModel
@@ -971,19 +1210,18 @@ namespace WebApplication1.Controllers
                             .ToList()
                 };
 
-
             if (!model.Detalles.Any())
             {
                 model.Detalles.Add(
                     new DetallePedidoViewModel());
             }
 
+            await CargarCombos(
+                model);
 
-            await CargarCombos(model);
-
-            return View(model);
+            return View(
+                model);
         }
-
 
         // =========================================================
         // EDIT - POST
@@ -991,6 +1229,7 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador,Gerente,Mesero")]
         public async Task<IActionResult> Edit(
             int id,
             PedidoViewModel model)
@@ -998,14 +1237,12 @@ namespace WebApplication1.Controllers
             if (id != model.IdPedido)
                 return NotFound();
 
-
             var detalles =
                 model.Detalles
                 ?? new List<DetallePedidoViewModel>();
 
-
             // =====================================================
-            // CLIENTE
+            // VALIDACIONES
             // =====================================================
 
             if (model.IdCliente == null ||
@@ -1016,22 +1253,12 @@ namespace WebApplication1.Controllers
                     "Debe seleccionar un cliente.");
             }
 
-
-            // =====================================================
-            // TIPO DE PEDIDO
-            // =====================================================
-
             if (model.IdTipoPedido <= 0)
             {
                 ModelState.AddModelError(
                     nameof(model.IdTipoPedido),
                     "Debe seleccionar un tipo de pedido.");
             }
-
-
-            // =====================================================
-            // DETALLES
-            // =====================================================
 
             if (!detalles.Any(d =>
                     d.Cantidad > 0))
@@ -1040,7 +1267,6 @@ namespace WebApplication1.Controllers
                     "",
                     "El pedido debe contener al menos un producto.");
             }
-
 
             foreach (var detalle in detalles)
             {
@@ -1051,16 +1277,15 @@ namespace WebApplication1.Controllers
                         "La cantidad de un producto no puede ser negativa.");
                 }
 
-
                 if (detalle.Cantidad > 0 &&
                     detalle.Cantidad !=
-                    Math.Truncate(detalle.Cantidad))
+                    Math.Truncate(
+                        detalle.Cantidad))
                 {
                     ModelState.AddModelError(
                         "",
                         "La cantidad de los productos debe ser un número entero.");
                 }
-
 
                 if (detalle.Descuento < 0)
                 {
@@ -1070,14 +1295,14 @@ namespace WebApplication1.Controllers
                 }
             }
 
-
             if (!ModelState.IsValid)
             {
-                await CargarCombos(model);
+                await CargarCombos(
+                    model);
 
-                return View(model);
+                return View(
+                    model);
             }
-
 
             // =====================================================
             // BUSCAR PEDIDO
@@ -1093,26 +1318,26 @@ namespace WebApplication1.Controllers
                         p =>
                             p.IdPedido == id);
 
-
             if (pedido == null)
                 return NotFound();
 
-
             // =====================================================
-            // NO EDITAR CANCELADOS
+            // SOLO PENDIENTE
             // =====================================================
 
-            if (EsEstadoCancelado(
-                pedido.IdEstadoPedidoNavigation?.Nombre))
+            if (pedido.IdEstadoPedido !=
+                ESTADO_PENDIENTE)
             {
                 TempData["Error"] =
-                    "No se puede modificar un pedido cancelado.";
+                    "Este pedido ya fue enviado a Cocina y no puede editarse.";
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
-
 
             // =====================================================
             // NO EDITAR FACTURADOS
@@ -1125,7 +1350,6 @@ namespace WebApplication1.Controllers
                         f.IdPedido ==
                         pedido.IdPedido);
 
-
             if (tieneFactura)
             {
                 TempData["Error"] =
@@ -1133,9 +1357,11 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
-
 
             // =====================================================
             // DETALLES VÁLIDOS
@@ -1147,7 +1373,6 @@ namespace WebApplication1.Controllers
                         d.Cantidad > 0)
                     .ToList();
 
-
             var idsProductos =
                 detallesValidos
                     .Select(d =>
@@ -1155,18 +1380,18 @@ namespace WebApplication1.Controllers
                     .Distinct()
                     .ToList();
 
-
             if (!idsProductos.Any())
             {
                 ModelState.AddModelError(
                     "",
                     "Debe seleccionar al menos un producto.");
 
-                await CargarCombos(model);
+                await CargarCombos(
+                    model);
 
-                return View(model);
+                return View(
+                    model);
             }
-
 
             // =====================================================
             // PRODUCTOS ACTIVOS
@@ -1176,12 +1401,12 @@ namespace WebApplication1.Controllers
                 await _context.Productos
                     .Where(p =>
                         idsProductos.Contains(
-                            p.IdProducto) &&
+                            p.IdProducto)
+                        &&
                         p.Estado)
                     .ToDictionaryAsync(
                         p =>
                             p.IdProducto);
-
 
             if (productos.Count !=
                 idsProductos.Count)
@@ -1190,11 +1415,12 @@ namespace WebApplication1.Controllers
                     "",
                     "Uno o más productos no existen o están inactivos.");
 
-                await CargarCombos(model);
+                await CargarCombos(
+                    model);
 
-                return View(model);
+                return View(
+                    model);
             }
-
 
             // =====================================================
             // TRANSACCIÓN
@@ -1218,15 +1444,25 @@ namespace WebApplication1.Controllers
                 pedido.Observacion =
                     model.Observacion;
 
+                // =================================================
+                // ELIMINAR DETALLES ANTERIORES
+                // =================================================
 
                 _context.DetallePedidos.RemoveRange(
                     pedido.DetallePedidos);
 
+                decimal subtotalPedido =
+                    0m;
 
-                decimal subtotalPedido = 0m;
-                decimal descuentoPedido = 0m;
-                decimal impuestoPedido = 0m;
+                decimal descuentoPedido =
+                    0m;
 
+                decimal impuestoPedido =
+                    0m;
+
+                // =================================================
+                // CREAR NUEVOS DETALLES
+                // =================================================
 
                 foreach (var item in detallesValidos)
                 {
@@ -1237,7 +1473,6 @@ namespace WebApplication1.Controllers
                         throw new InvalidOperationException(
                             "Uno de los productos seleccionados no es válido.");
                     }
-
 
                     decimal precio =
                         producto.PrecioVenta;
@@ -1251,7 +1486,6 @@ namespace WebApplication1.Controllers
                             0m,
                             item.Descuento);
 
-
                     if (descuentoLinea >
                         subtotalLinea)
                     {
@@ -1259,15 +1493,15 @@ namespace WebApplication1.Controllers
                             subtotalLinea;
                     }
 
-
                     decimal impuestoLinea =
                         0m;
 
                     decimal totalLinea =
                         subtotalLinea
-                        - descuentoLinea
-                        + impuestoLinea;
-
+                        -
+                        descuentoLinea
+                        +
+                        impuestoLinea;
 
                     var detalle =
                         new DetallePedido
@@ -1300,10 +1534,8 @@ namespace WebApplication1.Controllers
                                 item.Observacion
                         };
 
-
                     _context.DetallePedidos.Add(
                         detalle);
-
 
                     subtotalPedido +=
                         subtotalLinea;
@@ -1315,6 +1547,9 @@ namespace WebApplication1.Controllers
                         impuestoLinea;
                 }
 
+                // =================================================
+                // ACTUALIZAR TOTALES
+                // =================================================
 
                 pedido.Subtotal =
                     subtotalPedido;
@@ -1327,54 +1562,74 @@ namespace WebApplication1.Controllers
 
                 pedido.Total =
                     subtotalPedido
-                    - descuentoPedido
-                    + impuestoPedido;
-
+                    -
+                    descuentoPedido
+                    +
+                    impuestoPedido;
 
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
 
-
                 TempData["Mensaje"] =
                     "Pedido actualizado correctamente.";
 
-
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
             catch
             {
                 await transaction.RollbackAsync();
 
-
                 ModelState.AddModelError(
                     "",
                     "Ocurrió un error al actualizar el pedido.");
 
+                await CargarCombos(
+                    model);
 
-                await CargarCombos(model);
-
-                return View(model);
+                return View(
+                    model);
             }
         }
 
-
         // =========================================================
         // CAMBIAR ESTADO
+        //
+        // PedidoController:
+        //
+        // FACTURADO -> ENTREGADO
+        //
+        // Cocina:
+        //
+        // PENDIENTE -> EN COCINA
+        // EN COCINA -> PREPARÁNDOSE
+        // PREPARÁNDOSE -> LISTO
+        //
+        // Facturación:
+        //
+        // LISTO -> FACTURADO
+        //
+        // IMPORTANTE:
+        //
+        // NUNCA se permite:
+        //
+        // LISTO -> ENTREGADO
+        //
+        // El pedido tiene que estar FACTURADO/PAGADO.
         // =========================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador,Gerente,Mesero")]
         public async Task<IActionResult> CambiarEstado(
             int id,
             int idEstado)
         {
-            // =====================================================
-            // BUSCAR PEDIDO
-            // =====================================================
-
             var pedido =
                 await _context.Pedidos
                     .Include(p =>
@@ -1383,10 +1638,8 @@ namespace WebApplication1.Controllers
                         p =>
                             p.IdPedido == id);
 
-
             if (pedido == null)
                 return NotFound();
-
 
             // =====================================================
             // CANCELADO
@@ -1400,50 +1653,32 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
 
-
             // =====================================================
-            // FACTURADO
+            // YA ENTREGADO
             // =====================================================
 
-            if (pedido.IdEstadoPedido == ESTADO_FACTURADO)
+            if (pedido.IdEstadoPedido ==
+                ESTADO_ENTREGADO)
             {
                 TempData["Error"] =
-                    "No se puede cambiar el estado de un pedido facturado.";
+                    "El pedido ya fue entregado.";
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
 
-
             // =====================================================
-            // COMPROBAR FACTURA
-            // =====================================================
-
-            var tieneFactura =
-                await _context.Facturas
-                    .AsNoTracking()
-                    .AnyAsync(f =>
-                        f.IdPedido ==
-                        pedido.IdPedido);
-
-
-            if (tieneFactura)
-            {
-                TempData["Error"] =
-                    "No se puede cambiar el estado de un pedido que ya fue facturado.";
-
-                return RedirectToAction(
-                    nameof(Details),
-                    new { id });
-            }
-
-
-            // =====================================================
-            // VALIDAR ID
+            // VALIDAR ESTADO
             // =====================================================
 
             if (idEstado <= 0)
@@ -1453,96 +1688,143 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
 
-
             // =====================================================
-            // NO PERMITIR FACTURADO DESDE AQUÍ
-            // =====================================================
-
-            if (idEstado == ESTADO_FACTURADO)
-            {
-                TempData["Error"] =
-                    "Un pedido solamente puede pasar a Facturado mediante el proceso de facturación.";
-
-                return RedirectToAction(
-                    nameof(Details),
-                    new { id });
-            }
-
-
-            // =====================================================
-            // NO PERMITIR CANCELADO DESDE AQUÍ
+            // NO CANCELAR DESDE CAMBIAR ESTADO
             // =====================================================
 
-            if (idEstado == ESTADO_CANCELADO)
+            if (idEstado ==
+                ESTADO_CANCELADO)
             {
                 TempData["Error"] =
                     "Para cancelar un pedido utilice la opción Cancelar.";
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
 
+            // =====================================================
+            // FACTURADO NO SE ASIGNA MANUALMENTE
+            //
+            // Facturación debe establecer este estado cuando
+            // finalice correctamente el proceso de pago.
+            // =====================================================
+
+            if (idEstado ==
+                ESTADO_FACTURADO)
+            {
+                TempData["Error"] =
+                    "El estado Facturado solamente puede establecerse mediante el proceso de facturación y pago.";
+
+                return RedirectToAction(
+                    nameof(Details),
+                    new
+                    {
+                        id
+                    });
+            }
+
+            // =====================================================
+            // ENTREGADO
+            //
+            // REGLA FUNDAMENTAL:
+            //
+            // SOLO FACTURADO/PAGADO -> ENTREGADO
+            // =====================================================
+
+            if (idEstado ==
+                ESTADO_ENTREGADO)
+            {
+                if (pedido.IdEstadoPedido !=
+                    ESTADO_FACTURADO)
+                {
+                    TempData["Error"] =
+                        "No se puede entregar el pedido porque todavía no ha sido pagado.";
+
+                    return RedirectToAction(
+                        nameof(Details),
+                        new
+                        {
+                            id
+                        });
+                }
+            }
+
+            // =====================================================
+            // OBTENER SIGUIENTE ESTADO
+            // =====================================================
+
+            var siguienteEstado =
+                ObtenerSiguienteEstadoPedido(
+                    pedido.IdEstadoPedido);
+
+            if (!siguienteEstado.HasValue)
+            {
+                TempData["Error"] =
+                    "Este pedido no tiene una transición disponible desde Pedido.";
+
+                return RedirectToAction(
+                    nameof(Details),
+                    new
+                    {
+                        id
+                    });
+            }
 
             // =====================================================
             // VALIDAR TRANSICIÓN
             // =====================================================
 
-            var siguienteEstado =
-                ObtenerSiguienteEstado(
-                    pedido.IdEstadoPedido);
-
-
-            if (siguienteEstado == null)
+            if (idEstado !=
+                siguienteEstado.Value.Id)
             {
                 TempData["Error"] =
-                    "Este pedido no tiene una transición de estado disponible.";
+                    $"No se puede pasar de " +
+                    $"'{pedido.IdEstadoPedidoNavigation?.Nombre}' " +
+                    $"a ese estado. " +
+                    $"El siguiente estado permitido desde Pedido es " +
+                    $"'{siguienteEstado.Value.Nombre}'.";
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
-
-
-            if (idEstado != siguienteEstado.Value.Id)
-            {
-                TempData["Error"] =
-                    $"No se puede pasar de '{pedido.IdEstadoPedidoNavigation?.Nombre}' a ese estado. " +
-                    $"El siguiente estado debe ser '{siguienteEstado.Value.Nombre}'.";
-
-                return RedirectToAction(
-                    nameof(Details),
-                    new { id });
-            }
-
 
             // =====================================================
-            // ACTUALIZAR
+            // CAMBIAR ESTADO
             // =====================================================
 
             pedido.IdEstadoPedido =
                 idEstado;
 
-
             await _context.SaveChangesAsync();
 
-
             TempData["Mensaje"] =
-                $"Estado actualizado correctamente a '{siguienteEstado.Value.Nombre}'.";
-
+                $"Estado actualizado correctamente a " +
+                $"'{siguienteEstado.Value.Nombre}'.";
 
             return RedirectToAction(
                 nameof(Details),
-                new { id });
+                new
+                {
+                    id
+                });
         }
-
 
         // =========================================================
         // ANULAR / CANCELAR
-        // ADMINISTRADOR Y GERENTE
         // =========================================================
 
         [HttpPost]
@@ -1559,10 +1841,8 @@ namespace WebApplication1.Controllers
                         p =>
                             p.IdPedido == id);
 
-
             if (pedido == null)
                 return NotFound();
-
 
             // =====================================================
             // YA CANCELADO
@@ -1576,9 +1856,11 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
-
 
             // =====================================================
             // NO CANCELAR FACTURADO
@@ -1591,18 +1873,20 @@ namespace WebApplication1.Controllers
                         f.IdPedido ==
                         pedido.IdPedido);
 
-
             if (tieneFactura ||
-                pedido.IdEstadoPedido == ESTADO_FACTURADO)
+                pedido.IdEstadoPedido ==
+                ESTADO_FACTURADO)
             {
                 TempData["Error"] =
                     "No se puede cancelar un pedido que ya fue facturado.";
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
-
 
             // =====================================================
             // BUSCAR ESTADO CANCELADO
@@ -1614,17 +1898,18 @@ namespace WebApplication1.Controllers
                         e.IdEstadoPedido ==
                         ESTADO_CANCELADO);
 
-
             if (estadoCancelado == null)
             {
                 TempData["Error"] =
-                    "No existe el estado de pedido Cancelado configurado con ID 7.";
+                    "No existe el estado Cancelado configurado con ID 7.";
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
-
 
             // =====================================================
             // TRANSACCIÓN
@@ -1639,37 +1924,39 @@ namespace WebApplication1.Controllers
                 pedido.IdEstadoPedido =
                     estadoCancelado.IdEstadoPedido;
 
-
-                // El total histórico NO se modifica.
+                // =================================================
+                // CONSERVAR TOTAL HISTÓRICO
+                // =================================================
 
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
 
-
                 TempData["Mensaje"] =
                     "Pedido cancelado correctamente.";
 
-
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
             catch
             {
                 await transaction.RollbackAsync();
 
-
                 TempData["Error"] =
                     "Ocurrió un error al cancelar el pedido.";
 
-
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
         }
-
 
         // =========================================================
         // CARGAR COMBOS
@@ -1678,6 +1965,10 @@ namespace WebApplication1.Controllers
         private async Task CargarCombos(
             PedidoViewModel model)
         {
+            // =====================================================
+            // CLIENTES
+            // =====================================================
+
             model.Clientes =
                 await _context.Clientes
                     .AsNoTracking()
@@ -1698,6 +1989,9 @@ namespace WebApplication1.Controllers
                         })
                     .ToListAsync();
 
+            // =====================================================
+            // MESAS
+            // =====================================================
 
             model.Mesas =
                 await _context.Mesas
@@ -1718,6 +2012,9 @@ namespace WebApplication1.Controllers
                         })
                     .ToListAsync();
 
+            // =====================================================
+            // TIPOS DE PEDIDO
+            // =====================================================
 
             model.TiposPedido =
                 await _context.TipoPedidos
@@ -1735,6 +2032,9 @@ namespace WebApplication1.Controllers
                         })
                     .ToListAsync();
 
+            // =====================================================
+            // ESTADOS
+            // =====================================================
 
             model.EstadosPedido =
                 await _context.EstadoPedidos
@@ -1752,14 +2052,16 @@ namespace WebApplication1.Controllers
                         })
                     .ToListAsync();
 
+            // =====================================================
+            // PRODUCTOS
+            // =====================================================
 
             await CargarProductosEnDetalles(
                 model);
         }
 
-
         // =========================================================
-        // CARGAR PRODUCTOS EN DETALLES
+        // CARGAR PRODUCTOS
         // =========================================================
 
         private async Task CargarProductosEnDetalles(
@@ -1769,7 +2071,8 @@ namespace WebApplication1.Controllers
                 await _context.Productos
                     .AsNoTracking()
                     .Where(p =>
-                        p.Estado &&
+                        p.Estado
+                        &&
                         p.IdEstadoProductoNavigation != null)
                     .OrderBy(p =>
                         p.Nombre)
@@ -1782,15 +2085,14 @@ namespace WebApplication1.Controllers
                             Text =
                                 p.Nombre +
                                 " - C$ " +
-                                p.PrecioVenta.ToString("N2")
+                                p.PrecioVenta
+                                    .ToString("N2")
                         })
                     .ToListAsync();
-
 
             var detalles =
                 model.Detalles
                 ?? new List<DetallePedidoViewModel>();
-
 
             foreach (var detalle in detalles)
             {
@@ -1798,7 +2100,6 @@ namespace WebApplication1.Controllers
                     productos;
             }
         }
-
 
         // =========================================================
         // OBTENER ESTADO INICIAL
@@ -1812,15 +2113,12 @@ namespace WebApplication1.Controllers
                         e.IdEstadoPedido ==
                         ESTADO_PENDIENTE);
 
-
             if (estado != null)
                 return estado.IdEstadoPedido;
-
 
             throw new InvalidOperationException(
                 "No existe el estado Pendiente con ID 1.");
         }
-
 
         // =========================================================
         // GENERAR NÚMERO DE PEDIDO
@@ -1836,9 +2134,8 @@ namespace WebApplication1.Controllers
                         p.NumeroPedido)
                     .FirstOrDefaultAsync();
 
-
-            int siguiente = 1;
-
+            int siguiente =
+                1;
 
             if (!string.IsNullOrWhiteSpace(
                 ultimoNumero))
@@ -1849,7 +2146,6 @@ namespace WebApplication1.Controllers
                             .Where(char.IsDigit)
                             .ToArray());
 
-
                 if (int.TryParse(
                     soloNumeros,
                     out int numero))
@@ -1859,46 +2155,77 @@ namespace WebApplication1.Controllers
                 }
             }
 
-
-            return $"PED-{siguiente:000000}";
+            return
+                $"PED-{siguiente:000000}";
         }
 
-
         // =========================================================
-        // OBTENER SIGUIENTE ESTADO
+        // SIGUIENTE ESTADO
+        //
+        // PedidoController:
+        //
+        // FACTURADO -> ENTREGADO
+        //
+        // Cocina:
+        //
+        // PENDIENTE -> EN COCINA
+        // EN COCINA -> PREPARÁNDOSE
+        // PREPARÁNDOSE -> LISTO
+        //
+        // Facturación:
+        //
+        // LISTO -> FACTURADO
+        //
         // =========================================================
 
-        private (int Id, string Nombre)? ObtenerSiguienteEstado(
-            int estadoActual)
+        private (int Id, string Nombre)?
+            ObtenerSiguienteEstadoPedido(
+                int estadoActual)
         {
             return estadoActual switch
             {
-                ESTADO_PENDIENTE =>
-                    (ESTADO_EN_COCINA, "En cocina"),
+                // =================================================
+                // SOLO UN PEDIDO FACTURADO/PAGADO PUEDE ENTREGARSE
+                // =================================================
 
-                ESTADO_EN_COCINA =>
-                    (ESTADO_PREPARANDOSE, "Preparándose"),
+                ESTADO_FACTURADO =>
+                    (
+                        ESTADO_ENTREGADO,
+                        "Entregado"
+                    ),
 
-                ESTADO_PREPARANDOSE =>
-                    (ESTADO_LISTO, "Listo"),
+                // =================================================
+                // LISTO NO SE ENTREGA DIRECTAMENTE.
+                //
+                // Primero debe pasar por Facturación/Pago.
+                // =================================================
 
                 ESTADO_LISTO =>
-                    (ESTADO_ENTREGADO, "Entregado"),
+                    null,
+
+                // =================================================
+                // YA ENTREGADO
+                // =================================================
 
                 ESTADO_ENTREGADO =>
                     null,
 
-                ESTADO_FACTURADO =>
-                    null,
+                // =================================================
+                // CANCELADO
+                // =================================================
 
                 ESTADO_CANCELADO =>
                     null,
+
+                // =================================================
+                // LOS ESTADOS DE COCINA SON MANEJADOS POR
+                // CocinaController.
+                // =================================================
 
                 _ =>
                     null
             };
         }
-
 
         // =========================================================
         // NORMALIZAR TEXTO
@@ -1913,16 +2240,14 @@ namespace WebApplication1.Controllers
                 return "";
             }
 
-
             texto =
-                texto.Trim()
+                texto
+                    .Trim()
                     .ToLowerInvariant();
-
 
             var textoNormalizado =
                 texto.Normalize(
                     NormalizationForm.FormD);
-
 
             var caracteres =
                 textoNormalizado
@@ -1931,12 +2256,11 @@ namespace WebApplication1.Controllers
                         != UnicodeCategory.NonSpacingMark)
                     .ToArray();
 
-
-            return new string(caracteres)
-                .Normalize(
-                    NormalizationForm.FormC);
+            return
+                new string(caracteres)
+                    .Normalize(
+                        NormalizationForm.FormC);
         }
-
 
         // =========================================================
         // COMPROBAR ESTADO CANCELADO
@@ -1945,20 +2269,10 @@ namespace WebApplication1.Controllers
         private bool EsEstadoCancelado(
             string? nombreEstado)
         {
-            if (string.IsNullOrWhiteSpace(
-                nombreEstado))
-            {
-                return false;
-            }
-
-
-            return nombreEstado
-                .Trim()
-                .Equals(
-                    "Cancelado",
-                    StringComparison.OrdinalIgnoreCase);
+            return EsEstado(
+                nombreEstado,
+                "Cancelado");
         }
-
 
         // =========================================================
         // COMPROBAR ESTADO
@@ -1974,12 +2288,12 @@ namespace WebApplication1.Controllers
                 return false;
             }
 
-
-            return nombreEstado
-                .Trim()
-                .Equals(
-                    estadoBuscado,
-                    StringComparison.OrdinalIgnoreCase);
+            return
+                NormalizarTexto(
+                    nombreEstado)
+                ==
+                NormalizarTexto(
+                    estadoBuscado);
         }
     }
 }

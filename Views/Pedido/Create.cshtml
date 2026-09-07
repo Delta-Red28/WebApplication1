@@ -1,622 +1,283 @@
 ﻿@model WebApplication1.ViewModels.PedidoViewModel
 
-@{
-    ViewData["Title"] = "Nuevo pedido";
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using System.Globalization
 
-    var detalles = Model.Detalles
-        ?? new List<WebApplication1.ViewModels.DetallePedidoViewModel>();
+@{
+ViewData["Title"] = "Nuevo pedido";
+
+var detalles = Model.Detalles
+    ?? new List<WebApplication1.ViewModels.DetallePedidoViewModel>();
+
+var productosDisponibles =
+    detalles.FirstOrDefault()?.Productos
+    ?? Enumerable.Empty<SelectListItem>();
+
 }
 
 <div class="container-fluid py-4">
+<!-- ========================================================= -->
+<!-- ENCABEZADO -->
+<!-- ========================================================= -->
 
-    <!-- ========================================================= -->
-    <!-- ENCABEZADO -->
-    <!-- ========================================================= -->
+<div class="d-flex justify-content-between align-items-center mb-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-plus-circle me-2"></i>
+            Nuevo pedido
+        </h2>
 
-        <div>
-
-            <h2 class="fw-bold mb-1">
-
-                <i class="bi bi-plus-circle me-2"></i>
-
-                Nuevo pedido
-
-            </h2>
-
-            <p class="text-muted mb-0">
-
-                Registre un nuevo pedido.
-
-            </p>
-
-        </div>
-
-        <a asp-action="Index"
-           class="btn btn-outline-secondary">
-
-            <i class="bi bi-arrow-left me-1"></i>
-
-            Regresar a pedidos
-
-        </a>
-
+        <p class="text-muted mb-0">
+            Registre un nuevo pedido.
+        </p>
     </div>
 
+    <a asp-action="Index"
+       class="btn btn-outline-secondary">
 
-    <!-- ========================================================= -->
-    <!-- VALIDACIONES -->
-    <!-- ========================================================= -->
+        <i class="bi bi-arrow-left me-1"></i>
+        Regresar a pedidos
 
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div class="alert alert-danger">
-
-            <div class="fw-bold mb-2">
-
-                <i class="bi bi-exclamation-triangle me-2"></i>
-
-                Revise los siguientes errores:
-
-            </div>
-
-            <div asp-validation-summary="All"
-                 class="mb-0">
-            </div>
-
-        </div>
-    }
-
-
-    <!-- ========================================================= -->
-    <!-- FORMULARIO -->
-    <!-- ========================================================= -->
-
-    <form asp-action="Create"
-          method="post">
-
-        @Html.AntiForgeryToken()
-
-        <input type="hidden"
-               asp-for="FechaPedido" />
-
-
-        <!-- ===================================================== -->
-        <!-- INFORMACIÓN -->
-        <!-- ===================================================== -->
-
-        <div class="card shadow-sm border-0 mb-4">
-
-            <div class="card-header bg-white py-3">
-
-                <h5 class="mb-0 fw-semibold">
-
-                    <i class="bi bi-info-circle me-2"></i>
-
-                    Información del pedido
-
-                </h5>
-
-            </div>
-
-
-            <div class="card-body">
-
-                <div class="row g-4">
-
-                    <!-- CLIENTE -->
-
-                    <div class="col-md-6">
-
-                        <label asp-for="IdCliente"
-                               class="form-label">
-
-                            Cliente
-
-                        </label>
-
-                        <select asp-for="IdCliente"
-                                asp-items="Model.Clientes"
-                                class="form-select"
-                                required>
-
-                            <option value="">
-                                -- Seleccione un cliente --
-                            </option>
-
-                        </select>
-
-                        <span asp-validation-for="IdCliente"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-
-                    <!-- MESA -->
-
-                    <div class="col-md-3">
-
-                        <label asp-for="IdMesa"
-                               class="form-label">
-
-                            Mesa
-
-                        </label>
-
-                        <select asp-for="IdMesa"
-                                asp-items="Model.Mesas"
-                                class="form-select">
-
-                            <option value="">
-                                -- Sin mesa --
-                            </option>
-
-                        </select>
-
-                        <span asp-validation-for="IdMesa"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-
-                    <!-- TIPO -->
-
-                    <div class="col-md-3">
-
-                        <label asp-for="IdTipoPedido"
-                               class="form-label">
-
-                            Tipo de pedido
-
-                        </label>
-
-                        <select asp-for="IdTipoPedido"
-                                asp-items="Model.TiposPedido"
-                                class="form-select"
-                                required>
-
-                            <option value="">
-                                -- Seleccione --
-                            </option>
-
-                        </select>
-
-                        <span asp-validation-for="IdTipoPedido"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-
-                    <!-- OBSERVACIÓN -->
-
-                    <div class="col-12">
-
-                        <label asp-for="Observacion"
-                               class="form-label">
-
-                            Observación
-
-                        </label>
-
-                        <textarea asp-for="Observacion"
-                                  class="form-control"
-                                  rows="3"
-                                  maxlength="400"
-                                  placeholder="Escriba una observación si es necesario...">
-                        </textarea>
-
-                        <div class="form-text">
-                            Máximo 400 caracteres.
-                        </div>
-
-                        <span asp-validation-for="Observacion"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ===================================================== -->
-        <!-- PRODUCTOS -->
-        <!-- ===================================================== -->
-
-        <div class="card shadow-sm border-0 mb-4">
-
-            <div class="card-header bg-white py-3">
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <h5 class="mb-0 fw-semibold">
-
-                        <i class="bi bi-basket me-2"></i>
-
-                        Productos
-
-                    </h5>
-
-                    <button type="button"
-                            class="btn btn-primary btn-sm"
-                            id="btnAgregarProducto">
-
-                        <i class="bi bi-plus-circle me-1"></i>
-
-                        Agregar producto
-
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <div class="card-body">
-
-                <div id="detallesContainer">
-
-                    @for (int i = 0; i < detalles.Count; i++)
-                    {
-                        <div class="detalle-producto border rounded p-3 mb-3">
-
-                            <div class="row g-3 align-items-end">
-
-                                <!-- PRODUCTO -->
-
-                                <div class="col-lg-4">
-
-                                    <label class="form-label">
-                                        Producto
-                                    </label>
-
-                                    <select name="Detalles[@i].IdProducto"
-                                            class="form-select producto-select"
-                                            required>
-
-                                        <option value="">
-                                            -- Seleccione un producto --
-                                        </option>
-
-                                        @foreach (var producto in
-                                            detalles[i].Productos
-                                            ?? Enumerable.Empty<SelectListItem>())
-                                        {
-                                            <option value="@producto.Value">
-
-                                                @producto.Text
-
-                                            </option>
-                                        }
-
-                                    </select>
-
-                                </div>
-
-
-                                <!-- CANTIDAD -->
-
-                                <div class="col-lg-2">
-
-                                    <label class="form-label">
-                                        Cantidad
-                                    </label>
-
-                                    <input name="Detalles[@i].Cantidad"
-                                           type="number"
-                                           class="form-control cantidad"
-                                           min="1"
-                                           step="1"
-                                           value="@(detalles[i].Cantidad > 0
-                                               ? detalles[i].Cantidad.ToString("0")
-                                               : "1")"
-                                           required />
-
-                                </div>
-
-
-                                <!-- DESCUENTO -->
-
-                                <div class="col-lg-2">
-
-                                    <label class="form-label">
-                                        Descuento
-                                    </label>
-
-                                    <div class="input-group">
-
-                                        <span class="input-group-text">
-                                            C$
-                                        </span>
-
-                                        <input name="Detalles[@i].Descuento"
-                                               type="number"
-                                               class="form-control descuento"
-                                               min="0"
-                                               step="0.01"
-                                               value="0" />
-
-                                    </div>
-
-                                </div>
-
-
-                                <!-- OBSERVACIÓN -->
-
-                                <div class="col-lg-3">
-
-                                    <label class="form-label">
-                                        Observación
-                                    </label>
-
-                                    <input name="Detalles[@i].Observacion"
-                                           type="text"
-                                           class="form-control"
-                                           maxlength="400" />
-
-                                </div>
-
-
-                                <!-- ELIMINAR -->
-
-                                <div class="col-lg-1">
-
-                                    <button type="button"
-                                            class="btn btn-outline-danger btnEliminarProducto w-100">
-
-                                        <i class="bi bi-trash"></i>
-
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-                    }
-
-                </div>
-
-
-                <div id="sinProductos"
-                     class="text-center text-muted py-4"
-                     style="display:none;">
-
-                    <i class="bi bi-basket display-6"></i>
-
-                    <p class="mb-0 mt-2">
-
-                        Agregue al menos un producto.
-
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ===================================================== -->
-        <!-- RESUMEN -->
-        <!-- ===================================================== -->
-
-        <div class="row justify-content-end mb-4">
-
-            <div class="col-lg-5">
-
-                <div class="card shadow-sm border-0">
-
-                    <div class="card-header bg-white py-3">
-
-                        <h5 class="mb-0 fw-semibold">
-
-                            <i class="bi bi-calculator me-2"></i>
-
-                            Resumen
-
-                        </h5>
-
-                    </div>
-
-                    <div class="card-body">
-
-                        <div class="d-flex justify-content-between mb-3">
-
-                            <span class="text-muted">
-                                Subtotal
-                            </span>
-
-                            <span id="resumenSubtotal">
-                                C$ 0.00
-                            </span>
-
-                        </div>
-
-
-                        <div class="d-flex justify-content-between mb-3">
-
-                            <span class="text-muted">
-                                Descuento
-                            </span>
-
-                            <span class="text-danger"
-                                  id="resumenDescuento">
-
-                                C$ 0.00
-
-                            </span>
-
-                        </div>
-
-
-                        <hr />
-
-
-                        <div class="d-flex justify-content-between align-items-center">
-
-                            <span class="fw-bold">
-                                Total
-                            </span>
-
-                            <span class="fs-4 fw-bold text-success"
-                                  id="resumenTotal">
-
-                                C$ 0.00
-
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ===================================================== -->
-        <!-- BOTONES -->
-        <!-- ===================================================== -->
-
-        <div class="d-flex justify-content-between">
-
-            <a asp-action="Index"
-               class="btn btn-outline-secondary">
-
-                <i class="bi bi-x-circle me-1"></i>
-
-                Cancelar
-
-            </a>
-
-
-            <button type="submit"
-                    class="btn btn-success btn-lg">
-
-                <i class="bi bi-check-circle me-1"></i>
-
-                Crear pedido
-
-            </button>
-
-        </div>
-
-    </form>
+    </a>
 
 </div>
 
+<!-- ========================================================= -->
+<!-- MENSAJES -->
+<!-- ========================================================= -->
 
-<!-- ============================================================= -->
-<!-- TEMPLATE -->
-<!-- ============================================================= -->
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
 
-<template id="detalleTemplate">
+        <i class="bi bi-exclamation-triangle me-2"></i>
 
-    <div class="detalle-producto border rounded p-3 mb-3">
+        @TempData["Error"]
 
-        <div class="row g-3 align-items-end">
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
 
-            <div class="col-lg-4">
+    </div>
+}
 
-                <label class="form-label">
-                    Producto
-                </label>
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
 
-                <select name="Detalles[__INDEX__].IdProducto"
-                        class="form-select producto-select"
-                        required>
+        <i class="bi bi-check-circle me-2"></i>
 
-                    <option value="">
-                        -- Seleccione un producto --
-                    </option>
+        @TempData["Mensaje"]
 
-                    @foreach (var producto in
-                        detalles.FirstOrDefault()?.Productos
-                        ?? Enumerable.Empty<SelectListItem>())
-                    {
-                        <option value="@producto.Value">
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
 
-                            @producto.Text
+    </div>
+}
 
+<!-- ========================================================= -->
+<!-- VALIDACIONES -->
+<!-- ========================================================= -->
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+
+        <div class="fw-bold mb-2">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            Revise los siguientes errores:
+
+        </div>
+
+        <div asp-validation-summary="All"
+             class="mb-0">
+        </div>
+
+    </div>
+}
+
+<!-- ========================================================= -->
+<!-- FORMULARIO -->
+<!-- ========================================================= -->
+
+<form asp-action="Create"
+      method="post"
+      id="formPedido">
+
+    @Html.AntiForgeryToken()
+
+    <input type="hidden"
+           asp-for="FechaPedido" />
+
+    <!-- ===================================================== -->
+    <!-- INFORMACIÓN DEL PEDIDO -->
+    <!-- ===================================================== -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white py-3">
+
+            <h5 class="mb-0 fw-semibold">
+
+                <i class="bi bi-info-circle me-2"></i>
+
+                Información del pedido
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <!-- CLIENTE -->
+
+                <div class="col-md-6">
+
+                    <label asp-for="IdCliente"
+                           class="form-label fw-semibold">
+
+                        Cliente
+
+                    </label>
+
+                    <select asp-for="IdCliente"
+                            asp-items="Model.Clientes"
+                            class="form-select"
+                            required>
+
+                        <option value="">
+                            -- Seleccione un cliente --
                         </option>
-                    }
 
-                </select>
+                    </select>
 
-            </div>
-
-
-            <div class="col-lg-2">
-
-                <label class="form-label">
-                    Cantidad
-                </label>
-
-                <input name="Detalles[__INDEX__].Cantidad"
-                       type="number"
-                       class="form-control cantidad"
-                       min="1"
-                       step="1"
-                       value="1"
-                       required />
-
-            </div>
-
-
-            <div class="col-lg-2">
-
-                <label class="form-label">
-                    Descuento
-                </label>
-
-                <div class="input-group">
-
-                    <span class="input-group-text">
-                        C$
+                    <span asp-validation-for="IdCliente"
+                          class="text-danger">
                     </span>
 
-                    <input name="Detalles[__INDEX__].Descuento"
-                           type="number"
-                           class="form-control descuento"
-                           min="0"
-                           step="0.01"
-                           value="0" />
+                </div>
+
+                <!-- MESA -->
+
+                <div class="col-md-3">
+
+                    <label asp-for="IdMesa"
+                           class="form-label fw-semibold">
+
+                        Mesa
+
+                    </label>
+
+                    <select asp-for="IdMesa"
+                            asp-items="Model.Mesas"
+                            class="form-select">
+
+                        <option value="">
+                            -- Sin mesa --
+                        </option>
+
+                    </select>
+
+                    <span asp-validation-for="IdMesa"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <!-- TIPO DE PEDIDO -->
+
+                <div class="col-md-3">
+
+                    <label asp-for="IdTipoPedido"
+                           class="form-label fw-semibold">
+
+                        Tipo de pedido
+
+                    </label>
+
+                    <select asp-for="IdTipoPedido"
+                            asp-items="Model.TiposPedido"
+                            class="form-select"
+                            required>
+
+                        <option value="">
+                            -- Seleccione --
+                        </option>
+
+                    </select>
+
+                    <span asp-validation-for="IdTipoPedido"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <!-- OBSERVACIÓN -->
+
+                <div class="col-12">
+
+                    <label asp-for="Observacion"
+                           class="form-label fw-semibold">
+
+                        Observación
+
+                    </label>
+
+                    <textarea asp-for="Observacion"
+                              class="form-control"
+                              rows="3"
+                              maxlength="400"
+                              placeholder="Escriba una observación si es necesario..."></textarea>
+
+                    <div class="form-text">
+                        Máximo 400 caracteres.
+                    </div>
+
+                    <span asp-validation-for="Observacion"
+                          class="text-danger">
+                    </span>
 
                 </div>
 
             </div>
 
+        </div>
 
-            <div class="col-lg-3">
+    </div>
 
-                <label class="form-label">
-                    Observación
-                </label>
+    <!-- ===================================================== -->
+    <!-- PRODUCTOS -->
+    <!-- ===================================================== -->
 
-                <input name="Detalles[__INDEX__].Observacion"
-                       type="text"
-                       class="form-control"
-                       maxlength="400" />
+    <div class="card shadow-sm border-0 mb-4">
 
-            </div>
+        <div class="card-header bg-white py-3">
 
+            <div class="d-flex justify-content-between align-items-center">
 
-            <div class="col-lg-1">
+                <h5 class="mb-0 fw-semibold">
+
+                    <i class="bi bi-basket me-2"></i>
+
+                    Productos
+
+                </h5>
 
                 <button type="button"
-                        class="btn btn-outline-danger btnEliminarProducto w-100">
+                        class="btn btn-primary btn-sm"
+                        id="btnAgregarProducto">
 
-                    <i class="bi bi-trash"></i>
+                    <i class="bi bi-plus-circle me-1"></i>
+
+                    Agregar producto
 
                 </button>
 
@@ -624,71 +285,486 @@
 
         </div>
 
+        <div class="card-body">
+
+            <div id="detallesContainer">
+
+                @for (int i = 0; i < detalles.Count; i++)
+                {
+                    <div class="detalle-producto border rounded p-3 mb-3">
+
+                        <div class="row g-3 align-items-end">
+
+                            <!-- PRODUCTO -->
+
+                            <div class="col-lg-4">
+
+                                <label class="form-label fw-semibold">
+                                    Producto
+                                </label>
+
+                                <select name="Detalles[@i].IdProducto"
+                                        class="form-select producto-select"
+                                        required>
+
+                                    <option value="">
+                                        -- Seleccione un producto --
+                                    </option>
+
+                                    @foreach (var producto in
+                                        detalles[i].Productos
+                                        ?? Enumerable.Empty<SelectListItem>())
+                                    {
+                                        if (producto.Value ==
+                                            detalles[i].IdProducto.ToString())
+                                        {
+                                            <option value="@producto.Value"
+                                                    selected>
+                                                @producto.Text
+                                            </option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@producto.Value">
+                                                @producto.Text
+                                            </option>
+                                        }
+                                    }
+
+                                </select>
+
+                                <div class="text-danger small validation-producto"></div>
+
+                            </div>
+
+                            <!-- CANTIDAD -->
+
+                            <div class="col-lg-2">
+
+                                <label class="form-label fw-semibold">
+                                    Cantidad
+                                </label>
+
+                                <input name="Detalles[@i].Cantidad"
+                                       type="number"
+                                       class="form-control cantidad"
+                                       min="1"
+                                       max="999999"
+                                       step="1"
+                                       value="@(detalles[i].Cantidad > 0
+                                           ? detalles[i].Cantidad.ToString("0", CultureInfo.InvariantCulture)
+                                           : "1")"
+                                       required />
+
+                            </div>
+
+                            <!-- DESCUENTO -->
+
+                            <div class="col-lg-2">
+
+                                <label class="form-label fw-semibold">
+                                    Descuento
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text">
+                                        C$
+                                    </span>
+
+                                    <input name="Detalles[@i].Descuento"
+                                           type="number"
+                                           class="form-control descuento"
+                                           min="0"
+                                           max="999999999"
+                                           step="0.01"
+                                           value="@detalles[i].Descuento.ToString(
+                                               "0.00",
+                                               CultureInfo.InvariantCulture)" />
+
+                                </div>
+
+                            </div>
+
+                            <!-- OBSERVACIÓN -->
+
+                            <div class="col-lg-3">
+
+                                <label class="form-label fw-semibold">
+                                    Observación
+                                </label>
+
+                                <input name="Detalles[@i].Observacion"
+                                       type="text"
+                                       class="form-control observacion-detalle"
+                                       maxlength="250"
+                                       value="@detalles[i].Observacion" />
+
+                            </div>
+
+                            <!-- ELIMINAR -->
+
+                            <div class="col-lg-1">
+
+                                <button type="button"
+                                        class="btn btn-outline-danger btnEliminarProducto w-100"
+                                        title="Eliminar producto">
+
+                                    <i class="bi bi-trash"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+            <!-- SIN PRODUCTOS -->
+
+            <div id="sinProductos"
+                 class="text-center text-muted py-4"
+                 style="display:none;">
+
+                <i class="bi bi-basket display-6"></i>
+
+                <p class="mb-0 mt-2">
+                    Agregue al menos un producto.
+                </p>
+
+            </div>
+
+        </div>
+
     </div>
 
+    <!-- ===================================================== -->
+    <!-- RESUMEN -->
+    <!-- ===================================================== -->
+
+    <div class="row justify-content-end mb-4">
+
+        <div class="col-lg-5">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-white py-3">
+
+                    <h5 class="mb-0 fw-semibold">
+
+                        <i class="bi bi-calculator me-2"></i>
+
+                        Resumen
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between mb-3">
+
+                        <span class="text-muted">
+                            Subtotal
+                        </span>
+
+                        <span class="fw-semibold"
+                              id="resumenSubtotal">
+
+                            C$ 0.00
+
+                        </span>
+
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+
+                        <span class="text-muted">
+                            Descuento
+                        </span>
+
+                        <span class="text-danger fw-semibold"
+                              id="resumenDescuento">
+
+                            C$ 0.00
+
+                        </span>
+
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <span class="fw-bold">
+                            Total
+                        </span>
+
+                        <span class="fs-4 fw-bold text-success"
+                              id="resumenTotal">
+
+                            C$ 0.00
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- BOTONES -->
+    <!-- ===================================================== -->
+
+    <div class="d-flex justify-content-between">
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-x-circle me-1"></i>
+
+            Cancelar
+
+        </a>
+
+        <button type="submit"
+                class="btn btn-success btn-lg"
+                id="btnCrearPedido">
+
+            <i class="bi bi-check-circle me-1"></i>
+
+            Crear pedido
+
+        </button>
+
+    </div>
+
+</form>
+
+</div> <!-- ============================================================= --> <!-- TEMPLATE PARA NUEVOS PRODUCTOS --> <!-- ============================================================= --> <template id="detalleTemplate">
+<div class="detalle-producto border rounded p-3 mb-3">
+
+    <div class="row g-3 align-items-end">
+
+        <!-- PRODUCTO -->
+
+        <div class="col-lg-4">
+
+            <label class="form-label fw-semibold">
+                Producto
+            </label>
+
+            <select name="Detalles[__INDEX__].IdProducto"
+                    class="form-select producto-select"
+                    required>
+
+                <option value="">
+                    -- Seleccione un producto --
+                </option>
+
+                @foreach (var producto in productosDisponibles)
+                {
+                    <option value="@producto.Value">
+                        @producto.Text
+                    </option>
+                }
+
+            </select>
+
+            <div class="text-danger small validation-producto"></div>
+
+        </div>
+
+        <!-- CANTIDAD -->
+
+        <div class="col-lg-2">
+
+            <label class="form-label fw-semibold">
+                Cantidad
+            </label>
+
+            <input name="Detalles[__INDEX__].Cantidad"
+                   type="number"
+                   class="form-control cantidad"
+                   min="1"
+                   max="999999"
+                   step="1"
+                   value="1"
+                   required />
+
+        </div>
+
+        <!-- DESCUENTO -->
+
+        <div class="col-lg-2">
+
+            <label class="form-label fw-semibold">
+                Descuento
+            </label>
+
+            <div class="input-group">
+
+                <span class="input-group-text">
+                    C$
+                </span>
+
+                <input name="Detalles[__INDEX__].Descuento"
+                       type="number"
+                       class="form-control descuento"
+                       min="0"
+                       max="999999999"
+                       step="0.01"
+                       value="0.00" />
+
+            </div>
+
+        </div>
+
+        <!-- OBSERVACIÓN -->
+
+        <div class="col-lg-3">
+
+            <label class="form-label fw-semibold">
+                Observación
+            </label>
+
+            <input name="Detalles[__INDEX__].Observacion"
+                   type="text"
+                   class="form-control observacion-detalle"
+                   maxlength="250" />
+
+        </div>
+
+        <!-- ELIMINAR -->
+
+        <div class="col-lg-1">
+
+            <button type="button"
+                    class="btn btn-outline-danger btnEliminarProducto w-100"
+                    title="Eliminar producto">
+
+                <i class="bi bi-trash"></i>
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
 </template>
-
-
 @section Scripts {
 
-    <partial name="_ValidationScriptsPartial" />
+<partial name="_ValidationScriptsPartial" />
 
-    <script>
+<script>
 
-        document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
 
-            const container =
-                document.getElementById("detallesContainer");
+        const container =
+            document.getElementById("detallesContainer");
 
-            const template =
-                document.getElementById("detalleTemplate");
+        const template =
+            document.getElementById("detalleTemplate");
 
-            const btnAgregar =
-                document.getElementById("btnAgregarProducto");
+        const btnAgregar =
+            document.getElementById("btnAgregarProducto");
 
-            const sinProductos =
-                document.getElementById("sinProductos");
+        const sinProductos =
+            document.getElementById("sinProductos");
 
+        const form =
+            document.getElementById("formPedido");
 
-            function obtenerSiguienteIndice() {
+        const btnCrear =
+            document.getElementById("btnCrearPedido");
 
-                const elementos =
-                    container.querySelectorAll("[name]");
+        // =====================================================
+        // FORMATO MONEDA
+        // =====================================================
 
-                let maximo = -1;
+        function formatoMoneda(valor) {
 
-                elementos.forEach(function (elemento) {
-
-                    const match =
-                        elemento.name.match(
-                            /Detalles\[(\d+)\]/
-                        );
-
-                    if (match) {
-
-                        const indice =
-                            parseInt(match[1]);
-
-                        maximo =
-                            Math.max(
-                                maximo,
-                                indice
-                            );
-
+            return "C$ " +
+                Number(valor || 0).toLocaleString(
+                    "es-NI",
+                    {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
                     }
+                );
 
-                });
+        }
 
-                return maximo + 1;
+        // =====================================================
+        // OBTENER PRECIO DEL PRODUCTO
+        // =====================================================
+
+        function obtenerPrecio(select) {
+
+            if (!select ||
+                select.selectedIndex < 0) {
+
+                return 0;
             }
 
+            const option =
+                select.options[
+                    select.selectedIndex
+                ];
 
-            function actualizarEstado() {
+            if (!option) {
 
-                const cantidad =
-                    container.querySelectorAll(
-                        ".detalle-producto"
-                    ).length;
+                return 0;
+            }
+
+            const texto =
+                option.textContent || "";
+
+            const match =
+                texto.match(
+                    /C\$\s*([\d,.]+)/
+                );
+
+            if (!match) {
+
+                return 0;
+            }
+
+            const numero =
+                match[1]
+                    .replace(/,/g, "");
+
+            const precio =
+                parseFloat(numero);
+
+            return Number.isFinite(precio)
+                ? precio
+                : 0;
+
+        }
+
+        // =====================================================
+        // ACTUALIZAR ESTADO
+        // =====================================================
+
+        function actualizarEstado() {
+
+            const cantidad =
+                container.querySelectorAll(
+                    ".detalle-producto"
+                ).length;
+
+            if (sinProductos) {
 
                 sinProductos.style.display =
                     cantidad === 0
@@ -697,37 +773,201 @@
 
             }
 
+        }
 
-            function renumerar() {
+        // =====================================================
+        // OBTENER SIGUIENTE ÍNDICE
+        // =====================================================
 
-                const detalles =
-                    container.querySelectorAll(
-                        ".detalle-producto"
+        function obtenerSiguienteIndice() {
+
+            const elementos =
+                container.querySelectorAll(
+                    "[name^='Detalles[']"
+                );
+
+            let maximo = -1;
+
+            elementos.forEach(function (elemento) {
+
+                const match =
+                    elemento.name.match(
+                        /Detalles\[(\d+)\]/
                     );
 
-                detalles.forEach(function (
-                    detalle,
-                    index
-                ) {
+                if (!match) {
 
-                    detalle
-                        .querySelectorAll("[name]")
-                        .forEach(function (elemento) {
+                    return;
+                }
 
-                            elemento.name =
-                                elemento.name.replace(
-                                    /Detalles\[\d+\]/,
-                                    "Detalles[" +
-                                    index +
-                                    "]"
-                                );
+                const indice =
+                    parseInt(
+                        match[1],
+                        10
+                    );
 
-                        });
+                if (indice > maximo) {
 
-                });
+                    maximo = indice;
+                }
+
+            });
+
+            return maximo + 1;
+
+        }
+
+        // =====================================================
+        // RENUMERAR DETALLES
+        // =====================================================
+
+        function renumerar() {
+
+            const detalles =
+                container.querySelectorAll(
+                    ".detalle-producto"
+                );
+
+            detalles.forEach(function (detalle, index) {
+
+                detalle
+                    .querySelectorAll("[name]")
+                    .forEach(function (elemento) {
+
+                        elemento.name =
+                            elemento.name.replace(
+                                /Detalles\[\d+\]/,
+                                "Detalles[" +
+                                index +
+                                "]"
+                            );
+
+                    });
+
+            });
+
+        }
+
+        // =====================================================
+        // CALCULAR TOTALES
+        // =====================================================
+
+        function calcularTotales() {
+
+            let subtotal = 0;
+
+            let descuento = 0;
+
+            const detalles =
+                container.querySelectorAll(
+                    ".detalle-producto"
+                );
+
+            detalles.forEach(function (detalle) {
+
+                const producto =
+                    detalle.querySelector(
+                        ".producto-select"
+                    );
+
+                const cantidadInput =
+                    detalle.querySelector(
+                        ".cantidad"
+                    );
+
+                const descuentoInput =
+                    detalle.querySelector(
+                        ".descuento"
+                    );
+
+                const cantidad =
+                    parseFloat(
+                        cantidadInput?.value
+                    ) || 0;
+
+                const descuentoLinea =
+                    parseFloat(
+                        descuentoInput?.value
+                    ) || 0;
+
+                const precio =
+                    obtenerPrecio(producto);
+
+                if (precio <= 0 ||
+                    cantidad <= 0) {
+
+                    return;
+                }
+
+                const subtotalLinea =
+                    precio * cantidad;
+
+                const descuentoAplicado =
+                    Math.min(
+                        Math.max(
+                            descuentoLinea,
+                            0
+                        ),
+                        subtotalLinea
+                    );
+
+                subtotal +=
+                    subtotalLinea;
+
+                descuento +=
+                    descuentoAplicado;
+
+            });
+
+            const total =
+                Math.max(
+                    subtotal - descuento,
+                    0
+                );
+
+            const elementoSubtotal =
+                document.getElementById(
+                    "resumenSubtotal"
+                );
+
+            const elementoDescuento =
+                document.getElementById(
+                    "resumenDescuento"
+                );
+
+            const elementoTotal =
+                document.getElementById(
+                    "resumenTotal"
+                );
+
+            if (elementoSubtotal) {
+
+                elementoSubtotal.textContent =
+                    formatoMoneda(subtotal);
 
             }
 
+            if (elementoDescuento) {
+
+                elementoDescuento.textContent =
+                    formatoMoneda(descuento);
+
+            }
+
+            if (elementoTotal) {
+
+                elementoTotal.textContent =
+                    formatoMoneda(total);
+
+            }
+
+        }
+
+        // =====================================================
+        // AGREGAR PRODUCTO
+        // =====================================================
+
+        if (btnAgregar) {
 
             btnAgregar.addEventListener(
                 "click",
@@ -749,204 +989,315 @@
 
                     actualizarEstado();
 
-                });
+                    calcularTotales();
 
-
-            container.addEventListener(
-                "click",
-                function (event) {
-
-                    const boton =
-                        event.target.closest(
-                            ".btnEliminarProducto"
-                        );
-
-                    if (!boton)
-                        return;
-
-                    const detalle =
-                        boton.closest(
+                    const detalles =
+                        container.querySelectorAll(
                             ".detalle-producto"
                         );
 
-                    if (detalle) {
-
-                        detalle.remove();
-
-                        renumerar();
-
-                        actualizarEstado();
-
-                        calcularTotales();
-
-                    }
-
-                });
-
-
-            function calcularTotales() {
-
-                let subtotal = 0;
-                let descuento = 0;
-
-                const detalles =
-                    container.querySelectorAll(
-                        ".detalle-producto"
-                    );
-
-                detalles.forEach(function (detalle) {
-
-                    const cantidad =
-                        parseFloat(
-                            detalle.querySelector(
-                                ".cantidad"
-                            )?.value
-                        ) || 0;
-
-                    const descuentoLinea =
-                        parseFloat(
-                            detalle.querySelector(
-                                ".descuento"
-                            )?.value
-                        ) || 0;
+                    const ultimo =
+                        detalles[
+                            detalles.length - 1
+                        ];
 
                     const select =
-                        detalle.querySelector(
+                        ultimo?.querySelector(
                             ".producto-select"
                         );
 
-                    if (!select)
-                        return;
+                    if (select) {
 
-                    const texto =
-                        select.options[
-                            select.selectedIndex
-                        ]?.text || "";
+                        select.focus();
 
-                    const match =
-                        texto.match(
-                            /C\$\s*([\d,]+(?:\.\d{1,2})?)/
-                        );
+                    }
 
-                    if (!match)
-                        return;
+                }
+            );
 
-                    const precio =
-                        parseFloat(
-                            match[1].replace(
-                                /,/g,
-                                ""
-                            )
-                        ) || 0;
+        }
 
-                    const subtotalLinea =
-                        precio * cantidad;
+        // =====================================================
+        // ELIMINAR PRODUCTO
+        // =====================================================
 
-                    const descuentoAplicado =
-                        Math.min(
-                            Math.max(
-                                descuentoLinea,
-                                0
-                            ),
-                            subtotalLinea
-                        );
+        container.addEventListener(
+            "click",
+            function (event) {
 
-                    subtotal +=
-                        subtotalLinea;
-
-                    descuento +=
-                        descuentoAplicado;
-
-                });
-
-
-                const total =
-                    subtotal - descuento;
-
-
-                document.getElementById(
-                    "resumenSubtotal"
-                ).textContent =
-                    "C$ " +
-                    subtotal.toLocaleString(
-                        "es-NI",
-                        {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }
+                const boton =
+                    event.target.closest(
+                        ".btnEliminarProducto"
                     );
 
+                if (!boton) {
 
-                document.getElementById(
-                    "resumenDescuento"
-                ).textContent =
-                    "C$ " +
-                    descuento.toLocaleString(
-                        "es-NI",
-                        {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }
+                    return;
+                }
+
+                const detalle =
+                    boton.closest(
+                        ".detalle-producto"
                     );
 
+                if (!detalle) {
 
-                document.getElementById(
-                    "resumenTotal"
-                ).textContent =
-                    "C$ " +
-                    total.toLocaleString(
-                        "es-NI",
-                        {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }
-                    );
+                    return;
+                }
+
+                detalle.remove();
+
+                renumerar();
+
+                actualizarEstado();
+
+                calcularTotales();
 
             }
+        );
 
+        // =====================================================
+        // CAMBIOS EN CAMPOS
+        // =====================================================
 
-            container.addEventListener(
-                "input",
+        container.addEventListener(
+            "input",
+            function (event) {
+
+                if (
+                    event.target.classList.contains(
+                        "cantidad"
+                    ) ||
+                    event.target.classList.contains(
+                        "descuento"
+                    )
+                ) {
+
+                    calcularTotales();
+
+                }
+
+            }
+        );
+
+        // =====================================================
+        // CAMBIO DE PRODUCTO
+        // =====================================================
+
+        container.addEventListener(
+            "change",
+            function (event) {
+
+                if (
+                    event.target.classList.contains(
+                        "producto-select"
+                    )
+                ) {
+
+                    event.target.classList.remove(
+                        "is-invalid"
+                    );
+
+                    calcularTotales();
+
+                }
+
+            }
+        );
+
+        // =====================================================
+        // VALIDACIÓN ANTES DE ENVIAR
+        // =====================================================
+
+        if (form) {
+
+            form.addEventListener(
+                "submit",
                 function (event) {
 
-                    if (
-                        event.target.classList.contains(
-                            "cantidad"
-                        ) ||
-                        event.target.classList.contains(
-                            "descuento"
-                        )
-                    ) {
+                    const detalles =
+                        container.querySelectorAll(
+                            ".detalle-producto"
+                        );
 
-                        calcularTotales();
+                    // -----------------------------------------
+                    // SIN PRODUCTOS
+                    // -----------------------------------------
+
+                    if (detalles.length === 0) {
+
+                        event.preventDefault();
+
+                        alert(
+                            "Debe agregar al menos un producto al pedido."
+                        );
+
+                        return;
+                    }
+
+                    let formularioInvalido =
+                        false;
+
+                    detalles.forEach(
+                        function (detalle) {
+
+                            const producto =
+                                detalle.querySelector(
+                                    ".producto-select"
+                                );
+
+                            const cantidad =
+                                detalle.querySelector(
+                                    ".cantidad"
+                                );
+
+                            const descuento =
+                                detalle.querySelector(
+                                    ".descuento"
+                                );
+
+                            // ---------------------------------
+                            // PRODUCTO
+                            // ---------------------------------
+
+                            if (!producto ||
+                                !producto.value) {
+
+                                formularioInvalido =
+                                    true;
+
+                                producto?.classList.add(
+                                    "is-invalid"
+                                );
+
+                            }
+                            else {
+
+                                producto.classList.remove(
+                                    "is-invalid"
+                                );
+
+                            }
+
+                            // ---------------------------------
+                            // CANTIDAD
+                            // ---------------------------------
+
+                            const valorCantidad =
+                                Number(
+                                    cantidad?.value
+                                );
+
+                            if (
+                                !cantidad ||
+                                !Number.isInteger(
+                                    valorCantidad
+                                ) ||
+                                valorCantidad < 1 ||
+                                valorCantidad > 999999
+                            ) {
+
+                                formularioInvalido =
+                                    true;
+
+                                cantidad?.classList.add(
+                                    "is-invalid"
+                                );
+
+                            }
+                            else {
+
+                                cantidad.classList.remove(
+                                    "is-invalid"
+                                );
+
+                            }
+
+                            // ---------------------------------
+                            // DESCUENTO
+                            // ---------------------------------
+
+                            const valorDescuento =
+                                Number(
+                                    descuento?.value
+                                );
+
+                            if (
+                                descuento &&
+                                (
+                                    !Number.isFinite(
+                                        valorDescuento
+                                    ) ||
+                                    valorDescuento < 0 ||
+                                    valorDescuento > 999999999
+                                )
+                            ) {
+
+                                formularioInvalido =
+                                    true;
+
+                                descuento.classList.add(
+                                    "is-invalid"
+                                );
+
+                            }
+                            else if (descuento) {
+
+                                descuento.classList.remove(
+                                    "is-invalid"
+                                );
+
+                            }
+
+                        }
+                    );
+
+                    // -----------------------------------------
+                    // DETENER ENVÍO
+                    // -----------------------------------------
+
+                    if (formularioInvalido) {
+
+                        event.preventDefault();
+
+                        alert(
+                            "Revise los productos, cantidades y descuentos antes de crear el pedido."
+                        );
+
+                        return;
 
                     }
 
-                });
+                    // -----------------------------------------
+                    // EVITAR DOBLE ENVÍO
+                    // -----------------------------------------
 
+                    if (btnCrear) {
 
-            container.addEventListener(
-                "change",
-                function (event) {
+                        btnCrear.disabled =
+                            true;
 
-                    if (
-                        event.target.classList.contains(
-                            "producto-select"
-                        )
-                    ) {
-
-                        calcularTotales();
+                        btnCrear.innerHTML =
+                            '<span class="spinner-border spinner-border-sm me-2"></span>' +
+                            'Creando pedido...';
 
                     }
 
-                });
+                }
+            );
 
+        }
 
-            actualizarEstado();
+        // =====================================================
+        // INICIALIZACIÓN
+        // =====================================================
 
-            calcularTotales();
+        actualizarEstado();
 
-        });
+        calcularTotales();
 
-    </script>
+    });
+
+</script>
+
 }

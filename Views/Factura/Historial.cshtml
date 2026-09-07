@@ -9,6 +9,52 @@
         .OrderByDescending(h => h.Fecha)
         .ToList()
         ?? new List<WebApplication1.Models.HistorialFactura>();
+
+    // ============================================================
+    // FUNCIÓN VISUAL PARA EL ESTADO
+    // Los valores corresponden al FacturaController:
+    //
+    // 1 = Pendiente
+    // 2 = Pagada
+    // 3 = Anulada
+    // 4 = Parcial
+    // ============================================================
+
+    string ObtenerClaseEstado(int estado)
+    {
+        return estado switch
+        {
+            1 => "bg-warning text-dark",
+            2 => "bg-success",
+            3 => "bg-danger",
+            4 => "bg-info text-dark",
+            _ => "bg-secondary"
+        };
+    }
+
+    string ObtenerIconoEstado(int estado)
+    {
+        return estado switch
+        {
+            1 => "bi-clock",
+            2 => "bi-check-circle",
+            3 => "bi-x-circle",
+            4 => "bi-hourglass-split",
+            _ => "bi-info-circle"
+        };
+    }
+
+    string ObtenerNombreEstado(int estado)
+    {
+        return estado switch
+        {
+            1 => "Pendiente",
+            2 => "Pagada",
+            3 => "Anulada",
+            4 => "Parcial",
+            _ => "Estado desconocido"
+        };
+    }
 }
 
 <div class="container-fluid py-4">
@@ -119,7 +165,7 @@
 
                 <div class="row">
 
-                    <!-- NÚMERO DE FACTURA -->
+                    <!-- FACTURA -->
 
                     <div class="col-md-3 mb-3">
 
@@ -172,35 +218,9 @@
 
                         <div>
 
-                            @{
-                                string claseEstado = "bg-secondary";
-                                string iconoEstado = "bi-info-circle";
-                            }
+                            <span class="badge @ObtenerClaseEstado(factura.IdEstadoFactura)">
 
-                            @if (factura.IdEstadoFactura == 1)
-                            {
-                                claseEstado = "bg-warning text-dark";
-                                iconoEstado = "bi-clock";
-                            }
-                            else if (factura.IdEstadoFactura == 2)
-                            {
-                                claseEstado = "bg-success";
-                                iconoEstado = "bi-check-circle";
-                            }
-                            else if (factura.IdEstadoFactura == 3)
-                            {
-                                claseEstado = "bg-danger";
-                                iconoEstado = "bi-x-circle";
-                            }
-                            else if (factura.IdEstadoFactura == 4)
-                            {
-                                claseEstado = "bg-info text-dark";
-                                iconoEstado = "bi-hourglass-split";
-                            }
-
-                            <span class="badge @claseEstado">
-
-                                <i class="bi @iconoEstado me-1"></i>
+                                <i class="bi @ObtenerIconoEstado(factura.IdEstadoFactura) me-1"></i>
 
                                 @if (factura.IdEstadoFacturaNavigation != null)
                                 {
@@ -208,7 +228,7 @@
                                 }
                                 else
                                 {
-                                    <span>Estado desconocido</span>
+                                    @ObtenerNombreEstado(factura.IdEstadoFactura)
                                 }
 
                             </span>
@@ -279,7 +299,9 @@
                             Saldo pendiente:
                         </span>
 
-                        <strong class="@(factura.SaldoPendiente > 0 ? "text-danger" : "text-success")">
+                        <strong class="@(factura.SaldoPendiente > 0
+                                                        ? "text-danger"
+                                                        : "text-success")">
 
                             @factura.SaldoPendiente.ToString("N2")
 
@@ -372,6 +394,10 @@
                                 {
                                     @factura.IdEstadoFacturaNavigation.Nombre
                                 }
+                                else if (factura != null)
+                                {
+                                    @ObtenerNombreEstado(factura.IdEstadoFactura)
+                                }
                                 else
                                 {
                                     <span class="text-muted">
@@ -421,7 +447,8 @@
 
                                 @if (historial.Any())
                                 {
-                                    @historial.First().Fecha.ToString("dd/MM/yyyy HH:mm:ss")
+                                    @historial.First().Fecha.ToString(
+                                        "dd/MM/yyyy HH:mm:ss")
                                 }
                                 else
                                 {
@@ -510,43 +537,34 @@
 
                         bool esUltimo = i == 0;
 
-                        string color = "secondary";
-                        string icono = "bi-info-circle";
-                        string textoColor = "text-white";
+                        string colorTimeline =
+                            item.IdEstadoFactura switch
+                            {
+                                1 => "warning",
+                                2 => "success",
+                                3 => "danger",
+                                4 => "info",
+                                _ => "secondary"
+                            };
 
-                        if (item.IdEstadoFactura == 1)
-                        {
-                            color = "warning";
-                            icono = "bi-clock";
-                            textoColor = "text-dark";
-                        }
-                        else if (item.IdEstadoFactura == 2)
-                        {
-                            color = "success";
-                            icono = "bi-check-circle";
-                        }
-                        else if (item.IdEstadoFactura == 3)
-                        {
-                            color = "danger";
-                            icono = "bi-x-circle";
-                        }
-                        else if (item.IdEstadoFactura == 4)
-                        {
-                            color = "info";
-                            icono = "bi-hourglass-split";
-                            textoColor = "text-dark";
-                        }
+                        string textoColor =
+                            item.IdEstadoFactura == 1 ||
+                            item.IdEstadoFactura == 4
+                                ? "text-dark"
+                                : "text-white";
+
+                        string icono =
+                            ObtenerIconoEstado(
+                                item.IdEstadoFactura);
 
                         <div class="d-flex mb-4">
 
-                            <!-- ==================================================
-                                 ICONO
-                            ================================================== -->
+                            <!-- ICONO -->
 
                             <div class="me-3 position-relative"
                                  style="min-width:50px;">
 
-                                <div class="bg-@color @textoColor
+                                <div class="bg-@colorTimeline @textoColor
                                     rounded-circle
                                     d-flex
                                     align-items-center
@@ -556,7 +574,6 @@
                                     <i class="bi @icono fs-5"></i>
 
                                 </div>
-
 
                                 @if (!esUltimo)
                                 {
@@ -573,12 +590,12 @@
                             </div>
 
 
-                            <!-- ==================================================
-                                 CONTENIDO
-                            ================================================== -->
+                            <!-- CONTENIDO -->
 
                             <div class="card border flex-grow-1
-                                @(esUltimo ? "border-primary shadow-sm" : "")">
+                                @(esUltimo
+                                    ? "border-primary shadow-sm"
+                                    : "")">
 
                                 <div class="card-body">
 
@@ -599,13 +616,11 @@
                                                 }
                                                 else
                                                 {
-                                                    <span>
-                                                        Estado desconocido
-                                                    </span>
+                                                    @ObtenerNombreEstado(
+                                                        item.IdEstadoFactura)
                                                 }
 
                                             </h6>
-
 
                                             @if (esUltimo)
                                             {
@@ -636,9 +651,7 @@
                                     <hr />
 
 
-                                    <!-- ==================================================
-                                         USUARIO
-                                    ================================================== -->
+                                    <!-- USUARIO -->
 
                                     <div class="mb-2">
 
@@ -651,22 +664,27 @@
                                         @if (item.IdUsuarioNavigation != null)
                                         {
                                             var nombres =
-                                                item.IdUsuarioNavigation.Nombres ?? "";
+                                                item.IdUsuarioNavigation.Nombres
+                                                ?? "";
 
                                             var apellidos =
-                                                item.IdUsuarioNavigation.Apellidos ?? "";
+                                                item.IdUsuarioNavigation.Apellidos
+                                                ?? "";
 
                                             var usuario =
-                                                item.IdUsuarioNavigation.Usuario1 ?? "";
+                                                item.IdUsuarioNavigation.Usuario1
+                                                ?? "";
 
                                             var nombreCompleto =
                                                 $"{nombres} {apellidos}".Trim();
 
-                                            if (!string.IsNullOrWhiteSpace(nombreCompleto))
+                                            if (!string.IsNullOrWhiteSpace(
+                                                nombreCompleto))
                                             {
                                                 @nombreCompleto
                                             }
-                                            else if (!string.IsNullOrWhiteSpace(usuario))
+                                            else if (!string.IsNullOrWhiteSpace(
+                                                usuario))
                                             {
                                                 @usuario
                                             }
@@ -677,7 +695,8 @@
                                                 </span>
                                             }
 
-                                            @if (!string.IsNullOrWhiteSpace(usuario) &&
+                                            @if (!string.IsNullOrWhiteSpace(
+                                                usuario) &&
                                                 !string.Equals(
                                                     nombreCompleto,
                                                     usuario,
@@ -698,10 +717,9 @@
                                     </div>
 
 
-                                    <!-- ==================================================
-                                         OBSERVACIÓN
-                                    ================================================== -->
-                                    @if (!string.IsNullOrWhiteSpace(item.Observacion))
+                                    <!-- OBSERVACIÓN -->
+                                    @if (!string.IsNullOrWhiteSpace(
+                                                                            item.Observacion))
                                     {
                                         <div class="mt-3">
 
@@ -763,7 +781,6 @@
                            class="btn btn-secondary">
 
                             <i class="bi bi-arrow-left me-1"></i>
-
                             Volver a factura
 
                         </a>
@@ -775,7 +792,6 @@
                            class="btn btn-secondary">
 
                             <i class="bi bi-arrow-left me-1"></i>
-
                             Volver
 
                         </a>
@@ -784,9 +800,9 @@
                 </div>
 
 
-                <!-- ACCIONES DE FACTURA -->
+                <!-- ACCIONES -->
                 @if (factura != null &&
-                                    factura.IdEstadoFactura != 3)
+                                     factura.IdEstadoFactura != 3)
                 {
                     <div class="d-flex gap-2 mt-3 mt-md-0">
 
@@ -796,7 +812,6 @@
                            class="btn btn-warning">
 
                             <i class="bi bi-pencil-square me-1"></i>
-
                             Editar factura
 
                         </a>
@@ -808,10 +823,23 @@
                            class="btn btn-danger">
 
                             <i class="bi bi-x-circle me-1"></i>
-
                             Anular factura
 
                         </a>
+
+                    </div>
+                }
+                else if (factura != null)
+                {
+                    <div>
+
+                        <span class="badge bg-danger fs-6">
+
+                            <i class="bi bi-lock-fill me-1"></i>
+
+                            Factura anulada
+
+                        </span>
 
                     </div>
                 }
@@ -822,4 +850,4 @@
 
     </div>
 
-</div
+</div>

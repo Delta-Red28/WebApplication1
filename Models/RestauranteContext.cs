@@ -606,6 +606,10 @@ public partial class RestauranteContext : DbContext
             entity.HasKey(e => e.IdFactura)
                 .HasName("PK__Factura__50E7BAF19E45EC0C");
 
+            // Número de factura único
+            entity.HasIndex(e => e.NumeroFactura)
+                .IsUnique();
+
             entity.Property(e => e.FechaFactura)
                 .HasDefaultValueSql("(getdate())");
 

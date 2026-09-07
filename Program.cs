@@ -55,6 +55,21 @@ builder.Services.AddAuthorization();
 
 
 // ============================================================
+// SESSION
+// ============================================================
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout =
+        TimeSpan.FromHours(8);
+
+    options.Cookie.HttpOnly = true;
+
+    options.Cookie.IsEssential = true;
+});
+
+
+// ============================================================
 // MVC
 // ============================================================
 
@@ -110,7 +125,22 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
 app.UseRouting();
+
+
+// ============================================================
+// SESSION
+// ============================================================
+//
+// IMPORTANTE:
+// UseSession() debe ejecutarse antes de cualquier código
+// que utilice HttpContext.Session.
+//
+// ============================================================
+
+app.UseSession();
 
 
 // ============================================================
@@ -130,6 +160,11 @@ app.Use(async (context, next) =>
     {
         var path =
             context.Request.Path.Value ?? string.Empty;
+
+
+        // ========================================================
+        // RUTAS PERMITIDAS DE ACCOUNT
+        // ========================================================
 
         bool esAccountPermitido =
             path.Equals(
@@ -155,11 +190,19 @@ app.Use(async (context, next) =>
                 StringComparison.OrdinalIgnoreCase);
 
 
+        // ========================================================
+        // OBTENER ID DEL CLAIM
+        // ========================================================
+
         var idUsuarioClaim =
             context.User.FindFirstValue(
                 ClaimTypes.NameIdentifier
             );
 
+
+        // ========================================================
+        // VALIDAR ID
+        // ========================================================
 
         if (int.TryParse(
             idUsuarioClaim,
@@ -171,6 +214,10 @@ app.Use(async (context, next) =>
                         RestauranteContext
                     >();
 
+
+            // ====================================================
+            // BUSCAR ESTADO DEL USUARIO
+            // ====================================================
 
             var usuario =
                 await dbContext.Usuarios
@@ -188,6 +235,10 @@ app.Use(async (context, next) =>
                     .FirstOrDefaultAsync();
 
 
+            // ====================================================
+            // USUARIO NO EXISTE
+            // ====================================================
+
             if (usuario == null)
             {
                 await context.SignOutAsync(
@@ -202,6 +253,10 @@ app.Use(async (context, next) =>
                 return;
             }
 
+
+            // ====================================================
+            // USUARIO DESACTIVADO
+            // ====================================================
 
             if (!usuario.Estado)
             {
@@ -218,6 +273,10 @@ app.Use(async (context, next) =>
             }
 
 
+            // ====================================================
+            // PASSWORD OBLIGATORIO
+            // ====================================================
+
             if (!esAccountPermitido &&
                 usuario.DebeCambiarPassword)
             {
@@ -229,6 +288,7 @@ app.Use(async (context, next) =>
             }
         }
     }
+
 
     await next();
 });
@@ -242,7 +302,7 @@ app.UseAuthorization();
 
 
 // ============================================================
-// ARCHIVOS ESTÁTICOS
+// ARCHIVOS ESTÁTICOS / CONTROLADORES
 // ============================================================
 
 app.MapStaticAssets();

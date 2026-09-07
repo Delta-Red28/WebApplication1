@@ -1,7 +1,14 @@
-﻿@model WebApplication1.Models.Caja
+﻿@model WebApplication1.Models.MovimientoCaja
 
 @{
     ViewData["Title"] = "Registrar movimiento";
+
+    // ============================================================
+    // CAJA
+    // ============================================================
+
+    var caja =
+        ViewBag.Caja as WebApplication1.Models.Caja;
 
     // ============================================================
     // LISTAS
@@ -17,55 +24,58 @@
         as IEnumerable<WebApplication1.Models.Monedum>
         ?? Enumerable.Empty<WebApplication1.Models.Monedum>();
 
-
     // ============================================================
-    // ESTADO DE CAJA
+    // VALIDAR CAJA
     // ============================================================
 
     var cajaAbierta =
-        Model.FechaCierre == null;
-
+        caja != null &&
+        caja.FechaCierre == null;
 
     // ============================================================
     // USUARIO RESPONSABLE
     // ============================================================
 
-    var usuarioResponsable =
-        $"{Model.IdUsuarioNavigation?.Nombres?.Trim() ?? ""} " +
-        $"{Model.IdUsuarioNavigation?.Apellidos?.Trim() ?? ""}"
-        .Trim();
+    var usuarioResponsable = "";
 
-    if (string.IsNullOrWhiteSpace(usuarioResponsable))
+    if (caja != null)
     {
         usuarioResponsable =
-            Model.IdUsuarioNavigation?.Usuario1
-            ?? $"Usuario #{Model.IdUsuario}";
-    }
+            $"{caja.IdUsuarioNavigation?.Nombres?.Trim() ?? ""} " +
+            $"{caja.IdUsuarioNavigation?.Apellidos?.Trim() ?? ""}"
+            .Trim();
 
+        if (string.IsNullOrWhiteSpace(usuarioResponsable))
+        {
+            usuarioResponsable =
+                caja.IdUsuarioNavigation?.Usuario1
+                ?? $"Usuario #{caja.IdUsuario}";
+        }
+    }
 
     // ============================================================
     // ESTADO
     // ============================================================
 
     var estadoCaja =
-        Model.IdEstadoCajaNavigation?.Nombre
+        caja?.IdEstadoCajaNavigation?.Nombre
         ?? (cajaAbierta ? "Abierta" : "Cerrada");
-
 
     // ============================================================
     // SALDOS
     // ============================================================
 
     var saldoCordobas =
-        Model.MontoInicialCordobas
-        + Model.TotalIngresosCordobas
-        - Model.TotalEgresosCordobas;
+        caja?.MontoInicialCordobas
+        + (caja?.TotalIngresosCordobas ?? 0)
+        - (caja?.TotalEgresosCordobas ?? 0)
+        ?? 0;
 
     var saldoDolares =
-        Model.MontoInicialDolares
-        + Model.TotalIngresosDolares
-        - Model.TotalEgresosDolares;
-
+        caja?.MontoInicialDolares
+        + (caja?.TotalIngresosDolares ?? 0)
+        - (caja?.TotalEgresosDolares ?? 0)
+        ?? 0;
 
     // ============================================================
     // CULTURAS
@@ -90,28 +100,27 @@
         <div>
 
             <h2 class="mb-1">
-
                 <i class="bi bi-plus-circle text-primary me-2"></i>
-
                 Registrar movimiento
-
             </h2>
 
             <p class="text-muted mb-0">
 
-                Registra un ingreso o egreso en la
-                <strong>caja #@Model.IdCaja</strong>.
+                Registra un ingreso o egreso en
+
+                <strong>
+                    caja #@(caja?.IdCaja)
+                </strong>.
 
             </p>
 
         </div>
 
-
         <div>
 
             <a asp-controller="Caja"
                asp-action="Movimientos"
-               asp-route-id="@Model.IdCaja"
+               asp-route-id="@(caja?.IdCaja)"
                class="btn btn-outline-secondary">
 
                 <i class="bi bi-arrow-left me-1"></i>
@@ -166,24 +175,31 @@
 
 
     <!-- ========================================================= -->
-    <!-- CAJA CERRADA -->
+    <!-- ERRORES DEL MODELSTATE -->
     <!-- ========================================================= -->
 
-    @if (!cajaAbierta)
+    @if (!ViewData.ModelState.IsValid)
     {
-        <div class="alert alert-warning d-flex align-items-start mb-4"
-             role="alert">
+        <div class="alert alert-danger">
 
-            <i class="bi bi-lock-fill fs-4 me-3"></i>
+            <div class="d-flex align-items-start">
 
-            <div>
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
 
-                <strong>Esta caja está cerrada.</strong>
+                <div>
 
-                <div class="small mt-1">
+                    <strong>
+                        No fue posible registrar el movimiento.
+                    </strong>
 
-                    No se pueden registrar nuevos movimientos
-                    en una caja cerrada.
+                    <div class="mt-2">
+
+                        @Html.ValidationSummary(
+                            false,
+                            "",
+                            new { @class = "mb-0" })
+
+                    </div>
 
                 </div>
 
@@ -193,749 +209,840 @@
     }
 
 
-    <!-- ========================================================= -->
-    <!-- INFORMACIÓN DE LA CAJA -->
-    <!-- ========================================================= -->
-
-    <div class="card shadow-sm border-0 mb-4">
-
-        <div class="card-header bg-white">
-
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-
-                <div>
-
-                    <strong>
-
-                        <i class="bi bi-cash-stack me-2"></i>
-
-                        Caja #@Model.IdCaja
-
-                    </strong>
-
-
-                    @if (cajaAbierta)
-                    {
-                        <span class="badge bg-success ms-2">
-
-                            <i class="bi bi-unlock-fill me-1"></i>
-
-                            Abierta
-
-                        </span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary ms-2">
-
-                            <i class="bi bi-lock-fill me-1"></i>
-
-                            Cerrada
-
-                        </span>
-                    }
-
-                </div>
-
-
-                <div class="text-muted">
-
-                    <i class="bi bi-calendar3 me-1"></i>
-
-                    @Model.FechaApertura.ToString("dd/MM/yyyy HH:mm")
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="card-body">
-
-            <div class="row g-4">
-
-                <!-- USUARIO -->
-
-                <div class="col-lg-3 col-md-6">
-
-                    <div class="text-muted small mb-1">
-
-                        Usuario responsable
-
-                    </div>
-
-                    <div class="fw-semibold">
-
-                        <i class="bi bi-person me-1"></i>
-
-                        @usuarioResponsable
-
-                    </div>
-
-                    <small class="text-muted">
-
-                        ID usuario: @Model.IdUsuario
-
-                    </small>
-
-                </div>
-
-
-                <!-- ESTADO -->
-
-                <div class="col-lg-3 col-md-6">
-
-                    <div class="text-muted small mb-1">
-
-                        Estado
-
-                    </div>
-
-                    <div class="fw-semibold">
-
-                        @if (cajaAbierta)
-                        {
-                            <span class="text-success">
-
-                                <i class="bi bi-unlock-fill me-1"></i>
-
-                                @estadoCaja
-
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="text-secondary">
-
-                                <i class="bi bi-lock-fill me-1"></i>
-
-                                @estadoCaja
-
-                            </span>
-                        }
-
-                    </div>
-
-                </div>
-
-
-                <!-- CÓRDOBAS -->
-
-                <div class="col-lg-3 col-md-6">
-
-                    <div class="text-muted small mb-1">
-
-                        Saldo disponible C$
-
-                    </div>
-
-                    <div class="fs-5 fw-bold text-primary">
-
-                        C$
-                        @saldoCordobas.ToString(
-                            "N2",
-                            culturaNicaragua)
-
-                    </div>
-
-                    <small class="text-muted">
-
-                        Córdobas
-
-                    </small>
-
-                </div>
-
-
-                <!-- DÓLARES -->
-
-                <div class="col-lg-3 col-md-6">
-
-                    <div class="text-muted small mb-1">
-
-                        Saldo disponible US$
-
-                    </div>
-
-                    <div class="fs-5 fw-bold text-success">
-
-                        US$
-                        @saldoDolares.ToString(
-                            "N2",
-                            culturaDolares)
-
-                    </div>
-
-                    <small class="text-muted">
-
-                        Dólares
-
-                    </small>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- ========================================================= -->
-    <!-- FORMULARIO -->
-    <!-- ========================================================= -->
-
-    @if (cajaAbierta)
+    @if (caja == null)
     {
-        <div class="row justify-content-center">
+        <div class="alert alert-danger">
 
-            <div class="col-lg-8 col-xl-7">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
-                <div class="card shadow-sm border-0">
-
-                    <div class="card-header bg-primary text-white py-3">
-
-                        <h5 class="mb-0">
-
-                            <i class="bi bi-cash-stack me-2"></i>
-
-                            Datos del movimiento
-
-                        </h5>
-
-                    </div>
-
-
-                    <div class="card-body p-4">
-
-                        <form asp-controller="Caja"
-                              asp-action="RegistrarMovimiento"
-                              method="post"
-                              id="formRegistrarMovimiento">
-
-                            @Html.AntiForgeryToken()
-
-
-                            <input type="hidden"
-                                   name="idCaja"
-                                   value="@Model.IdCaja" />
-
-
-                            <!-- ================================================= -->
-                            <!-- TIPO -->
-                            <!-- ================================================= -->
-
-                            <div class="mb-4">
-
-                                <label for="idTipoMovimiento"
-                                       class="form-label fw-semibold">
-
-                                    <i class="bi bi-arrow-left-right me-1"></i>
-
-                                    Tipo de movimiento
-
-                                </label>
-
-
-                                <select id="idTipoMovimiento"
-                                        name="idTipoMovimiento"
-                                        class="form-select"
-                                        required>
-
-                                    <option value="">
-
-                                        -- Seleccione un tipo --
-
-                                    </option>
-
-
-                                    @foreach (var tipo in tiposMovimiento)
-                                    {
-                                        <option value="@tipo.IdTipoMovimiento">
-
-                                            @tipo.Nombre
-
-                                        </option>
-                                    }
-
-                                </select>
-
-                                <div class="form-text">
-
-                                    Selecciona si se trata de un ingreso
-                                    o un egreso.
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- ================================================= -->
-                            <!-- MONEDA -->
-                            <!-- ================================================= -->
-
-                            <div class="mb-4">
-
-                                <label for="idMoneda"
-                                       class="form-label fw-semibold">
-
-                                    <i class="bi bi-currency-exchange me-1"></i>
-
-                                    Moneda
-
-                                </label>
-
-
-                                <select id="idMoneda"
-                                        name="idMoneda"
-                                        class="form-select"
-                                        required>
-
-                                    <option value="">
-
-                                        -- Seleccione una moneda --
-
-                                    </option>
-
-
-                                    @foreach (var moneda in monedas)
-                                    {
-                                        <option value="@moneda.IdMoneda">
-
-                                            @moneda.Nombre
-
-                                        </option>
-                                    }
-
-                                </select>
-
-                                <div class="form-text">
-
-                                    El movimiento afectará únicamente
-                                    el saldo de la moneda seleccionada.
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- ================================================= -->
-                            <!-- INFORMACIÓN MONEDA -->
-                            <!-- ================================================= -->
-
-                            <div id="monedaInfo"
-                                 class="alert alert-light border d-none mb-4">
-
-                                <div class="d-flex align-items-center">
-
-                                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
-
-                                        <i id="monedaIcono"
-                                           class="bi bi-currency-exchange fs-4 text-primary">
-                                        </i>
-
-                                    </div>
-
-                                    <div>
-
-                                        <div class="small text-muted">
-
-                                            Moneda seleccionada
-
-                                        </div>
-
-                                        <strong id="monedaTexto"></strong>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- ================================================= -->
-                            <!-- MONTO -->
-                            <!-- ================================================= -->
-
-                            <div class="mb-4">
-
-                                <label for="monto"
-                                       class="form-label fw-semibold">
-
-                                    <i class="bi bi-cash-coin me-1"></i>
-
-                                    Monto
-
-                                </label>
-
-
-                                <div class="input-group input-group-lg">
-
-                                    <span class="input-group-text"
-                                          id="simboloMoneda">
-
-                                        C$
-
-                                    </span>
-
-
-                                    <input type="number"
-                                           id="monto"
-                                           name="monto"
-                                           class="form-control"
-                                           min="0.01"
-                                           step="0.01"
-                                           inputmode="decimal"
-                                           placeholder="0.00"
-                                           autocomplete="off"
-                                           required />
-
-                                </div>
-
-
-                                <div id="saldoDisponibleTexto"
-                                     class="form-text">
-
-                                    Selecciona una moneda para consultar
-                                    el saldo disponible.
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- ================================================= -->
-                            <!-- DESCRIPCIÓN -->
-                            <!-- ================================================= -->
-
-                            <div class="mb-4">
-
-                                <label for="descripcion"
-                                       class="form-label fw-semibold">
-
-                                    <i class="bi bi-chat-left-text me-1"></i>
-
-                                    Descripción
-
-                                </label>
-
-
-                                <textarea id="descripcion"
-                                          name="descripcion"
-                                          class="form-control"
-                                          rows="4"
-                                          maxlength="250"
-                                          placeholder="Describa el motivo del movimiento..."
-                                          required></textarea>
-
-
-                                <div class="form-text d-flex justify-content-between">
-
-                                    <span>
-
-                                        Describe el motivo del ingreso
-                                        o egreso.
-
-                                    </span>
-
-                                    <span>
-
-                                        <span id="contadorDescripcion">0</span>/250
-
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- ================================================= -->
-                            <!-- RESUMEN -->
-                            <!-- ================================================= -->
-
-                            <div class="card bg-light border mb-4">
-
-                                <div class="card-body">
-
-                                    <h6 class="fw-semibold mb-3">
-
-                                        <i class="bi bi-calculator me-2"></i>
-
-                                        Resumen del movimiento
-
-                                    </h6>
-
-
-                                    <div class="d-flex justify-content-between mb-2">
-
-                                        <span class="text-muted">
-
-                                            Caja
-
-                                        </span>
-
-                                        <strong>
-
-                                            #@Model.IdCaja
-
-                                        </strong>
-
-                                    </div>
-
-
-                                    <div class="d-flex justify-content-between mb-2">
-
-                                        <span class="text-muted">
-
-                                            Tipo
-
-                                        </span>
-
-                                        <strong id="resumenTipo">
-
-                                            No seleccionado
-
-                                        </strong>
-
-                                    </div>
-
-
-                                    <div class="d-flex justify-content-between mb-2">
-
-                                        <span class="text-muted">
-
-                                            Moneda
-
-                                        </span>
-
-                                        <strong id="resumenMoneda">
-
-                                            No seleccionada
-
-                                        </strong>
-
-                                    </div>
-
-
-                                    <hr />
-
-
-                                    <div class="d-flex justify-content-between align-items-center">
-
-                                        <span class="fw-semibold">
-
-                                            Monto
-
-                                        </span>
-
-                                        <strong id="resumenMonto"
-                                                class="fs-5">
-
-                                            C$ 0.00
-
-                                        </strong>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- ================================================= -->
-                            <!-- ADVERTENCIA -->
-                            <!-- ================================================= -->
-
-                            <div class="alert alert-warning">
-
-                                <div class="d-flex align-items-start">
-
-                                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-
-                                    <div>
-
-                                        <strong>
-
-                                            Verifica los datos
-
-                                        </strong>
-
-                                        <p class="mb-0 mt-1">
-
-                                            Antes de registrar el movimiento,
-                                            verifica tipo, moneda, monto
-                                            y descripción.
-
-                                        </p>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- ================================================= -->
-                            <!-- BOTONES -->
-                            <!-- ================================================= -->
-
-                            <div class="d-flex justify-content-end gap-2 mt-4">
-
-                                <a asp-controller="Caja"
-                                   asp-action="Movimientos"
-                                   asp-route-id="@Model.IdCaja"
-                                   class="btn btn-outline-secondary">
-
-                                    <i class="bi bi-x-circle me-1"></i>
-
-                                    Cancelar
-
-                                </a>
-
-
-                                <button type="submit"
-                                        class="btn btn-primary"
-                                        id="btnRegistrarMovimiento">
-
-                                    <i class="bi bi-check-circle me-1"></i>
-
-                                    Registrar movimiento
-
-                                </button>
-
-                            </div>
-
-                        </form>
-
-                    </div>
-
-                </div>
-
-            </div>
+            No fue posible cargar la información de la caja.
 
         </div>
     }
     else
     {
+
         <!-- ========================================================= -->
         <!-- CAJA CERRADA -->
         <!-- ========================================================= -->
 
-        <div class="card shadow-sm border-0">
+        @if (!cajaAbierta)
+        {
+            <div class="alert alert-warning d-flex align-items-start mb-4"
+                 role="alert">
 
-            <div class="card-body text-center py-5">
+                <i class="bi bi-lock-fill fs-4 me-3"></i>
 
-                <i class="bi bi-lock-fill display-4 text-secondary"></i>
+                <div>
 
-                <h4 class="mt-3">
+                    <strong>
+                        Esta caja está cerrada.
+                    </strong>
 
-                    Caja cerrada
+                    <div class="small mt-1">
 
-                </h4>
+                        No se pueden registrar nuevos movimientos
+                        en una caja cerrada.
 
-                <p class="text-muted mb-4">
+                    </div>
 
-                    La caja #@Model.IdCaja ya fue cerrada.
-                    No es posible registrar nuevos movimientos.
+                </div>
 
-                </p>
-
-
-                <div class="d-flex justify-content-center gap-2 flex-wrap">
-
-                    <a asp-controller="Caja"
-                       asp-action="Details"
-                       asp-route-id="@Model.IdCaja"
-                       class="btn btn-outline-primary">
-
-                        <i class="bi bi-eye me-1"></i>
-
-                        Ver caja
-
-                    </a>
+            </div>
+        }
 
 
-                    <a asp-controller="Caja"
-                       asp-action="Movimientos"
-                       asp-route-id="@Model.IdCaja"
-                       class="btn btn-secondary">
+        <!-- ========================================================= -->
+        <!-- INFORMACIÓN DE LA CAJA -->
+        <!-- ========================================================= -->
 
-                        <i class="bi bi-list-ul me-1"></i>
+        <div class="card shadow-sm border-0 mb-4">
 
-                        Ver movimientos
+            <div class="card-header bg-white">
 
-                    </a>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                    <div>
+
+                        <strong>
+
+                            <i class="bi bi-cash-stack me-2"></i>
+
+                            Caja #@caja.IdCaja
+
+                        </strong>
+
+
+                        @if (cajaAbierta)
+                        {
+                            <span class="badge bg-success ms-2">
+
+                                <i class="bi bi-unlock-fill me-1"></i>
+
+                                Abierta
+
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary ms-2">
+
+                                <i class="bi bi-lock-fill me-1"></i>
+
+                                Cerrada
+
+                            </span>
+                        }
+
+                    </div>
+
+
+                    <div class="text-muted">
+
+                        <i class="bi bi-calendar3 me-1"></i>
+
+                        @caja.FechaApertura.ToString(
+                            "dd/MM/yyyy HH:mm")
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- USUARIO -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <div class="text-muted small mb-1">
+
+                            Usuario responsable
+
+                        </div>
+
+                        <div class="fw-semibold">
+
+                            <i class="bi bi-person me-1"></i>
+
+                            @usuarioResponsable
+
+                        </div>
+
+                        <small class="text-muted">
+
+                            ID usuario: @caja.IdUsuario
+
+                        </small>
+
+                    </div>
+
+
+                    <!-- ESTADO -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <div class="text-muted small mb-1">
+
+                            Estado
+
+                        </div>
+
+                        <div class="fw-semibold">
+
+                            @if (cajaAbierta)
+                            {
+                                <span class="text-success">
+
+                                    <i class="bi bi-unlock-fill me-1"></i>
+
+                                    @estadoCaja
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-secondary">
+
+                                    <i class="bi bi-lock-fill me-1"></i>
+
+                                    @estadoCaja
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CÓRDOBAS -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <div class="text-muted small mb-1">
+
+                            Saldo disponible C$
+
+                        </div>
+
+                        <div class="fs-5 fw-bold text-primary">
+
+                            C$
+
+                            @saldoCordobas.ToString(
+                                "N2",
+                                culturaNicaragua)
+
+                        </div>
+
+                        <small class="text-muted">
+
+                            Córdobas
+
+                        </small>
+
+                    </div>
+
+
+                    <!-- DÓLARES -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <div class="text-muted small mb-1">
+
+                            Saldo disponible US$
+
+                        </div>
+
+                        <div class="fs-5 fw-bold text-success">
+
+                            US$
+
+                            @saldoDolares.ToString(
+                                "N2",
+                                culturaDolares)
+
+                        </div>
+
+                        <small class="text-muted">
+
+                            Dólares
+
+                        </small>
+
+                    </div>
 
                 </div>
 
             </div>
 
         </div>
-    }
 
 
-    <!-- ========================================================= -->
-    <!-- INFORMACIÓN -->
-    <!-- ========================================================= -->
+        <!-- ========================================================= -->
+        <!-- FORMULARIO -->
+        <!-- ========================================================= -->
 
-    <div class="alert alert-info mt-4">
+        @if (cajaAbierta)
+        {
+            <div class="row justify-content-center">
 
-        <div class="d-flex align-items-start">
+                <div class="col-lg-8 col-xl-7">
 
-            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                    <div class="card shadow-sm border-0">
 
-            <div>
+                        <div class="card-header bg-primary text-white py-3">
 
-                <strong>Información</strong>
+                            <h5 class="mb-0">
 
-                <ul class="mb-0 mt-2">
+                                <i class="bi bi-cash-stack me-2"></i>
 
-                    <li>
-                        El movimiento se registrará en la
-                        <strong>caja #@Model.IdCaja</strong>.
-                    </li>
+                                Datos del movimiento
 
-                    <li>
-                        Cada movimiento queda asociado
-                        a una moneda.
-                    </li>
+                            </h5>
 
-                    <li>
-                        Los ingresos aumentan el saldo
-                        de la moneda seleccionada.
-                    </li>
+                        </div>
 
-                    <li>
-                        Los egresos disminuyen el saldo
-                        de la moneda seleccionada.
-                    </li>
 
-                    <li>
-                        El movimiento quedará almacenado
-                        en el historial de la caja.
-                    </li>
+                        <div class="card-body p-4">
 
-                </ul>
+                            <form asp-controller="Caja"
+                                  asp-action="CrearMovimiento"
+                                  method="post"
+                                  id="formRegistrarMovimiento">
+
+                                @Html.AntiForgeryToken()
+
+
+                                <!-- ================================================= -->
+                                <!-- DATOS PARA JAVASCRIPT -->
+                                <!-- ================================================= -->
+
+                                <div id="datosCaja"
+                                     data-saldo-cordobas="@saldoCordobas.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                     data-saldo-dolares="@saldoDolares.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                     data-id-caja="@caja.IdCaja">
+                                </div>
+
+
+                                <!-- ================================================= -->
+                                <!-- ID CAJA -->
+                                <!-- ================================================= -->
+
+                                <input type="hidden"
+                                       name="IdCaja"
+                                       value="@caja.IdCaja" />
+
+
+                                <!-- ================================================= -->
+                                <!-- TIPO -->
+                                <!-- ================================================= -->
+
+                                <div class="mb-4">
+
+                                    <label for="idTipoMovimiento"
+                                           class="form-label fw-semibold">
+
+                                        <i class="bi bi-arrow-left-right me-1"></i>
+
+                                        Tipo de movimiento
+
+                                    </label>
+
+
+                                    <select id="idTipoMovimiento"
+                                            name="IdTipoMovimiento"
+                                            class="form-select"
+                                            required>
+
+                                        <option value="">
+
+                                            -- Seleccione un tipo --
+
+                                        </option>
+
+
+                                        @foreach (var tipo in tiposMovimiento)
+                                        {
+                                            <option value="@tipo.IdTipoMovimiento">
+
+                                                @tipo.Nombre
+
+                                            </option>
+                                        }
+
+                                    </select>
+
+
+                                    <div class="form-text">
+
+                                        Selecciona si se trata de un ingreso
+                                        o un egreso.
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- ================================================= -->
+                                <!-- MONEDA -->
+                                <!-- ================================================= -->
+
+                                <div class="mb-4">
+
+                                    <label for="idMoneda"
+                                           class="form-label fw-semibold">
+
+                                        <i class="bi bi-currency-exchange me-1"></i>
+
+                                        Moneda
+
+                                    </label>
+
+
+                                    <select id="idMoneda"
+                                            name="IdMoneda"
+                                            class="form-select"
+                                            required>
+
+                                        <option value="">
+
+                                            -- Seleccione una moneda --
+
+                                        </option>
+
+
+                                        @foreach (var moneda in monedas)
+                                        {
+                                            <option value="@moneda.IdMoneda">
+
+                                                @moneda.Nombre
+
+                                            </option>
+                                        }
+
+                                    </select>
+
+
+                                    <div class="form-text">
+
+                                        El movimiento afectará únicamente
+                                        el saldo de la moneda seleccionada.
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- ================================================= -->
+                                <!-- INFORMACIÓN MONEDA -->
+                                <!-- ================================================= -->
+
+                                <div id="monedaInfo"
+                                     class="alert alert-light border d-none mb-4">
+
+                                    <div class="d-flex align-items-center">
+
+                                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
+
+                                            <i id="monedaIcono"
+                                               class="bi bi-currency-exchange fs-4 text-primary">
+                                            </i>
+
+                                        </div>
+
+
+                                        <div>
+
+                                            <div class="small text-muted">
+
+                                                Moneda seleccionada
+
+                                            </div>
+
+                                            <strong id="monedaTexto"></strong>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- ================================================= -->
+                                <!-- MONTO -->
+                                <!-- ================================================= -->
+
+                                <div class="mb-4">
+
+                                    <label for="monto"
+                                           class="form-label fw-semibold">
+
+                                        <i class="bi bi-cash-coin me-1"></i>
+
+                                        Monto
+
+                                    </label>
+
+
+                                    <div class="input-group input-group-lg">
+
+                                        <span class="input-group-text"
+                                              id="simboloMoneda">
+
+                                            C$
+
+                                        </span>
+
+
+                                        <input type="number"
+                                               id="monto"
+                                               name="Monto"
+                                               class="form-control"
+                                               min="0.01"
+                                               step="0.01"
+                                               inputmode="decimal"
+                                               placeholder="0.00"
+                                               autocomplete="off"
+                                               required />
+
+                                    </div>
+
+
+                                    <div id="saldoDisponibleTexto"
+                                         class="form-text">
+
+                                        Selecciona una moneda para consultar
+                                        el saldo disponible.
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- ================================================= -->
+                                <!-- DESCRIPCIÓN -->
+                                <!-- ================================================= -->
+
+                                <div class="mb-4">
+
+                                    <label for="descripcion"
+                                           class="form-label fw-semibold">
+
+                                        <i class="bi bi-chat-left-text me-1"></i>
+
+                                        Descripción
+
+                                    </label>
+
+
+                                    <textarea id="descripcion"
+                                              name="Descripcion"
+                                              class="form-control"
+                                              rows="4"
+                                              maxlength="250"
+                                              placeholder="Describa el motivo del movimiento..."
+                                              required></textarea>
+
+
+                                    <div class="form-text d-flex justify-content-between">
+
+                                        <span>
+
+                                            Describe el motivo del ingreso
+                                            o egreso.
+
+                                        </span>
+
+
+                                        <span>
+
+                                            <span id="contadorDescripcion">
+                                                0
+                                            </span>/250
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- ================================================= -->
+                                <!-- RESUMEN -->
+                                <!-- ================================================= -->
+
+                                <div class="card bg-light border mb-4">
+
+                                    <div class="card-body">
+
+                                        <h6 class="fw-semibold mb-3">
+
+                                            <i class="bi bi-calculator me-2"></i>
+
+                                            Resumen del movimiento
+
+                                        </h6>
+
+
+                                        <div class="d-flex justify-content-between mb-2">
+
+                                            <span class="text-muted">
+
+                                                Caja
+
+                                            </span>
+
+                                            <strong>
+
+                                                #@caja.IdCaja
+
+                                            </strong>
+
+                                        </div>
+
+
+                                        <div class="d-flex justify-content-between mb-2">
+
+                                            <span class="text-muted">
+
+                                                Tipo
+
+                                            </span>
+
+                                            <strong id="resumenTipo">
+
+                                                No seleccionado
+
+                                            </strong>
+
+                                        </div>
+
+
+                                        <div class="d-flex justify-content-between mb-2">
+
+                                            <span class="text-muted">
+
+                                                Moneda
+
+                                            </span>
+
+                                            <strong id="resumenMoneda">
+
+                                                No seleccionada
+
+                                            </strong>
+
+                                        </div>
+
+
+                                        <hr />
+
+
+                                        <div class="d-flex justify-content-between align-items-center">
+
+                                            <span class="fw-semibold">
+
+                                                Monto
+
+                                            </span>
+
+
+                                            <strong id="resumenMonto"
+                                                    class="fs-5">
+
+                                                C$ 0.00
+
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- ================================================= -->
+                                <!-- ADVERTENCIA -->
+                                <!-- ================================================= -->
+
+                                <div class="alert alert-warning">
+
+                                    <div class="d-flex align-items-start">
+
+                                        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+
+
+                                        <div>
+
+                                            <strong>
+
+                                                Verifica los datos
+
+                                            </strong>
+
+
+                                            <p class="mb-0 mt-1">
+
+                                                Antes de registrar el movimiento,
+                                                verifica tipo, moneda, monto
+                                                y descripción.
+
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- ================================================= -->
+                                <!-- BOTONES -->
+                                <!-- ================================================= -->
+
+                                <div class="d-flex justify-content-end gap-2 mt-4">
+
+                                    <a asp-controller="Caja"
+                                       asp-action="Movimientos"
+                                       asp-route-id="@caja.IdCaja"
+                                       class="btn btn-outline-secondary">
+
+                                        <i class="bi bi-x-circle me-1"></i>
+
+                                        Cancelar
+
+                                    </a>
+
+
+                                    <button type="submit"
+                                            class="btn btn-primary"
+                                            id="btnRegistrarMovimiento">
+
+                                        <i class="bi bi-check-circle me-1"></i>
+
+                                        Registrar movimiento
+
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+        else
+        {
+            <!-- ========================================================= -->
+            <!-- CAJA CERRADA -->
+            <!-- ========================================================= -->
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body text-center py-5">
+
+                    <i class="bi bi-lock-fill display-4 text-secondary"></i>
+
+
+                    <h4 class="mt-3">
+
+                        Caja cerrada
+
+                    </h4>
+
+
+                    <p class="text-muted mb-4">
+
+                        La caja #@caja.IdCaja ya fue cerrada.
+                        No es posible registrar nuevos movimientos.
+
+                    </p>
+
+
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+
+                        <a asp-controller="Caja"
+                           asp-action="Details"
+                           asp-route-id="@caja.IdCaja"
+                           class="btn btn-outline-primary">
+
+                            <i class="bi bi-eye me-1"></i>
+
+                            Ver caja
+
+                        </a>
+
+
+                        <a asp-controller="Caja"
+                           asp-action="Movimientos"
+                           asp-route-id="@caja.IdCaja"
+                           class="btn btn-secondary">
+
+                            <i class="bi bi-list-ul me-1"></i>
+
+                            Ver movimientos
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+
+        <!-- ========================================================= -->
+        <!-- INFORMACIÓN -->
+        <!-- ========================================================= -->
+
+        <div class="alert alert-info mt-4">
+
+            <div class="d-flex align-items-start">
+
+                <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+
+
+                <div>
+
+                    <strong>
+                        Información
+                    </strong>
+
+
+                    <ul class="mb-0 mt-2">
+
+                        <li>
+
+                            El movimiento se registrará en la
+                            <strong>caja #@caja.IdCaja</strong>.
+
+                        </li>
+
+
+                        <li>
+
+                            Cada movimiento queda asociado
+                            a una moneda.
+
+                        </li>
+
+
+                        <li>
+
+                            Los ingresos aumentan el saldo
+                            de la moneda seleccionada.
+
+                        </li>
+
+
+                        <li>
+
+                            Los egresos disminuyen el saldo
+                            de la moneda seleccionada.
+
+                        </li>
+
+
+                        <li>
+
+                            El movimiento quedará almacenado
+                            en el historial de la caja.
+
+                        </li>
+
+                    </ul>
+
+                </div>
 
             </div>
 
         </div>
 
-    </div>
+    }
 
 </div>
 
 
-<!-- ============================================================= -->
-<!-- JAVASCRIPT -->
-<!-- ============================================================= -->
-
 @section Scripts {
 
 <script>
-
 document.addEventListener("DOMContentLoaded", function () {
+
+    // =========================================================
+    // ELEMENTOS
+    // =========================================================
 
     const tipoMovimiento =
         document.getElementById("idTipoMovimiento");
@@ -982,18 +1089,40 @@ document.addEventListener("DOMContentLoaded", function () {
     const btnRegistrar =
         document.getElementById("btnRegistrarMovimiento");
 
+    const datosCaja =
+        document.getElementById("datosCaja");
+
 
     // =========================================================
-    // SALDOS DE LA CAJA
+    // SALDOS
     // =========================================================
 
-    const saldoCordobas =
-        @saldoCordobas.ToString(
-            System.Globalization.CultureInfo.InvariantCulture);
+    let saldoCordobas = 0;
+    let saldoDolares = 0;
+    let idCaja = "";
 
-    const saldoDolares =
-        @saldoDolares.ToString(
-            System.Globalization.CultureInfo.InvariantCulture);
+
+    if (datosCaja) {
+
+        saldoCordobas =
+            Number(
+                datosCaja.getAttribute(
+                    "data-saldo-cordobas"
+                )
+            ) || 0;
+
+        saldoDolares =
+            Number(
+                datosCaja.getAttribute(
+                    "data-saldo-dolares"
+                )
+            ) || 0;
+
+        idCaja =
+            datosCaja.getAttribute(
+                "data-id-caja"
+            ) || "";
+    }
 
 
     // =========================================================
@@ -1002,20 +1131,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function obtenerNombreMoneda() {
 
-        if (!moneda || !moneda.value)
+        if (!moneda || !moneda.value) {
             return "";
+        }
 
         const opcion =
-            moneda.options[moneda.selectedIndex];
+            moneda.options[
+                moneda.selectedIndex
+            ];
 
-        return opcion
-            ? opcion.textContent.trim()
-            : "";
+        if (!opcion) {
+            return "";
+        }
+
+        return opcion.textContent.trim();
     }
 
 
     // =========================================================
-    // OBTENER SÍMBOLO
+    // OBTENER SÍMBOLO MONEDA
     // =========================================================
 
     function obtenerSimboloMoneda(nombre) {
@@ -1044,7 +1178,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================================================
-    // SALDO SEGÚN MONEDA
+    // OBTENER SALDO
     // =========================================================
 
     function obtenerSaldoMoneda(nombre) {
@@ -1052,24 +1186,27 @@ document.addEventListener("DOMContentLoaded", function () {
         const simbolo =
             obtenerSimboloMoneda(nombre);
 
-        if (simbolo === "C$")
-            return Number(saldoCordobas);
+        if (simbolo === "C$") {
+            return saldoCordobas;
+        }
 
-        if (simbolo === "US$")
-            return Number(saldoDolares);
+        if (simbolo === "US$") {
+            return saldoDolares;
+        }
 
         return 0;
     }
 
 
     // =========================================================
-    // FORMATO
+    // FORMATEAR MONEDA
     // =========================================================
 
     function formatoMoneda(valor) {
 
-        if (!Number.isFinite(valor))
+        if (!Number.isFinite(valor)) {
             valor = 0;
+        }
 
         const nombre =
             obtenerNombreMoneda();
@@ -1077,12 +1214,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const simbolo =
             obtenerSimboloMoneda(nombre);
 
-        const idioma =
-            simbolo === "C$"
-                ? "es-NI"
-                : "en-US";
+        let idioma = "en-US";
 
-        return simbolo + " " +
+        if (simbolo === "C$") {
+            idioma = "es-NI";
+        }
+
+        return simbolo +
+            " " +
             new Intl.NumberFormat(
                 idioma,
                 {
@@ -1099,8 +1238,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function actualizarTipo() {
 
-        if (!tipoMovimiento || !resumenTipo)
+        if (!tipoMovimiento ||
+            !resumenTipo) {
             return;
+        }
 
         if (!tipoMovimiento.value) {
 
@@ -1115,10 +1256,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 tipoMovimiento.selectedIndex
             ];
 
-        resumenTipo.textContent =
-            opcion
-                ? opcion.textContent.trim()
-                : "No seleccionado";
+        if (opcion) {
+
+            resumenTipo.textContent =
+                opcion.textContent.trim();
+
+        }
+        else {
+
+            resumenTipo.textContent =
+                "No seleccionado";
+        }
     }
 
 
@@ -1128,24 +1276,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function actualizarMoneda() {
 
-        if (!moneda)
+        if (!moneda) {
             return;
+        }
 
         const nombre =
             obtenerNombreMoneda();
 
+
         if (!nombre) {
 
-            resumenMoneda.textContent =
-                "No seleccionada";
+            if (resumenMoneda) {
 
-            simboloMoneda.textContent =
-                "C$";
+                resumenMoneda.textContent =
+                    "No seleccionada";
+            }
 
-            monedaInfo.classList.add("d-none");
+            if (simboloMoneda) {
 
-            saldoDisponibleTexto.textContent =
-                "Selecciona una moneda para consultar el saldo disponible.";
+                simboloMoneda.textContent =
+                    "C$";
+            }
+
+            if (monedaInfo) {
+
+                monedaInfo.classList.add(
+                    "d-none"
+                );
+            }
+
+            if (saldoDisponibleTexto) {
+
+                saldoDisponibleTexto.textContent =
+                    "Selecciona una moneda para consultar el saldo disponible.";
+            }
 
             actualizarMonto();
 
@@ -1160,42 +1324,58 @@ document.addEventListener("DOMContentLoaded", function () {
             obtenerSaldoMoneda(nombre);
 
 
-        simboloMoneda.textContent =
-            simbolo;
+        if (simboloMoneda) {
 
-        resumenMoneda.textContent =
-            nombre;
-
-        monedaTexto.textContent =
-            nombre;
-
-
-        if (simbolo === "US$") {
-
-            monedaIcono.className =
-                "bi bi-currency-dollar fs-4 text-success";
-
-        }
-        else if (simbolo === "C$") {
-
-            monedaIcono.className =
-                "bi bi-currency-exchange fs-4 text-primary";
-
-        }
-        else {
-
-            monedaIcono.className =
-                "bi bi-currency-exchange fs-4 text-primary";
+            simboloMoneda.textContent =
+                simbolo;
         }
 
 
-        monedaInfo.classList.remove("d-none");
+        if (resumenMoneda) {
+
+            resumenMoneda.textContent =
+                nombre;
+        }
 
 
-        saldoDisponibleTexto.innerHTML =
-            "Saldo disponible: <strong>" +
-            formatoMoneda(saldo) +
-            "</strong>";
+        if (monedaTexto) {
+
+            monedaTexto.textContent =
+                nombre;
+        }
+
+
+        if (monedaIcono) {
+
+            if (simbolo === "US$") {
+
+                monedaIcono.className =
+                    "bi bi-currency-dollar fs-4 text-success";
+
+            }
+            else {
+
+                monedaIcono.className =
+                    "bi bi-currency-exchange fs-4 text-primary";
+            }
+        }
+
+
+        if (monedaInfo) {
+
+            monedaInfo.classList.remove(
+                "d-none"
+            );
+        }
+
+
+        if (saldoDisponibleTexto) {
+
+            saldoDisponibleTexto.innerHTML =
+                "Saldo disponible: <strong>" +
+                formatoMoneda(saldo) +
+                "</strong>";
+        }
 
 
         actualizarMonto();
@@ -1208,8 +1388,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function actualizarMonto() {
 
-        if (!monto || !resumenMonto)
+        if (!monto ||
+            !resumenMonto) {
             return;
+        }
 
         const valor =
             parseFloat(monto.value);
@@ -1224,13 +1406,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================================================
-    // CONTADOR
+    // CONTADOR DESCRIPCIÓN
     // =========================================================
 
     function actualizarContador() {
 
-        if (!descripcion || !contadorDescripcion)
+        if (!descripcion ||
+            !contadorDescripcion) {
             return;
+        }
 
         contadorDescripcion.textContent =
             descripcion.value.length;
@@ -1238,7 +1422,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================================================
-    // EVENTOS
+    // EVENTO TIPO
     // =========================================================
 
     if (tipoMovimiento) {
@@ -1250,6 +1434,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    // =========================================================
+    // EVENTO MONEDA
+    // =========================================================
+
     if (moneda) {
 
         moneda.addEventListener(
@@ -1259,6 +1447,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    // =========================================================
+    // EVENTO MONTO
+    // =========================================================
+
     if (monto) {
 
         monto.addEventListener(
@@ -1267,6 +1459,10 @@ document.addEventListener("DOMContentLoaded", function () {
         );
     }
 
+
+    // =========================================================
+    // EVENTO DESCRIPCIÓN
+    // =========================================================
 
     if (descripcion) {
 
@@ -1278,7 +1474,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================================================
-    // VALIDACIÓN
+    // VALIDACIÓN FORMULARIO
     // =========================================================
 
     if (formulario) {
@@ -1286,6 +1482,10 @@ document.addEventListener("DOMContentLoaded", function () {
         formulario.addEventListener(
             "submit",
             function (event) {
+
+                // =================================================
+                // TIPO
+                // =================================================
 
                 const idTipo =
                     tipoMovimiento
@@ -1300,11 +1500,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         "Debes seleccionar un tipo de movimiento."
                     );
 
-                    tipoMovimiento?.focus();
+                    if (tipoMovimiento) {
+                        tipoMovimiento.focus();
+                    }
 
                     return;
                 }
 
+
+                // =================================================
+                // MONEDA
+                // =================================================
 
                 const idMoneda =
                     moneda
@@ -1319,11 +1525,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         "Debes seleccionar una moneda."
                     );
 
-                    moneda?.focus();
+                    if (moneda) {
+                        moneda.focus();
+                    }
 
                     return;
                 }
 
+
+                // =================================================
+                // MONTO
+                // =================================================
 
                 const valorMonto =
                     monto
@@ -1341,11 +1553,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         "El monto debe ser mayor que cero."
                     );
 
-                    monto?.focus();
+                    if (monto) {
+                        monto.focus();
+                    }
 
                     return;
                 }
 
+
+                // =================================================
+                // DESCRIPCIÓN
+                // =================================================
 
                 const textoDescripcion =
                     descripcion
@@ -1360,7 +1578,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         "Debes ingresar una descripción."
                     );
 
-                    descripcion?.focus();
+                    if (descripcion) {
+                        descripcion.focus();
+                    }
 
                     return;
                 }
@@ -1374,31 +1594,42 @@ document.addEventListener("DOMContentLoaded", function () {
                         "La descripción no puede superar los 250 caracteres."
                     );
 
-                    descripcion?.focus();
+                    if (descripcion) {
+                        descripcion.focus();
+                    }
 
                     return;
                 }
 
 
                 // =================================================
-                // DETERMINAR TIPO
+                // OBTENER TIPO
                 // =================================================
 
-                const opcionTipo =
-                    tipoMovimiento.options[
-                        tipoMovimiento.selectedIndex
-                    ];
+                let tipoSeleccionado = "";
 
-                const tipoSeleccionado =
-                    opcionTipo
-                        ? opcionTipo.textContent.trim()
-                        : "";
+                if (tipoMovimiento) {
+
+                    const opcionTipo =
+                        tipoMovimiento.options[
+                            tipoMovimiento.selectedIndex
+                        ];
+
+                    if (opcionTipo) {
+
+                        tipoSeleccionado =
+                            opcionTipo.textContent.trim();
+                    }
+                }
 
 
                 const tipoNormalizado =
-                    tipoSeleccionado
-                        .toLowerCase();
+                    tipoSeleccionado.toLowerCase();
 
+
+                // =================================================
+                // DETERMINAR SI ES EGRESO
+                // =================================================
 
                 const esEgreso =
                     tipoNormalizado.includes("egreso") ||
@@ -1423,6 +1654,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             nombreMoneda
                         );
 
+
                     if (valorMonto > saldo) {
 
                         event.preventDefault();
@@ -1435,7 +1667,9 @@ document.addEventListener("DOMContentLoaded", function () {
                             ")."
                         );
 
-                        monto?.focus();
+                        if (monto) {
+                            monto.focus();
+                        }
 
                         return;
                     }
@@ -1449,11 +1683,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 const monedaSeleccionada =
                     obtenerNombreMoneda();
 
+
                 const mensaje =
                     "¿Estás seguro de que deseas registrar este movimiento?" +
                     "\n\n" +
                     "Caja: #" +
-                    "@Model.IdCaja" +
+                    idCaja +
                     "\n" +
                     "Tipo: " +
                     tipoSeleccionado +
@@ -1468,7 +1703,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     textoDescripcion;
 
 
-                if (!confirm(mensaje)) {
+                const confirmado =
+                    window.confirm(
+                        mensaje
+                    );
+
+
+                if (!confirmado) {
 
                     event.preventDefault();
 
@@ -1482,13 +1723,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (btnRegistrar) {
 
-                    btnRegistrar.disabled = true;
+                    btnRegistrar.disabled =
+                        true;
 
                     btnRegistrar.innerHTML =
                         '<span class="spinner-border spinner-border-sm me-1"></span>' +
                         'Registrando...';
                 }
-
             }
         );
     }
@@ -1507,6 +1748,6 @@ document.addEventListener("DOMContentLoaded", function () {
     actualizarContador();
 
 });
-
 </script>
+
 }

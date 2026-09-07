@@ -1,23 +1,77 @@
 ﻿@model WebApplication1.ViewModels.PedidoViewModel
 
 @{
-    ViewData["Title"] = "Editar pedido";
+ViewData["Title"] = "Editar pedido";
 
-    var detalles = Model.Detalles
-        ?? new List<WebApplication1.ViewModels.DetallePedidoViewModel>();
+var detalles = Model.Detalles
+    ?? new List<WebApplication1.ViewModels.DetallePedidoViewModel>();
+
+var productosDisponibles =
+    detalles.FirstOrDefault()?.Productos
+    ?? Enumerable.Empty<SelectListItem>();
+
+var estadoActual = Model.EstadosPedido?
+    .FirstOrDefault(x =>
+        x.Value == Model.IdEstadoPedido.ToString())
+    ?.Text ?? "Sin estado";
+
+var estadoNormalizado = estadoActual.Trim();
+
+/*
+ * REGLA DEL FLUJO:
+ *
+ * 1 = Pendiente
+ * 2 = En cocina
+ * 3 = Preparándose
+ * 4 = Listo
+ * 5 = Entregado
+ * 6 = Facturado
+ * 7 = Cancelado
+ *
+ * Un pedido solamente puede modificarse
+ * mientras esté pendiente.
+ */
+
+var puedeEditar = Model.IdEstadoPedido == 1;
+
+var claseEstado = Model.IdEstadoPedido switch
+{
+    1 => "bg-warning text-dark",
+    2 => "bg-info text-dark",
+    3 => "bg-warning text-dark",
+    4 => "bg-success",
+    5 => "bg-secondary",
+    6 => "bg-dark",
+    7 => "bg-danger",
+    _ => "bg-secondary"
+};
+
+var iconoEstado = Model.IdEstadoPedido switch
+{
+    1 => "bi-clock",
+    2 => "bi-fire",
+    3 => "bi-gear",
+    4 => "bi-check2-circle",
+    5 => "bi-box-seam",
+    6 => "bi-cash-coin",
+    7 => "bi-x-circle",
+    _ => "bi-question-circle"
+};
+
 }
 
 <div class="container-fluid py-4">
+<!-- ========================================================= -->
+<!-- ENCABEZADO -->
+<!-- ========================================================= -->
 
-    <!-- ========================================================= -->
-    <!-- ENCABEZADO -->
-    <!-- ========================================================= -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
 
-        <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
 
-            <h2 class="fw-bold mb-1">
+            <h2 class="fw-bold mb-0">
 
                 <i class="bi bi-pencil-square me-2"></i>
 
@@ -25,79 +79,260 @@
 
             </h2>
 
-            <p class="text-muted mb-0">
+            <span class="badge @claseEstado">
 
-                Modifique la información y los productos del pedido.
+                <i class="bi @iconoEstado me-1"></i>
 
-            </p>
+                @estadoNormalizado
+
+            </span>
 
         </div>
 
-        <div>
+        <p class="text-muted mb-0">
 
-            <a asp-action="Details"
-               asp-route-id="@Model.IdPedido"
-               class="btn btn-outline-secondary">
+            Modifique la información del pedido
+            <strong>#@Model.IdPedido</strong>.
 
-                <i class="bi bi-arrow-left me-1"></i>
+        </p>
 
-                Regresar al detalle
+    </div>
 
-            </a>
+    <div class="mt-3 mt-md-0">
+
+        <a asp-action="Details"
+           asp-route-id="@Model.IdPedido"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Regresar al detalle
+
+        </a>
+
+    </div>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- MENSAJES -->
+<!-- ========================================================= -->
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm"
+         role="alert">
+
+        <i class="bi bi-check-circle me-2"></i>
+
+        @TempData["Mensaje"]
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm"
+         role="alert">
+
+        <i class="bi bi-exclamation-triangle me-2"></i>
+
+        @TempData["Error"]
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+
+    </div>
+}
+
+<!-- ========================================================= -->
+<!-- VALIDACIONES -->
+<!-- ========================================================= -->
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger shadow-sm">
+
+        <div class="fw-bold mb-2">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            Revise los siguientes errores:
+
+        </div>
+
+        <div asp-validation-summary="All"
+             class="mb-0">
+        </div>
+
+    </div>
+}
+
+<!-- ========================================================= -->
+<!-- PEDIDO NO EDITABLE -->
+<!-- ========================================================= -->
+
+@if (!puedeEditar)
+{
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex align-items-start">
+
+                <div class="fs-2 text-warning me-3">
+
+                    <i class="bi bi-lock-fill"></i>
+
+                </div>
+
+                <div>
+
+                    <h5 class="fw-bold mb-1">
+
+                        Este pedido no puede modificarse
+
+                    </h5>
+
+                    <p class="text-muted mb-3">
+
+                        El pedido se encuentra actualmente en estado:
+
+                        <span class="badge @claseEstado">
+
+                            <i class="bi @iconoEstado me-1"></i>
+
+                            @estadoNormalizado
+
+                        </span>
+
+                    </p>
+
+                    <p class="mb-0">
+
+                        Los pedidos solamente pueden editarse
+                        mientras se encuentran en estado
+                        <strong>Pendiente</strong>.
+
+                        Una vez enviados a cocina, el pedido
+                        queda bloqueado para mantener la integridad
+                        del proceso.
+
+                    </p>
+
+                </div>
+
+            </div>
 
         </div>
 
     </div>
 
+    <!-- ===================================================== -->
+    <!-- RESUMEN DEL PEDIDO BLOQUEADO -->
+    <!-- ===================================================== -->
 
-    <!-- ========================================================= -->
-    <!-- MENSAJES DE VALIDACIÓN -->
-    <!-- ========================================================= -->
+    <div class="card shadow-sm border-0">
 
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div class="alert alert-danger">
+        <div class="card-header bg-white py-3">
 
-            <div class="fw-bold mb-2">
+            <h5 class="mb-0 fw-semibold">
 
-                <i class="bi bi-exclamation-triangle me-2"></i>
+                <i class="bi bi-info-circle me-2"></i>
 
-                Revise los siguientes errores:
+                Información del pedido
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block">
+                        Pedido
+                    </small>
+
+                    <strong>
+                        #@Model.IdPedido
+                    </strong>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block">
+                        Fecha
+                    </small>
+
+                    <strong>
+                        @Model.FechaPedido.ToString("dd/MM/yyyy HH:mm")
+                    </strong>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block">
+                        Cliente
+                    </small>
+
+                    <strong>
+                        @{
+                            var clienteSeleccionado =
+                                Model.Clientes?
+                                    .FirstOrDefault(x =>
+                                        x.Value ==
+                                        Model.IdCliente.ToString());
+                        }
+
+                        @(clienteSeleccionado?.Text ?? "Sin cliente")
+                    </strong>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block">
+                        Estado
+                    </small>
+
+                    <span class="badge @claseEstado">
+
+                        <i class="bi @iconoEstado me-1"></i>
+
+                        @estadoNormalizado
+
+                    </span>
+
+                </div>
 
             </div>
 
-            <div asp-validation-summary="All"
-                 class="mb-0">
-            </div>
-
         </div>
-    }
 
-
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show">
-
-            <i class="bi bi-exclamation-triangle me-2"></i>
-
-            @TempData["Error"]
-
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert">
-            </button>
-
-        </div>
-    }
-
-
+    </div>
+}
+else
+{
     <!-- ========================================================= -->
     <!-- FORMULARIO -->
     <!-- ========================================================= -->
 
     <form asp-action="Edit"
           asp-route-id="@Model.IdPedido"
-          method="post">
+          method="post"
+          id="formPedido">
 
         @Html.AntiForgeryToken()
 
@@ -110,7 +345,6 @@
         <input type="hidden"
                asp-for="FechaPedido" />
 
-
         <!-- ===================================================== -->
         <!-- INFORMACIÓN DEL PEDIDO -->
         <!-- ===================================================== -->
@@ -119,13 +353,31 @@
 
             <div class="card-header bg-white py-3">
 
-                <h5 class="mb-0 fw-semibold">
+                <div class="d-flex align-items-center">
 
-                    <i class="bi bi-info-circle me-2"></i>
+                    <div class="bg-primary-subtle rounded p-2 me-3">
 
-                    Información del pedido
+                        <i class="bi bi-info-circle text-primary fs-5"></i>
 
-                </h5>
+                    </div>
+
+                    <div>
+
+                        <h5 class="mb-0 fw-semibold">
+
+                            Información del pedido
+
+                        </h5>
+
+                        <small class="text-muted">
+
+                            Datos generales del pedido.
+
+                        </small>
+
+                    </div>
+
+                </div>
 
             </div>
 
@@ -133,28 +385,39 @@
 
                 <div class="row g-4">
 
-                    <!-- NÚMERO -->
+                    <!-- PEDIDO -->
 
                     <div class="col-md-4">
 
                         <label class="form-label text-muted">
+
                             Número de pedido
+
                         </label>
 
-                        <input type="text"
-                               class="form-control"
-                               value="@($"#{Model.IdPedido}")"
-                               readonly />
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                #
+                            </span>
+
+                            <input type="text"
+                                   class="form-control"
+                                   value="@Model.IdPedido"
+                                   readonly />
+
+                        </div>
 
                     </div>
-
 
                     <!-- FECHA -->
 
                     <div class="col-md-4">
 
                         <label class="form-label text-muted">
+
                             Fecha del pedido
+
                         </label>
 
                         <input type="text"
@@ -164,36 +427,36 @@
 
                     </div>
 
-
                     <!-- ESTADO -->
 
                     <div class="col-md-4">
 
                         <label class="form-label text-muted">
+
                             Estado actual
+
                         </label>
 
-                        @{
-                            var estadoActual = Model.EstadosPedido?
-                                .FirstOrDefault(x =>
-                                    x.Value == Model.IdEstadoPedido.ToString())
-                                ?.Text ?? "Sin estado";
-                        }
+                        <div class="form-control bg-light">
 
-                        <input type="text"
-                               class="form-control"
-                               value="@estadoActual"
-                               readonly />
+                            <span class="badge @claseEstado">
+
+                                <i class="bi @iconoEstado me-1"></i>
+
+                                @estadoNormalizado
+
+                            </span>
+
+                        </div>
 
                     </div>
-
 
                     <!-- CLIENTE -->
 
                     <div class="col-md-6">
 
                         <label asp-for="IdCliente"
-                               class="form-label">
+                               class="form-label fw-semibold">
 
                             Cliente
 
@@ -201,7 +464,8 @@
 
                         <select asp-for="IdCliente"
                                 asp-items="Model.Clientes"
-                                class="form-select">
+                                class="form-select"
+                                required>
 
                             <option value="">
                                 -- Seleccione un cliente --
@@ -215,13 +479,12 @@
 
                     </div>
 
-
                     <!-- MESA -->
 
                     <div class="col-md-3">
 
                         <label asp-for="IdMesa"
-                               class="form-label">
+                               class="form-label fw-semibold">
 
                             Mesa
 
@@ -243,13 +506,12 @@
 
                     </div>
 
-
                     <!-- TIPO -->
 
                     <div class="col-md-3">
 
                         <label asp-for="IdTipoPedido"
-                               class="form-label">
+                               class="form-label fw-semibold">
 
                             Tipo de pedido
 
@@ -272,15 +534,14 @@
 
                     </div>
 
-
                     <!-- OBSERVACIÓN -->
 
                     <div class="col-12">
 
                         <label asp-for="Observacion"
-                               class="form-label">
+                               class="form-label fw-semibold">
 
-                            Observación
+                            Observación general
 
                         </label>
 
@@ -288,11 +549,12 @@
                                   class="form-control"
                                   rows="3"
                                   maxlength="400"
-                                  placeholder="Escriba una observación si es necesario...">
-                        </textarea>
+                                  placeholder="Escriba una observación si es necesario..."></textarea>
 
                         <div class="form-text">
+
                             Máximo 400 caracteres.
+
                         </div>
 
                         <span asp-validation-for="Observacion"
@@ -307,7 +569,6 @@
 
         </div>
 
-
         <!-- ===================================================== -->
         <!-- PRODUCTOS -->
         <!-- ===================================================== -->
@@ -316,18 +577,28 @@
 
             <div class="card-header bg-white py-3">
 
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
 
-                    <h5 class="mb-0 fw-semibold">
+                    <div>
 
-                        <i class="bi bi-basket me-2"></i>
+                        <h5 class="mb-0 fw-semibold">
 
-                        Productos del pedido
+                            <i class="bi bi-basket me-2"></i>
 
-                    </h5>
+                            Productos del pedido
+
+                        </h5>
+
+                        <small class="text-muted">
+
+                            Agregue, quite o modifique los productos.
+
+                        </small>
+
+                    </div>
 
                     <button type="button"
-                            class="btn btn-sm btn-primary"
+                            class="btn btn-primary"
                             id="btnAgregarProducto">
 
                         <i class="bi bi-plus-circle me-1"></i>
@@ -340,14 +611,13 @@
 
             </div>
 
-
             <div class="card-body">
 
                 <div id="detallesContainer">
 
                     @for (int i = 0; i < detalles.Count; i++)
                     {
-                        <div class="detalle-producto border rounded p-3 mb-3">
+                        <div class="detalle-producto border rounded-3 p-3 mb-3 bg-light-subtle">
 
                             <div class="row g-3 align-items-end">
 
@@ -355,8 +625,10 @@
 
                                 <div class="col-lg-4">
 
-                                    <label class="form-label">
+                                    <label class="form-label fw-semibold">
+
                                         Producto
+
                                     </label>
 
                                     <select name="Detalles[@i].IdProducto"
@@ -375,6 +647,7 @@
                                                 detalles[i].IdProducto.ToString())
                                             {
                                                 <option value="@producto.Value"
+                                                        data-precio="@producto.Text"
                                                         selected>
 
                                                     @producto.Text
@@ -383,7 +656,8 @@
                                             }
                                             else
                                             {
-                                                <option value="@producto.Value">
+                                                <option value="@producto.Value"
+                                                        data-precio="@producto.Text">
 
                                                     @producto.Text
 
@@ -393,15 +667,18 @@
 
                                     </select>
 
-                                </div>
+                                    <div class="text-danger small validation-producto"></div>
 
+                                </div>
 
                                 <!-- CANTIDAD -->
 
                                 <div class="col-lg-2">
 
-                                    <label class="form-label">
+                                    <label class="form-label fw-semibold">
+
                                         Cantidad
+
                                     </label>
 
                                     <input name="Detalles[@i].Cantidad"
@@ -409,18 +686,21 @@
                                            class="form-control cantidad"
                                            min="1"
                                            step="1"
-                                           value="@detalles[i].Cantidad.ToString("0")"
+                                           value="@(detalles[i].Cantidad > 0
+                                               ? detalles[i].Cantidad.ToString("0")
+                                               : "1")"
                                            required />
 
                                 </div>
-
 
                                 <!-- DESCUENTO -->
 
                                 <div class="col-lg-2">
 
-                                    <label class="form-label">
+                                    <label class="form-label fw-semibold">
+
                                         Descuento
+
                                     </label>
 
                                     <div class="input-group">
@@ -434,19 +714,22 @@
                                                class="form-control descuento"
                                                min="0"
                                                step="0.01"
-                                               value="@detalles[i].Descuento.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" />
+                                               value="@detalles[i].Descuento.ToString(
+                                                   "0.00",
+                                                   System.Globalization.CultureInfo.InvariantCulture)" />
 
                                     </div>
 
                                 </div>
 
-
                                 <!-- OBSERVACIÓN -->
 
                                 <div class="col-lg-3">
 
-                                    <label class="form-label">
+                                    <label class="form-label fw-semibold">
+
                                         Observación
+
                                     </label>
 
                                     <input name="Detalles[@i].Observacion"
@@ -457,13 +740,13 @@
 
                                 </div>
 
-
                                 <!-- ELIMINAR -->
 
                                 <div class="col-lg-1">
 
                                     <button type="button"
-                                            class="btn btn-outline-danger btnEliminarProducto w-100">
+                                            class="btn btn-outline-danger btnEliminarProducto w-100"
+                                            title="Eliminar producto">
 
                                         <i class="bi bi-trash"></i>
 
@@ -478,18 +761,25 @@
 
                 </div>
 
-
                 <div id="sinProductos"
-                     class="text-center text-muted py-4"
+                     class="text-center text-muted py-5"
                      style="display:none;">
 
-                    <i class="bi bi-basket display-6"></i>
+                    <i class="bi bi-basket display-5"></i>
 
-                    <p class="mb-0 mt-2">
+                    <p class="mb-1 mt-3 fw-semibold">
 
-                        Agregue al menos un producto.
+                        No hay productos agregados.
 
                     </p>
+
+                    <small>
+
+                        Utilice el botón
+                        <strong>Agregar producto</strong>
+                        para comenzar.
+
+                    </small>
 
                 </div>
 
@@ -497,14 +787,13 @@
 
         </div>
 
-
         <!-- ===================================================== -->
         <!-- RESUMEN -->
         <!-- ===================================================== -->
 
         <div class="row justify-content-end mb-4">
 
-            <div class="col-lg-5">
+            <div class="col-lg-5 col-xl-4">
 
                 <div class="card shadow-sm border-0">
 
@@ -525,7 +814,9 @@
                         <div class="d-flex justify-content-between mb-3">
 
                             <span class="text-muted">
+
                                 Subtotal
+
                             </span>
 
                             <span class="fw-semibold"
@@ -537,11 +828,12 @@
 
                         </div>
 
-
                         <div class="d-flex justify-content-between mb-3">
 
                             <span class="text-muted">
+
                                 Descuento
+
                             </span>
 
                             <span class="text-danger fw-semibold"
@@ -553,17 +845,17 @@
 
                         </div>
 
-
                         <hr />
 
+                        <div class="d-flex justify-content-between align-items-center">
 
-                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold fs-5">
 
-                            <span class="fw-bold">
                                 Total
+
                             </span>
 
-                            <span class="fs-4 fw-bold text-success"
+                            <span class="fs-3 fw-bold text-success"
                                   id="resumenTotal">
 
                                 C$ @Model.Total.ToString("N2")
@@ -580,53 +872,62 @@
 
         </div>
 
-
         <!-- ===================================================== -->
         <!-- BOTONES -->
         <!-- ===================================================== -->
 
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="card shadow-sm border-0">
 
-            <a asp-action="Details"
-               asp-route-id="@Model.IdPedido"
-               class="btn btn-outline-secondary">
+            <div class="card-body">
 
-                <i class="bi bi-x-circle me-1"></i>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
 
-                Cancelar
+                    <a asp-action="Details"
+                       asp-route-id="@Model.IdPedido"
+                       class="btn btn-outline-secondary">
 
-            </a>
+                        <i class="bi bi-x-circle me-1"></i>
 
-            <button type="submit"
-                    class="btn btn-success btn-lg">
+                        Cancelar
 
-                <i class="bi bi-check-circle me-1"></i>
+                    </a>
 
-                Guardar cambios
+                    <button type="submit"
+                            class="btn btn-success btn-lg px-4"
+                            id="btnGuardarPedido">
 
-            </button>
+                        <i class="bi bi-check-circle me-1"></i>
+
+                        Guardar cambios
+
+                    </button>
+
+                </div>
+
+            </div>
 
         </div>
 
     </form>
+}
 
-</div>
-
-
-<!-- ============================================================= -->
-<!-- TEMPLATE PARA NUEVOS PRODUCTOS -->
-<!-- ============================================================= -->
-
+</div> <!-- ============================================================= --> <!-- TEMPLATE PRODUCTO --> <!-- ============================================================= -->
+@if (puedeEditar)
+{
 <template id="detalleTemplate">
 
-    <div class="detalle-producto border rounded p-3 mb-3">
+    <div class="detalle-producto border rounded-3 p-3 mb-3 bg-light-subtle">
 
         <div class="row g-3 align-items-end">
 
+            <!-- PRODUCTO -->
+
             <div class="col-lg-4">
 
-                <label class="form-label">
+                <label class="form-label fw-semibold">
+
                     Producto
+
                 </label>
 
                 <select name="Detalles[__INDEX__].IdProducto"
@@ -637,24 +938,30 @@
                         -- Seleccione un producto --
                     </option>
 
-                    @foreach (var producto in
-                        detalles.FirstOrDefault()?.Productos
-                        ?? Enumerable.Empty<SelectListItem>())
+                    @foreach (var producto in productosDisponibles)
                     {
-                        <option value="@producto.Value">
+                        <option value="@producto.Value"
+                                data-precio="@producto.Text">
+
                             @producto.Text
+
                         </option>
                     }
 
                 </select>
 
+                <div class="text-danger small validation-producto"></div>
+
             </div>
 
+            <!-- CANTIDAD -->
 
             <div class="col-lg-2">
 
-                <label class="form-label">
+                <label class="form-label fw-semibold">
+
                     Cantidad
+
                 </label>
 
                 <input name="Detalles[__INDEX__].Cantidad"
@@ -667,11 +974,14 @@
 
             </div>
 
+            <!-- DESCUENTO -->
 
             <div class="col-lg-2">
 
-                <label class="form-label">
+                <label class="form-label fw-semibold">
+
                     Descuento
+
                 </label>
 
                 <div class="input-group">
@@ -685,17 +995,20 @@
                            class="form-control descuento"
                            min="0"
                            step="0.01"
-                           value="0" />
+                           value="0.00" />
 
                 </div>
 
             </div>
 
+            <!-- OBSERVACIÓN -->
 
             <div class="col-lg-3">
 
-                <label class="form-label">
+                <label class="form-label fw-semibold">
+
                     Observación
+
                 </label>
 
                 <input name="Detalles[__INDEX__].Observacion"
@@ -705,11 +1018,13 @@
 
             </div>
 
+            <!-- ELIMINAR -->
 
             <div class="col-lg-1">
 
                 <button type="button"
-                        class="btn btn-outline-danger btnEliminarProducto w-100">
+                        class="btn btn-outline-danger btnEliminarProducto w-100"
+                        title="Eliminar producto">
 
                     <i class="bi bi-trash"></i>
 
@@ -723,11 +1038,14 @@
 
 </template>
 
+}
 
 @section Scripts {
 
-    <partial name="_ValidationScriptsPartial" />
+<partial name="_ValidationScriptsPartial" />
 
+@if (puedeEditar)
+{
     <script>
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -744,42 +1062,148 @@
             const sinProductos =
                 document.getElementById("sinProductos");
 
+            const form =
+                document.getElementById("formPedido");
 
-            function actualizarEstadoProductos() {
+            // =====================================================
+            // FORMATO MONEDA
+            // =====================================================
 
-                const detalles =
-                    container.querySelectorAll(".detalle-producto");
+            function formatoMoneda(valor) {
 
-                sinProductos.style.display =
-                    detalles.length === 0
-                        ? "block"
-                        : "none";
+                return "C$ " +
+                    Number(valor || 0).toLocaleString(
+                        "es-NI",
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    );
 
             }
 
+            // =====================================================
+            // OBTENER PRECIO
+            // =====================================================
+
+            function obtenerPrecio(select) {
+
+                if (!select ||
+                    select.selectedIndex < 0) {
+
+                    return 0;
+
+                }
+
+                const option =
+                    select.options[select.selectedIndex];
+
+                if (!option) {
+
+                    return 0;
+
+                }
+
+                /*
+                 * Primero intenta obtener el precio
+                 * desde data-precio.
+                 */
+
+                const precioData =
+                    option.dataset.precio || "";
+
+                const matchData =
+                    precioData.match(
+                        /C\$\s*([\d,]+(?:\.\d{1,2})?)/
+                    );
+
+                if (matchData) {
+
+                    return parseFloat(
+                        matchData[1].replace(/,/g, "")
+                    ) || 0;
+
+                }
+
+                /*
+                 * Compatibilidad con el formato
+                 * anterior del texto.
+                 */
+
+                const texto =
+                    option.textContent || "";
+
+                const matchTexto =
+                    texto.match(
+                        /C\$\s*([\d,]+(?:\.\d{1,2})?)/
+                    );
+
+                if (!matchTexto) {
+
+                    return 0;
+
+                }
+
+                return parseFloat(
+                    matchTexto[1].replace(/,/g, "")
+                ) || 0;
+
+            }
+
+            // =====================================================
+            // ACTUALIZAR ESTADO
+            // =====================================================
+
+            function actualizarEstadoProductos() {
+
+                const cantidad =
+                    container.querySelectorAll(
+                        ".detalle-producto"
+                    ).length;
+
+                if (sinProductos) {
+
+                    sinProductos.style.display =
+                        cantidad === 0
+                            ? "block"
+                            : "none";
+
+                }
+
+            }
+
+            // =====================================================
+            // SIGUIENTE ÍNDICE
+            // =====================================================
 
             function obtenerSiguienteIndice() {
 
-                const inputs =
+                const elementos =
                     container.querySelectorAll(
-                        "[name^='Detalles[']");
+                        "[name^='Detalles[']"
+                    );
 
                 let max = -1;
 
-                inputs.forEach(function (input) {
+                elementos.forEach(function (elemento) {
 
                     const match =
-                        input.name.match(
+                        elemento.name.match(
                             /Detalles\[(\d+)\]/
                         );
 
                     if (match) {
 
                         const indice =
-                            parseInt(match[1]);
+                            parseInt(
+                                match[1],
+                                10
+                            );
 
                         if (indice > max) {
+
                             max = indice;
+
                         }
 
                     }
@@ -787,74 +1211,24 @@
                 });
 
                 return max + 1;
+
             }
 
-
-            btnAgregar.addEventListener(
-                "click",
-                function () {
-
-                    const indice =
-                        obtenerSiguienteIndice();
-
-                    const html =
-                        template.innerHTML.replace(
-                            /__INDEX__/g,
-                            indice
-                        );
-
-                    container.insertAdjacentHTML(
-                        "beforeend",
-                        html
-                    );
-
-                    actualizarEstadoProductos();
-
-                });
-
-
-            container.addEventListener(
-                "click",
-                function (event) {
-
-                    const boton =
-                        event.target.closest(
-                            ".btnEliminarProducto");
-
-                    if (!boton)
-                        return;
-
-                    const detalle =
-                        boton.closest(
-                            ".detalle-producto");
-
-                    if (detalle) {
-
-                        detalle.remove();
-
-                        renumerarDetalles();
-
-                        actualizarEstadoProductos();
-
-                        calcularTotales();
-
-                    }
-
-                });
-
+            // =====================================================
+            // RENUMERAR
+            // =====================================================
 
             function renumerarDetalles() {
 
                 const detalles =
                     container.querySelectorAll(
-                        ".detalle-producto");
+                        ".detalle-producto"
+                    );
 
                 detalles.forEach(function (detalle, index) {
 
                     detalle
-                        .querySelectorAll(
-                            "[name]"
-                        )
+                        .querySelectorAll("[name]")
                         .forEach(function (elemento) {
 
                             elemento.name =
@@ -871,67 +1245,59 @@
 
             }
 
+            // =====================================================
+            // CALCULAR TOTALES
+            // =====================================================
 
             function calcularTotales() {
 
                 let subtotal = 0;
+
                 let descuento = 0;
 
                 const detalles =
                     container.querySelectorAll(
-                        ".detalle-producto");
+                        ".detalle-producto"
+                    );
 
                 detalles.forEach(function (detalle) {
 
+                    const select =
+                        detalle.querySelector(
+                            ".producto-select"
+                        );
+
+                    const cantidadInput =
+                        detalle.querySelector(
+                            ".cantidad"
+                        );
+
+                    const descuentoInput =
+                        detalle.querySelector(
+                            ".descuento"
+                        );
+
                     const cantidad =
                         parseFloat(
-                            detalle.querySelector(
-                                ".cantidad"
-                            )?.value
+                            cantidadInput?.value
                         ) || 0;
 
                     const descuentoLinea =
                         parseFloat(
-                            detalle.querySelector(
-                                ".descuento"
-                            )?.value
+                            descuentoInput?.value
                         ) || 0;
-
-                    /*
-                     * El precio real lo calcula
-                     * nuevamente el controlador.
-                     *
-                     * Aquí solamente dejamos
-                     * el resumen visual.
-                     */
-
-                    const select =
-                        detalle.querySelector(
-                            ".producto-select");
-
-                    if (!select)
-                        return;
-
-                    const texto =
-                        select.options[
-                            select.selectedIndex
-                        ]?.text || "";
-
-                    const match =
-                        texto.match(
-                            /C\$\s*([\d,]+(?:\.\d{1,2})?)/
-                        );
-
-                    if (!match)
-                        return;
 
                     const precio =
-                        parseFloat(
-                            match[1].replace(
-                                /,/g,
-                                ""
-                            )
-                        ) || 0;
+                        obtenerPrecio(select);
+
+                    if (
+                        precio <= 0 ||
+                        cantidad <= 0
+                    ) {
+
+                        return;
+
+                    }
 
                     const subtotalLinea =
                         precio * cantidad;
@@ -953,51 +1319,143 @@
 
                 });
 
-
                 const total =
-                    subtotal - descuento;
-
-
-                document.getElementById(
-                    "resumenSubtotal"
-                ).textContent =
-                    "C$ " +
-                    subtotal.toLocaleString(
-                        "es-NI",
-                        {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }
+                    Math.max(
+                        subtotal - descuento,
+                        0
                     );
 
-
-                document.getElementById(
-                    "resumenDescuento"
-                ).textContent =
-                    "C$ " +
-                    descuento.toLocaleString(
-                        "es-NI",
-                        {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }
+                const elementoSubtotal =
+                    document.getElementById(
+                        "resumenSubtotal"
                     );
 
-
-                document.getElementById(
-                    "resumenTotal"
-                ).textContent =
-                    "C$ " +
-                    total.toLocaleString(
-                        "es-NI",
-                        {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }
+                const elementoDescuento =
+                    document.getElementById(
+                        "resumenDescuento"
                     );
+
+                const elementoTotal =
+                    document.getElementById(
+                        "resumenTotal"
+                    );
+
+                if (elementoSubtotal) {
+
+                    elementoSubtotal.textContent =
+                        formatoMoneda(subtotal);
+
+                }
+
+                if (elementoDescuento) {
+
+                    elementoDescuento.textContent =
+                        formatoMoneda(descuento);
+
+                }
+
+                if (elementoTotal) {
+
+                    elementoTotal.textContent =
+                        formatoMoneda(total);
+
+                }
 
             }
 
+            // =====================================================
+            // AGREGAR PRODUCTO
+            // =====================================================
+
+            if (btnAgregar) {
+
+                btnAgregar.addEventListener(
+                    "click",
+                    function () {
+
+                        const indice =
+                            obtenerSiguienteIndice();
+
+                        const html =
+                            template.innerHTML.replace(
+                                /__INDEX__/g,
+                                indice
+                            );
+
+                        container.insertAdjacentHTML(
+                            "beforeend",
+                            html
+                        );
+
+                        actualizarEstadoProductos();
+
+                        calcularTotales();
+
+                        const detalles =
+                            container.querySelectorAll(
+                                ".detalle-producto"
+                            );
+
+                        const ultimo =
+                            detalles[
+                                detalles.length - 1
+                            ];
+
+                        ultimo
+                            ?.querySelector(
+                                ".producto-select"
+                            )
+                            ?.focus();
+
+                    }
+                );
+
+            }
+
+            // =====================================================
+            // ELIMINAR PRODUCTO
+            // =====================================================
+
+            container.addEventListener(
+                "click",
+                function (event) {
+
+                    const boton =
+                        event.target.closest(
+                            ".btnEliminarProducto"
+                        );
+
+                    if (!boton) {
+
+                        return;
+
+                    }
+
+                    const detalle =
+                        boton.closest(
+                            ".detalle-producto"
+                        );
+
+                    if (!detalle) {
+
+                        return;
+
+                    }
+
+                    detalle.remove();
+
+                    renumerarDetalles();
+
+                    actualizarEstadoProductos();
+
+                    calcularTotales();
+
+                }
+            );
+
+            // =====================================================
+            // CAMBIOS
+            // =====================================================
 
             container.addEventListener(
                 "input",
@@ -1016,8 +1474,8 @@
 
                     }
 
-                });
-
+                }
+            );
 
             container.addEventListener(
                 "change",
@@ -1033,8 +1491,190 @@
 
                     }
 
-                });
+                }
+            );
 
+            // =====================================================
+            // VALIDACIÓN
+            // =====================================================
+
+            if (form) {
+
+                form.addEventListener(
+                    "submit",
+                    function (event) {
+
+                        const detalles =
+                            container.querySelectorAll(
+                                ".detalle-producto"
+                            );
+
+                        if (detalles.length === 0) {
+
+                            event.preventDefault();
+
+                            alert(
+                                "Debe agregar al menos un producto al pedido."
+                            );
+
+                            return;
+
+                        }
+
+                        let formularioInvalido =
+                            false;
+
+                        detalles.forEach(
+                            function (detalle) {
+
+                                const producto =
+                                    detalle.querySelector(
+                                        ".producto-select"
+                                    );
+
+                                const cantidad =
+                                    detalle.querySelector(
+                                        ".cantidad"
+                                    );
+
+                                const descuento =
+                                    detalle.querySelector(
+                                        ".descuento"
+                                    );
+
+                                // -----------------------------
+                                // PRODUCTO
+                                // -----------------------------
+
+                                if (
+                                    !producto ||
+                                    !producto.value
+                                ) {
+
+                                    formularioInvalido =
+                                        true;
+
+                                    producto?.classList.add(
+                                        "is-invalid"
+                                    );
+
+                                }
+                                else {
+
+                                    producto.classList.remove(
+                                        "is-invalid"
+                                    );
+
+                                }
+
+                                // -----------------------------
+                                // CANTIDAD
+                                // -----------------------------
+
+                                const cantidadValor =
+                                    parseInt(
+                                        cantidad?.value,
+                                        10
+                                    );
+
+                                if (
+                                    !cantidad ||
+                                    isNaN(cantidadValor) ||
+                                    cantidadValor < 1
+                                ) {
+
+                                    formularioInvalido =
+                                        true;
+
+                                    cantidad?.classList.add(
+                                        "is-invalid"
+                                    );
+
+                                }
+                                else {
+
+                                    cantidad.classList.remove(
+                                        "is-invalid"
+                                    );
+
+                                }
+
+                                // -----------------------------
+                                // DESCUENTO
+                                // -----------------------------
+
+                                const descuentoValor =
+                                    parseFloat(
+                                        descuento?.value
+                                    );
+
+                                if (
+                                    descuento &&
+                                    (
+                                        isNaN(descuentoValor) ||
+                                        descuentoValor < 0
+                                    )
+                                ) {
+
+                                    formularioInvalido =
+                                        true;
+
+                                    descuento.classList.add(
+                                        "is-invalid"
+                                    );
+
+                                }
+                                else {
+
+                                    descuento?.classList.remove(
+                                        "is-invalid"
+                                    );
+
+                                }
+
+                            }
+                        );
+
+                        if (formularioInvalido) {
+
+                            event.preventDefault();
+
+                            alert(
+                                "Revise los productos, cantidades y descuentos antes de guardar los cambios."
+                            );
+
+                            return;
+
+                        }
+
+                        // -----------------------------
+                        // EVITAR DOBLE ENVÍO
+                        // -----------------------------
+
+                        const boton =
+                            document.getElementById(
+                                "btnGuardarPedido"
+                            );
+
+                        if (boton) {
+
+                            boton.disabled =
+                                true;
+
+                            boton.innerHTML =
+                                '<span class="spinner-border spinner-border-sm me-2"></span>' +
+                                'Guardando cambios...';
+
+                        }
+
+                    }
+                );
+
+            }
+
+            // =====================================================
+            // INICIALIZACIÓN
+            // =====================================================
 
             actualizarEstadoProductos();
 
@@ -1043,4 +1683,6 @@
         });
 
     </script>
+}
+
 }

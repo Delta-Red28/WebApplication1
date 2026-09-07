@@ -1,687 +1,766 @@
 ﻿@model WebApplication1.Models.Pago
 
 @{
-    ViewData["Title"] = "Registrar Pago";
+ViewData["Title"] = "Registrar Pago";
 
-    var factura = ViewBag.Factura as WebApplication1.Models.Factura;
-    var caja = ViewBag.Caja as WebApplication1.Models.Caja;
+var factura = ViewBag.Factura as WebApplication1.Models.Factura;
+var caja = ViewBag.Caja as WebApplication1.Models.Caja;
+
+decimal saldo = factura?.SaldoPendiente ?? 0m;
+
 }
 
 <div class="container mt-4">
+<!-- ========================================================= -->
+<!-- ENCABEZADO -->
+<!-- ========================================================= -->
 
-    <!-- ========================================================= -->
-    <!-- ENCABEZADO -->
-    <!-- ========================================================= -->
+<div class="d-flex justify-content-between align-items-center mb-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">
+            <i class="bi bi-cash-coin me-2"></i>
+            Registrar Pago
+        </h2>
 
-        <div>
-            <h2 class="mb-1">
-                <i class="bi bi-cash-coin"></i>
-                Registrar Pago
-            </h2>
-
-            <p class="text-muted mb-0">
-                Registre el pago de una factura.
-            </p>
-        </div>
-
-        <a asp-controller="Pago"
-           asp-action="Index"
-           class="btn btn-secondary">
-
-            <i class="bi bi-arrow-left"></i>
-            Volver
-
-        </a>
-
+        <p class="text-muted mb-0">
+            Registre un pago para una factura pendiente o con saldo parcial.
+        </p>
     </div>
 
+    <a asp-controller="Pago"
+       asp-action="Index"
+       class="btn btn-secondary">
 
-    <!-- ========================================================= -->
-    <!-- MENSAJES TEMP DATA -->
-    <!-- ========================================================= -->
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-arrow-left me-1"></i>
+        Volver
 
+    </a>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- MENSAJES -->
+<!-- ========================================================= -->
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm">
+
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+        @TempData["Error"]
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm">
+
+        <i class="bi bi-check-circle-fill me-2"></i>
+
+        @TempData["Success"]
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+
+    </div>
+}
+
+
+<!-- ========================================================= -->
+<!-- VALIDACIÓN -->
+<!-- ========================================================= -->
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger shadow-sm">
+
+        <div class="fw-bold mb-2">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-
-            @TempData["Error"]
-
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert">
-            </button>
-
+            No se puede registrar el pago.
         </div>
-    }
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show">
-
-            <i class="bi bi-check-circle-fill me-2"></i>
-
-            @TempData["Success"]
-
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert">
-            </button>
-
+        <div asp-validation-summary="All"
+             class="text-danger">
         </div>
-    }
+
+    </div>
+}
 
 
-    <!-- ========================================================= -->
-    <!-- ERRORES DE VALIDACIÓN -->
-    <!-- ========================================================= -->
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div class="alert alert-danger shadow-sm">
+<!-- ========================================================= -->
+<!-- CAJA -->
+<!-- ========================================================= -->
 
-            <div class="fw-bold mb-3">
+@if (caja != null)
+{
+    <div class="alert alert-success shadow-sm mb-4">
 
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <div class="d-flex align-items-center">
 
-                Se encontraron los siguientes errores:
+            <i class="bi bi-safe2-fill fs-3 me-3"></i>
 
-            </div>
+            <div>
 
-            <!-- IMPORTANTE:
-                 All muestra errores generales y errores
-                 asociados a campos específicos. -->
-
-            <div asp-validation-summary="All"
-                 class="text-danger">
-            </div>
-
-        </div>
-    }
-
-
-    <!-- ========================================================= -->
-    <!-- CAJA ABIERTA -->
-    <!-- ========================================================= -->
-    @if (caja != null)
-    {
-        <div class="alert alert-success mb-4 shadow-sm">
-
-            <div class="d-flex align-items-center">
-
-                <i class="bi bi-safe2-fill fs-3 me-3"></i>
+                <strong>Caja abierta</strong>
 
                 <div>
-
-                    <strong>Caja abierta</strong>
-
-                    <br />
-
                     Caja #@caja.IdCaja
-
                 </div>
 
             </div>
 
         </div>
-    }
-    else
-    {
-        <div class="alert alert-warning mb-4">
 
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger shadow-sm mb-4">
 
-            No se encontró una caja abierta para el usuario actual.
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+        <strong>No hay una caja abierta.</strong>
+
+        <div class="mt-1">
+            No se puede registrar un pago hasta que exista
+            una caja abierta.
+        </div>
+
+    </div>
+}
+
+
+<!-- ========================================================= -->
+<!-- INFORMACIÓN DE FACTURA -->
+<!-- ========================================================= -->
+
+@if (factura != null)
+{
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-receipt me-2"></i>
+
+                Factura seleccionada
+
+            </h5>
 
         </div>
-    }
 
+        <div class="card-body">
 
-    <!-- ========================================================= -->
-    <!-- INFORMACIÓN DE FACTURA -->
-    <!-- ========================================================= -->
-    @if (factura != null)
-    {
-        <div class="card shadow-sm mb-4">
+            <div class="row">
 
-            <div class="card-header bg-primary text-white">
+                <!-- FACTURA -->
 
-                <h5 class="mb-0">
+                <div class="col-md-3 mb-3">
 
-                    <i class="bi bi-receipt me-2"></i>
-
-                    Información de la factura
-
-                </h5>
-
-            </div>
-
-            <div class="card-body">
-
-                <div class="row">
-
-                    <!-- FACTURA -->
-
-                    <div class="col-md-3 mb-3">
-
-                        <label class="form-label text-muted">
-                            Factura
-                        </label>
-
-                        <div class="fw-bold fs-5">
-
-                            #@factura.IdFactura
-
-                        </div>
-
+                    <div class="text-muted small">
+                        FACTURA
                     </div>
 
-
-                    <!-- TOTAL -->
-
-                    <div class="col-md-3 mb-3">
-
-                        <label class="form-label text-muted">
-                            Total
-                        </label>
-
-                        <div class="fw-bold">
-
-                            @factura.Total.ToString("N2")
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- SALDO -->
-
-                    <div class="col-md-3 mb-3">
-
-                        <label class="form-label text-muted">
-                            Saldo pendiente
-                        </label>
-
-                        <div class="fw-bold text-danger">
-
-                            @factura.SaldoPendiente.ToString("N2")
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- MONEDA -->
-
-                    <div class="col-md-3 mb-3">
-
-                        <label class="form-label text-muted">
-                            Moneda
-                        </label>
-
-                        <div class="fw-bold">
-
-                            @factura.IdMoneda
-
-                        </div>
-
+                    <div class="fs-5 fw-bold">
+                        #@factura.IdFactura
                     </div>
 
                 </div>
 
-            </div>
 
-        </div>
-    }
+                <!-- TOTAL -->
 
+                <div class="col-md-3 mb-3">
 
-    <!-- ========================================================= -->
-    <!-- FORMULARIO -->
-    <!-- ========================================================= -->
+                    <div class="text-muted small">
+                        TOTAL FACTURA
+                    </div>
 
-    <form asp-controller="Pago"
-          asp-action="Create"
-          method="post">
+                    <div class="fs-5 fw-bold">
+                        @factura.Total.ToString("N2")
+                    </div>
 
-        @Html.AntiForgeryToken()
-
-
-        <div class="card shadow-sm">
-
-            <!-- ================================================= -->
-            <!-- HEADER -->
-            <!-- ================================================= -->
-
-            <div class="card-header">
-
-                <h5 class="mb-0">
-
-                    <i class="bi bi-pencil-square me-2"></i>
-
-                    Datos del pago
-
-                </h5>
-
-            </div>
+                </div>
 
 
-            <!-- ================================================= -->
-            <!-- BODY -->
-            <!-- ================================================= -->
+                <!-- SALDO -->
 
-            <div class="card-body">
+                <div class="col-md-3 mb-3">
 
-                <div class="row">
+                    <div class="text-muted small">
+                        SALDO PENDIENTE
+                    </div>
 
+                    <div class="fs-5 fw-bold text-danger">
+                        @saldo.ToString("N2")
+                    </div>
 
-                    <!-- ========================================= -->
-                    <!-- FACTURA -->
-                    <!-- ========================================= -->
-
-                    <div class="col-md-6 mb-3">
-
-                        <label asp-for="IdFactura"
-                               class="form-label">
-
-                            Factura
-
-                        </label>
+                </div>
 
 
-                        @if (factura != null)
+                <!-- MONEDA -->
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="text-muted small">
+                        MONEDA
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+
+                        @if (factura.IdMonedaNavigation != null)
                         {
-                            <input type="hidden"
-                                   asp-for="IdFactura" />
+                            @factura.IdMonedaNavigation.Nombre
 
-                            <input type="text"
-                                   class="form-control"
-                                   value="Factura #@factura.IdFactura"
-                                   readonly />
+                            @if (!string.IsNullOrWhiteSpace(
+                                factura.IdMonedaNavigation.CodigoIso))
+                            {
+                                <span>
+                                    (@factura.IdMonedaNavigation.CodigoIso)
+                                </span>
+                            }
                         }
                         else
                         {
-                            <select asp-for="IdFactura"
-                                    class="form-select">
-
-                                <option value="0">
-                                    -- Seleccione una factura --
-                                </option>
-
-                                @if (ViewBag.Facturas != null)
-                                {
-                                    foreach (var item in ViewBag.Facturas)
-                                    {
-                                        <option value="@item.IdFactura">
-
-                                            Factura #@item.IdFactura
-                                            -
-                                            Saldo:
-                                            @item.SaldoPendiente.ToString("N2")
-
-                                        </option>
-                                    }
-                                }
-
-                            </select>
+                            @factura.IdMoneda
                         }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- AVISO -->
+
+            <div class="alert alert-info mb-0">
+
+                <i class="bi bi-info-circle-fill me-2"></i>
+
+                Puede registrar un pago parcial o cancelar
+                completamente el saldo pendiente.
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+
+<!-- ========================================================= -->
+<!-- FORMULARIO -->
+<!-- ========================================================= -->
+
+<form asp-controller="Pago"
+      asp-action="Create"
+      method="post"
+      id="formPago">
+
+    @Html.AntiForgeryToken()
+
+
+    @if (factura != null)
+    {
+        <input type="hidden"
+               asp-for="IdFactura" />
+    }
+
+
+    <div class="card shadow-sm">
+
+        <!-- ================================================= -->
+        <!-- HEADER -->
+        <!-- ================================================= -->
+
+        <div class="card-header">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-pencil-square me-2"></i>
+
+                Datos del pago
+
+            </h5>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- BODY -->
+        <!-- ================================================= -->
+
+        <div class="card-body">
+
+            <div class="row">
+
+
+                <!-- ========================================= -->
+                <!-- FACTURA SI NO VIENE SELECCIONADA -->
+                <!-- ========================================= -->
+
+                @if (factura == null)
+                {
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="IdFactura"
+                               class="form-label fw-semibold">
+
+                            Factura
+
+                        </label>
+
+                        <select asp-for="IdFactura"
+                                class="form-select">
+
+                            <option value="">
+                                -- Seleccione una factura --
+                            </option>
+
+                            @if (ViewBag.Facturas != null)
+                            {
+                                foreach (var item in ViewBag.Facturas)
+                                {
+                                    <option value="@item.IdFactura">
+
+                                        Factura #@item.IdFactura
+                                        -
+                                        Saldo:
+                                        @item.SaldoPendiente.ToString("N2")
+
+                                    </option>
+                                }
+                            }
+
+                        </select>
 
                         <span asp-validation-for="IdFactura"
                               class="text-danger">
                         </span>
 
                     </div>
+                }
 
 
-                    <!-- ========================================= -->
-                    <!-- MONTO -->
-                    <!-- ========================================= -->
+                <!-- ========================================= -->
+                <!-- MONTO -->
+                <!-- ========================================= -->
 
-                    <div class="col-md-6 mb-3">
+                <div class="col-md-6 mb-3">
 
-                        <label asp-for="Monto"
-                               class="form-label">
+                    <label asp-for="Monto"
+                           class="form-label fw-semibold">
 
-                            Monto del pago
+                        Monto del pago
 
-                        </label>
+                    </label>
 
-                        <div class="input-group">
+                    <div class="input-group">
 
-                            <span class="input-group-text">
-
-                                <i class="bi bi-cash"></i>
-
-                            </span>
-
-                            <input asp-for="Monto"
-                                   class="form-control"
-                                   type="number"
-                                   step="0.01"
-                                   min="0.01"
-                                   placeholder="0.00" />
-
-                        </div>
-
-                        <span asp-validation-for="Monto"
-                              class="text-danger">
+                        <span class="input-group-text">
+                            <i class="bi bi-cash"></i>
                         </span>
 
-                    </div>
-
-
-                    <!-- ========================================= -->
-                    <!-- MÉTODO DE PAGO -->
-                    <!-- ========================================= -->
-
-                    <div class="col-md-6 mb-3">
-
-                        <label asp-for="IdMetodoPago"
-                               class="form-label">
-
-                            Método de pago
-
-                        </label>
-
-                        <select asp-for="IdMetodoPago"
-                                class="form-select">
-
-                            <option value="0">
-                                -- Seleccione método de pago --
-                            </option>
-
-                            @if (ViewBag.MetodosPago != null)
-                            {
-                                foreach (var item in ViewBag.MetodosPago)
-                                {
-                                    <option value="@item.IdMetodoPago">
-
-                                        @item.Nombre
-
-                                    </option>
-                                }
-                            }
-
-                        </select>
-
-                        <span asp-validation-for="IdMetodoPago"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-
-                    <!-- ========================================= -->
-                    <!-- MONEDA -->
-                    <!-- ========================================= -->
-
-                    <div class="col-md-6 mb-3">
-
-                        <label asp-for="IdMoneda"
-                               class="form-label">
-
-                            Moneda
-
-                        </label>
-
-                        <select asp-for="IdMoneda"
-                                class="form-select">
-
-                            <option value="0">
-                                -- Seleccione moneda --
-                            </option>
-
-                            @if (ViewBag.Monedas != null)
-                            {
-                                foreach (var item in ViewBag.Monedas)
-                                {
-                                    <option value="@item.IdMoneda">
-
-                                        @item.Nombre
-                                        (@item.CodigoIso)
-
-                                    </option>
-                                }
-                            }
-
-                        </select>
-
-                        <span asp-validation-for="IdMoneda"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-
-                    <!-- ========================================= -->
-                    <!-- BANCO -->
-                    <!-- ========================================= -->
-
-                    <div class="col-md-6 mb-3">
-
-                        <label asp-for="IdBanco"
-                               class="form-label">
-
-                            Banco
-
-                        </label>
-
-                        <select asp-for="IdBanco"
-                                class="form-select">
-
-                            <option value="">
-                                -- No aplica --
-                            </option>
-
-                            @if (ViewBag.Bancos != null)
-                            {
-                                foreach (var item in ViewBag.Bancos)
-                                {
-                                    <option value="@item.IdBanco">
-
-                                        @item.Nombre
-
-                                    </option>
-                                }
-                            }
-
-                        </select>
-
-                        <span asp-validation-for="IdBanco"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-
-                    <!-- ========================================= -->
-                    <!-- TIPO DE TARJETA -->
-                    <!-- ========================================= -->
-
-                    <div class="col-md-6 mb-3">
-
-                        <label asp-for="IdTipoTarjeta"
-                               class="form-label">
-
-                            Tipo de tarjeta
-
-                        </label>
-
-                        <select asp-for="IdTipoTarjeta"
-                                class="form-select">
-
-                            <option value="">
-                                -- No aplica --
-                            </option>
-
-                            @if (ViewBag.TiposTarjeta != null)
-                            {
-                                foreach (var item in ViewBag.TiposTarjeta)
-                                {
-                                    <option value="@item.IdTipoTarjeta">
-
-                                        @item.Nombre
-
-                                    </option>
-                                }
-                            }
-
-                        </select>
-
-                        <span asp-validation-for="IdTipoTarjeta"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-
-                    <!-- ========================================= -->
-                    <!-- REFERENCIA -->
-                    <!-- ========================================= -->
-
-                    <div class="col-md-6 mb-3">
-
-                        <label asp-for="Referencia"
-                               class="form-label">
-
-                            Referencia
-
-                        </label>
-
-                        <input asp-for="Referencia"
+                        <input asp-for="Monto"
                                class="form-control"
-                               placeholder="Número de referencia" />
-
-                        <span asp-validation-for="Referencia"
-                              class="text-danger">
-                        </span>
+                               id="Monto"
+                               type="number"
+                               step="0.01"
+                               min="0.01"
+                               max="@saldo"
+                               placeholder="0.00"
+                               required />
 
                     </div>
 
+                    <div class="form-text">
 
-                    <!-- ========================================= -->
-                    <!-- AUTORIZACIÓN -->
-                    <!-- ========================================= -->
+                        Saldo máximo:
+                        <strong>
+                            @saldo.ToString("N2")
+                        </strong>
 
-                    <div class="col-md-6 mb-3">
+                    </div>
 
-                        <label asp-for="NumeroAutorizacion"
-                               class="form-label">
+                    <span asp-validation-for="Monto"
+                          class="text-danger">
+                    </span>
 
-                            Número de autorización
+                </div>
 
-                        </label>
 
-                        <input asp-for="NumeroAutorizacion"
+                <!-- ========================================= -->
+                <!-- MÉTODO DE PAGO -->
+                <!-- ========================================= -->
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="IdMetodoPago"
+                           class="form-label fw-semibold">
+
+                        Método de pago
+
+                    </label>
+
+                    <select asp-for="IdMetodoPago"
+                            class="form-select"
+                            id="IdMetodoPago"
+                            required>
+
+                        <option value="">
+                            -- Seleccione método de pago --
+                        </option>
+
+                        @if (ViewBag.MetodosPago != null)
+                        {
+                            foreach (var item in ViewBag.MetodosPago)
+                            {
+                                <option value="@item.IdMetodoPago">
+
+                                    @item.Nombre
+
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                    <span asp-validation-for="IdMetodoPago"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- ========================================= -->
+                <!-- MONEDA -->
+                <!-- ========================================= -->
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="IdMoneda"
+                           class="form-label fw-semibold">
+
+                        Moneda
+
+                    </label>
+
+                    <select asp-for="IdMoneda"
+                            class="form-select"
+                            required>
+
+                        <option value="">
+                            -- Seleccione moneda --
+                        </option>
+
+                        @if (ViewBag.Monedas != null)
+                        {
+                            foreach (var item in ViewBag.Monedas)
+                            {
+                                <option value="@item.IdMoneda">
+
+                                    @item.Nombre
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        item.CodigoIso))
+                                    {
+                                        <span>
+                                            (@item.CodigoIso)
+                                        </span>
+                                    }
+
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                    <span asp-validation-for="IdMoneda"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- ========================================= -->
+                <!-- MONTO RECIBIDO -->
+                <!-- ========================================= -->
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="MontoRecibido"
+                           class="form-label fw-semibold">
+
+                        Efectivo recibido
+
+                    </label>
+
+                    <div class="input-group">
+
+                        <span class="input-group-text">
+
+                            <i class="bi bi-wallet2"></i>
+
+                        </span>
+
+                        <input asp-for="MontoRecibido"
                                class="form-control"
-                               placeholder="Número de autorización" />
-
-                        <span asp-validation-for="NumeroAutorizacion"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-
-                    <!-- ========================================= -->
-                    <!-- MONTO RECIBIDO -->
-                    <!-- ========================================= -->
-
-                    <div class="col-md-6 mb-3">
-
-                        <label asp-for="MontoRecibido"
-                               class="form-label">
-
-                            Monto recibido
-
-                        </label>
-
-                        <div class="input-group">
-
-                            <span class="input-group-text">
-
-                                <i class="bi bi-wallet2"></i>
-
-                            </span>
-
-                            <input asp-for="MontoRecibido"
-                                   class="form-control"
-                                   type="number"
-                                   step="0.01"
-                                   min="0"
-                                   placeholder="0.00" />
-
-                        </div>
-
-                        <small class="text-muted">
-
-                            Utilice este campo cuando el cliente
-                            entregue un monto diferente al pago.
-
-                        </small>
-
-                        <span asp-validation-for="MontoRecibido"
-                              class="text-danger">
-                        </span>
-
-                        <div id="montoRecibidoError"
-                             class="invalid-feedback">
-
-                            El monto recibido no puede ser menor
-                            que el monto del pago.
-
-                        </div>
+                               id="MontoRecibido"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               placeholder="0.00" />
 
                     </div>
 
+                    <div class="form-text">
 
-                    <!-- ========================================= -->
-                    <!-- FECHA -->
-                    <!-- ========================================= -->
+                        Para efectivo, indique cuánto dinero
+                        entregó el cliente.
 
-                    <div class="col-md-6 mb-3">
+                    </div>
 
-                        <label asp-for="FechaPago"
-                               class="form-label">
+                    <span asp-validation-for="MontoRecibido"
+                          class="text-danger">
+                    </span>
 
-                            Fecha del pago
+                    <div id="montoRecibidoError"
+                         class="text-danger small mt-1 d-none">
 
-                        </label>
+                        El efectivo recibido no puede ser menor
+                        que el monto del pago.
 
-                        <input asp-for="FechaPago"
+                    </div>
+
+                </div>
+
+
+                <!-- ========================================= -->
+                <!-- CAMBIO -->
+                <!-- ========================================= -->
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-semibold">
+
+                        Cambio
+
+                    </label>
+
+                    <div class="input-group">
+
+                        <span class="input-group-text">
+
+                            <i class="bi bi-arrow-return-left"></i>
+
+                        </span>
+
+                        <input type="text"
                                class="form-control"
-                               type="datetime-local" />
-
-                        <span asp-validation-for="FechaPago"
-                              class="text-danger">
-                        </span>
+                               id="Cambio"
+                               value="0.00"
+                               readonly />
 
                     </div>
 
+                    <div class="form-text">
 
-                    <!-- ========================================= -->
-                    <!-- OBSERVACIÓN -->
-                    <!-- ========================================= -->
-
-                    <div class="col-12 mb-3">
-
-                        <label asp-for="Observacion"
-                               class="form-label">
-
-                            Observación
-
-                        </label>
-
-                        <textarea asp-for="Observacion"
-                                  class="form-control"
-                                  rows="3"
-                                  placeholder="Observaciones del pago"></textarea>
-
-                        <span asp-validation-for="Observacion"
-                              class="text-danger">
-                        </span>
+                        Se calcula automáticamente.
 
                     </div>
+
+                </div>
+
+
+                <!-- ========================================= -->
+                <!-- BANCO -->
+                <!-- ========================================= -->
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="IdBanco"
+                           class="form-label fw-semibold">
+
+                        Banco
+
+                    </label>
+
+                    <select asp-for="IdBanco"
+                            class="form-select">
+
+                        <option value="">
+                            -- No aplica --
+                        </option>
+
+                        @if (ViewBag.Bancos != null)
+                        {
+                            foreach (var item in ViewBag.Bancos)
+                            {
+                                <option value="@item.IdBanco">
+
+                                    @item.Nombre
+
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                    <span asp-validation-for="IdBanco"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- ========================================= -->
+                <!-- TIPO TARJETA -->
+                <!-- ========================================= -->
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="IdTipoTarjeta"
+                           class="form-label fw-semibold">
+
+                        Tipo de tarjeta
+
+                    </label>
+
+                    <select asp-for="IdTipoTarjeta"
+                            class="form-select">
+
+                        <option value="">
+                            -- No aplica --
+                        </option>
+
+                        @if (ViewBag.TiposTarjeta != null)
+                        {
+                            foreach (var item in ViewBag.TiposTarjeta)
+                            {
+                                <option value="@item.IdTipoTarjeta">
+
+                                    @item.Nombre
+
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                    <span asp-validation-for="IdTipoTarjeta"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- ========================================= -->
+                <!-- REFERENCIA -->
+                <!-- ========================================= -->
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="Referencia"
+                           class="form-label fw-semibold">
+
+                        Referencia
+
+                    </label>
+
+                    <input asp-for="Referencia"
+                           class="form-control"
+                           placeholder="Número de referencia" />
+
+                    <span asp-validation-for="Referencia"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- ========================================= -->
+                <!-- AUTORIZACIÓN -->
+                <!-- ========================================= -->
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="NumeroAutorizacion"
+                           class="form-label fw-semibold">
+
+                        Número de autorización
+
+                    </label>
+
+                    <input asp-for="NumeroAutorizacion"
+                           class="form-control"
+                           placeholder="Número de autorización" />
+
+                    <span asp-validation-for="NumeroAutorizacion"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- ========================================= -->
+                <!-- FECHA -->
+                <!-- ========================================= -->
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="FechaPago"
+                           class="form-label fw-semibold">
+
+                        Fecha del pago
+
+                    </label>
+
+                    <input asp-for="FechaPago"
+                           class="form-control"
+                           type="datetime-local"
+                           required />
+
+                    <span asp-validation-for="FechaPago"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- ========================================= -->
+                <!-- OBSERVACIÓN -->
+                <!-- ========================================= -->
+
+                <div class="col-12 mb-3">
+
+                    <label asp-for="Observacion"
+                           class="form-label fw-semibold">
+
+                        Observación
+
+                    </label>
+
+                    <textarea asp-for="Observacion"
+                              class="form-control"
+                              rows="3"
+                              placeholder="Observaciones del pago"></textarea>
+
+                    <span asp-validation-for="Observacion"
+                          class="text-danger">
+                    </span>
 
                 </div>
 
@@ -689,10 +768,96 @@
 
 
             <!-- ================================================= -->
-            <!-- FOOTER -->
+            <!-- RESUMEN DEL PAGO -->
             <!-- ================================================= -->
 
-            <div class="card-footer d-flex justify-content-end gap-2">
+            <div class="card bg-light border-0 mt-3">
+
+                <div class="card-body">
+
+                    <h6 class="fw-bold mb-3">
+
+                        <i class="bi bi-calculator me-2"></i>
+
+                        Resumen
+
+                    </h6>
+
+                    <div class="row">
+
+                        <div class="col-md-4">
+
+                            <div class="text-muted small">
+                                SALDO ANTERIOR
+                            </div>
+
+                            <div class="fs-5 fw-bold">
+                                <span id="saldoAnterior">
+                                    @saldo.ToString("N2")
+                                </span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <div class="text-muted small">
+                                PAGO APLICADO
+                            </div>
+
+                            <div class="fs-5 fw-bold text-success">
+
+                                <span id="pagoAplicado">
+                                    0.00
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <div class="text-muted small">
+                                SALDO DESPUÉS DEL PAGO
+                            </div>
+
+                            <div class="fs-5 fw-bold text-primary">
+
+                                <span id="saldoDespues">
+                                    @saldo.ToString("N2")
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- FOOTER -->
+        <!-- ================================================= -->
+
+        <div class="card-footer d-flex justify-content-between align-items-center">
+
+            <div class="text-muted small">
+
+                <i class="bi bi-shield-check me-1"></i>
+
+                El saldo y el estado de la factura serán
+                actualizados automáticamente.
+
+            </div>
+
+            <div class="d-flex gap-2">
 
                 <a asp-controller="Pago"
                    asp-action="Index"
@@ -704,9 +869,10 @@
 
                 </a>
 
-
                 <button type="submit"
-                        class="btn btn-success">
+                        class="btn btn-success"
+                        id="btnRegistrarPago"
+                        @(caja == null ? "disabled" : "")>
 
                     <i class="bi bi-check-circle me-1"></i>
 
@@ -718,65 +884,194 @@
 
         </div>
 
-    </form>
+    </div>
 
-</div>
+</form>
 
-
-<!-- ============================================================= -->
-<!-- SCRIPTS -->
-<!-- ============================================================= -->
+</div> <!-- ============================================================= --> <!-- SCRIPTS --> <!-- ============================================================= -->
 @section Scripts {
 
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}
 
-    <script>
+<script>
 
-        document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
 
-            const monto =
-                document.getElementById("Monto");
+        const monto =
+            document.getElementById("Monto");
 
-            const montoRecibido =
-                document.getElementById("MontoRecibido");
+        const montoRecibido =
+            document.getElementById("MontoRecibido");
 
-            if (!monto || !montoRecibido) {
-                return;
+        const cambio =
+            document.getElementById("Cambio");
+
+        const montoRecibidoError =
+            document.getElementById("montoRecibidoError");
+
+        const pagoAplicado =
+            document.getElementById("pagoAplicado");
+
+        const saldoDespues =
+            document.getElementById("saldoDespues");
+
+        const formPago =
+            document.getElementById("formPago");
+
+        const saldoAnterior =
+            parseFloat("@saldo.ToString(
+                System.Globalization.CultureInfo.InvariantCulture)");
+
+        if (!monto) {
+            return;
+        }
+
+
+        function obtenerNumero(elemento) {
+
+            const valor =
+                parseFloat(elemento?.value || "0");
+
+            return isNaN(valor) ? 0 : valor;
+        }
+
+
+        function actualizarResumen() {
+
+            const pago =
+                obtenerNumero(monto);
+
+            const recibido =
+                obtenerNumero(montoRecibido);
+
+            const nuevoSaldo =
+                Math.max(saldoAnterior - pago, 0);
+
+            pagoAplicado.textContent =
+                pago.toFixed(2);
+
+            saldoDespues.textContent =
+                nuevoSaldo.toFixed(2);
+
+
+            if (recibido > 0) {
+
+                const valorCambio =
+                    recibido - pago;
+
+                cambio.value =
+                    Math.max(valorCambio, 0).toFixed(2);
+
+            }
+            else {
+
+                cambio.value = "0.00";
+
             }
 
-            function validarMontoRecibido() {
 
-                const valor =
-                    parseFloat(monto.value || "0");
+            if (recibido > 0 && recibido < pago) {
 
-                const recibido =
-                    parseFloat(montoRecibido.value || "0");
+                montoRecibido.classList.add("is-invalid");
 
-                if (recibido > 0 && recibido < valor) {
+                montoRecibidoError.classList.remove("d-none");
 
-                    montoRecibido.classList.add("is-invalid");
+            }
+            else {
 
-                }
-                else {
+                montoRecibido.classList.remove("is-invalid");
 
-                    montoRecibido.classList.remove("is-invalid");
+                montoRecibidoError.classList.add("d-none");
 
-                }
             }
 
-                    monto.addEventListener(
+        }
+
+
+        monto.addEventListener(
+            "input",
+            actualizarResumen
+        );
+
+
+        if (montoRecibido) {
+
+            montoRecibido.addEventListener(
                 "input",
-                validarMontoRecibido
-                    );
+                actualizarResumen
+            );
 
-                    montoRecibido.addEventListener(
-                        "input",
-                validarMontoRecibido
-                    );
+        }
 
-                });
 
-    </script>
+        if (formPago) {
+
+            formPago.addEventListener(
+                "submit",
+                function (event) {
+
+                    const pago =
+                        obtenerNumero(monto);
+
+                    const recibido =
+                        obtenerNumero(montoRecibido);
+
+                    if (pago <= 0) {
+
+                        event.preventDefault();
+
+                        alert(
+                            "El monto del pago debe ser mayor que cero."
+                        );
+
+                        return;
+
+                    }
+
+
+                    if (pago > saldoAnterior) {
+
+                        event.preventDefault();
+
+                        alert(
+                            "El monto del pago no puede superar el saldo pendiente."
+                        );
+
+                        return;
+
+                    }
+
+
+                    if (recibido > 0 && recibido < pago) {
+
+                        event.preventDefault();
+
+                        montoRecibido.focus();
+
+                        montoRecibido.classList.add(
+                            "is-invalid"
+                        );
+
+                        montoRecibidoError.classList.remove(
+                            "d-none"
+                        );
+
+                        return;
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        actualizarResumen();
+
+    });
+
+</script>
+
 }

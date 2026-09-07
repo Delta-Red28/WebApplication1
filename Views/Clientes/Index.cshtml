@@ -1,443 +1,85 @@
-﻿@model IEnumerable<WebApplication1.Models.Cliente>
+﻿@model IEnumerable<WebApplication1.Models.Pedido>
 
 @{
-    ViewData["Title"] = "Clientes";
+    ViewData["Title"] = "Cocina";
+
+    var pedidos =
+        Model?.ToList()
+        ?? new List<WebApplication1.Models.Pedido>();
+
+    var pendientes =
+        pedidos
+            .Where(p =>
+                p.IdEstadoPedido == 1)
+            .ToList();
+
+    var enCocina =
+        pedidos
+            .Where(p =>
+                p.IdEstadoPedido == 2)
+            .ToList();
+
+    var preparandose =
+        pedidos
+            .Where(p =>
+                p.IdEstadoPedido == 3)
+            .ToList();
+
+    var listos =
+        pedidos
+            .Where(p =>
+                p.IdEstadoPedido == 4)
+            .ToList();
 }
 
-<style>
-         /*   ENCABEZADO DEL MÓDULO */
 
-    .clientes-header {
-        background: linear-gradient(135deg, #671f1b, #8f2923);
-        border-radius: 18px;
-        padding: 25px 30px;
-        color: white;
-        margin-bottom: 25px;
-        box-shadow: 0 8px 25px rgba(103, 31, 27, 0.18);
-    }
+<div class="container-fluid py-4">
 
-        .clientes-header h2 {
-            font-family: Georgia, serif;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
 
-        .clientes-header p {
-            color: #f4dca6;
-            margin-bottom: 0;
-        }
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-    .clientes-header-icon {
-        width: 58px;
-        height: 58px;
-        border-radius: 15px;
-        background: #d9a441;
-        color: #671f1b;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 27px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-    }
+        <div>
 
+            <h2 class="fw-bold mb-1">
 
-          /*  TARJETA TOTAL */
-      
-    .clientes-total {
-        background: #fffaf3;
-        border: 1px solid #eadfd5;
-        border-radius: 15px;
-        padding: 12px 18px;
-        min-width: 145px;
-        text-align: center;
-    }
+                <i class="bi bi-fire me-2"></i>
 
-        .clientes-total small {
-            display: block;
-            color: #8a7770;
-            font-size: 12px;
-        }
+                Cocina
 
-        .clientes-total strong {
-            display: block;
-            color: #671f1b;
-            font-size: 24px;
-            line-height: 1.2;
-        }
+            </h2>
 
+            <p class="text-muted mb-0">
 
-    /*BOTON NUEVO CLIENTE */
+                Gestión de pedidos en preparación.
 
-    .btn-nuevo-cliente {
-        background: #d9a441;
-        border: none;
-        color: #671f1b;
-        font-weight: 700;
-        border-radius: 11px;
-        padding: 10px 17px;
-        transition: all 0.25s ease;
-    }
-
-        .btn-nuevo-cliente:hover {
-            background: #c89332;
-            color: #671f1b;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(217, 164, 65, 0.3);
-        }
-
-
-    /*TARJETA PRINCIPAL */
-
-    .clientes-card {
-        border: none;
-        border-radius: 18px;
-        background: #fffaf3;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
-        overflow: hidden;
-    }
-
-    .clientes-card-header {
-        padding: 20px 24px;
-        border-bottom: 1px solid #eadfd5;
-        background: #fffaf3;
-    }
-
-
-    /*BUSCADOR*/
-
-    .buscador-group {
-        border: 1px solid #e2d5c9;
-        border-radius: 11px;
-        overflow: hidden;
-        background: white;
-        transition: all 0.25s ease;
-    }
-
-        .buscador-group:focus-within {
-            border-color: #a52a24;
-            box-shadow: 0 0 0 3px rgba(165, 42, 36, 0.10);
-        }
-
-    .buscador-icon {
-        border: none;
-        background: transparent;
-        color: #9b6b2f;
-    }
-
-    .buscador-input {
-        border: none !important;
-        box-shadow: none !important;
-        height: 46px;
-    }
-
-    .btn-buscar {
-        height: 46px;
-        border-radius: 10px;
-        border-color: #8f2923;
-        color: #8f2923;
-        font-weight: 600;
-    }
-
-        .btn-buscar:hover {
-            background: #8f2923;
-            border-color: #8f2923;
-            color: white;
-        }
-
-    .btn-limpiar {
-        height: 46px;
-        border-radius: 10px;
-        font-weight: 600;
-    }
-
-
-    /*TABLA */
-
-    .clientes-table {
-        margin-bottom: 0;
-    }
-
-        .clientes-table thead th {
-            background: #f7eee5;
-            color: #5c4138;
-            border-bottom: 1px solid #e2d5c9;
-            font-size: 13px;
-            font-weight: 700;
-            padding: 15px 14px;
-            white-space: nowrap;
-        }
-
-        .clientes-table tbody td {
-            padding: 15px 14px;
-            color: #5b4b45;
-            border-color: #eee4dc;
-            vertical-align: middle;
-        }
-
-        .clientes-table tbody tr {
-            transition: background-color 0.2s ease;
-        }
-
-            .clientes-table tbody tr:hover {
-                background: #fff8f0;
-            }
-
-
-    /* CLIENTE*/
-
-    .cliente-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .cliente-avatar {
-        width: 42px;
-        height: 42px;
-        min-width: 42px;
-        border-radius: 50%;
-        background: #f1dfb5;
-        color: #671f1b;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-    }
-
-    .cliente-nombre {
-        color: #3e2723;
-        font-weight: 700;
-        line-height: 1.3;
-    }
-
-    .cliente-label {
-        color: #9a8981;
-        font-size: 11px;
-    }
-
-
-    /*DATOS CLIENTE */
-
-    .dato-cliente {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-    }
-
-        .dato-cliente i {
-            color: #b18438;
-            font-size: 14px;
-        }
-
-
-    /* ESTADOS */
-
-    .estado-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .estado-activo {
-        background: #dff3e5;
-        color: #28753d;
-    }
-
-    .estado-inactivo {
-        background: #f8dfdc;
-        color: #8a2d27;
-    }
-
-
-    /*FECHA*/
-
-    .fecha-registro {
-        font-size: 13px;
-        color: #74635d;
-    }
-
-
-    /*ACCIONES */
-
-    .acciones .btn {
-        border-radius: 8px !important;
-        margin: 0 2px;
-    }
-
-    .btn-outline-info {
-        color: #7a5c26;
-        border-color: #d9b66b;
-    }
-
-        .btn-outline-info:hover {
-            background: #d9a441;
-            border-color: #d9a441;
-            color: #671f1b;
-        }
-
-
-    /* SIN CLIENTES */
-
-    .sin-clientes {
-        padding: 60px 20px;
-        text-align: center;
-    }
-
-    .sin-clientes-icon {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 18px;
-        border-radius: 50%;
-        background: #f3e8df;
-        color: #a98d7d;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 34px;
-    }
-
-    .sin-clientes h5 {
-        color: #4e342e;
-        font-weight: 700;
-    }
-
-    .sin-clientes p {
-        color: #8a7770;
-    }
-
-
-    /* ALERTAS */
-
-    .alert {
-        border: none;
-        border-radius: 12px;
-    }
-
-    .alert-success {
-        background: #e2f2e7;
-        color: #28643a;
-    }
-
-    .alert-danger {
-        background: #f8dfdc;
-        color: #7a211c;
-    }
-
-
-    /*RESPONSIVE */
-
-    @@media (max-width: 768px) {
-
-        .clientes-header {
-            padding: 20px;
-        }
-
-        .clientes-header-content {
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 18px;
-        }
-
-        .clientes-header-actions {
-            width: 100%;
-        }
-
-        .clientes-total {
-            width: 100%;
-        }
-    }
-
-</style>
-
-
-<div class="container-fluid">
-
-
-    <!--ENCABEZADO -->
-
-    <div class="clientes-header">
-
-        <div class="clientes-header-content d-flex justify-content-between align-items-center">
-
-
-            <!-- TITULO -->
-
-            <div class="d-flex align-items-center gap-3">
-
-                <div class="clientes-header-icon">
-
-                    <i class="bi bi-people-fill"></i>
-
-                </div>
-
-
-                <div>
-
-                    <h2>
-                        Clientes
-                    </h2>
-
-                    <p>
-                        Conoce y administra los clientes de tu restaurante
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <!-- ACCIONES -->
-
-            <div class="clientes-header-actions d-flex align-items-center gap-3">
-
-
-                <!-- TOTAL -->
-
-                <div class="clientes-total">
-
-                    <small>
-                        Clientes registrados
-                    </small>
-
-                    <strong>
-                        @Model.Count()
-                    </strong>
-
-                </div>
-
-
-                <!-- NUEVO -->
-                @if (User.IsInRole("Administrador") ||
-                                     User.IsInRole("Gerente"))
-                {
-                    <a asp-action="Create"
-                       class="btn btn-nuevo-cliente">
-
-                        <i class="bi bi-person-plus-fill me-1"></i>
-
-                        Nuevo cliente
-
-                    </a>
-                }
-
-            </div>
+            </p>
 
         </div>
+
+        <a asp-controller="Pedido"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Ver pedidos
+
+        </a>
 
     </div>
 
 
-    <!--MENSAJE-->
+    <!-- ========================================================= -->
+    <!-- MENSAJES -->
+    <!-- ========================================================= -->
     @if (TempData["Mensaje"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show mb-4"
-             role="alert">
+        <div class="alert alert-success alert-dismissible fade show">
 
-            <i class="bi bi-check-circle-fill me-2"></i>
+            <i class="bi bi-check-circle me-2"></i>
 
             @TempData["Mensaje"]
 
@@ -450,13 +92,11 @@
     }
 
 
-    <!-- ERROR-->
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show mb-4"
-             role="alert">
+        <div class="alert alert-danger alert-dismissible fade show">
 
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <i class="bi bi-exclamation-triangle me-2"></i>
 
             @TempData["Error"]
 
@@ -469,77 +109,161 @@
     }
 
 
-    <!--TARJETA CLIENTES-->
+    <!-- ========================================================= -->
+    <!-- TABLERO -->
+    <!-- ========================================================= -->
 
-    <div class="card clientes-card">
-
-
-        <!-- BUSCADOR -->
-
-        <div class="clientes-card-header">
-
-            <div class="row g-2">
+    <div class="row g-3">
 
 
-                <div class="col-lg-8 col-md-7">
+        <!-- ===================================================== -->
+        <!-- PENDIENTES -->
+        <!-- ===================================================== -->
 
-                    <form asp-action="Index"
-                          method="get">
+        <div class="col-xl-3 col-lg-6">
 
-                        <div class="input-group buscador-group">
+            <div class="card shadow-sm border-0 h-100">
 
-                            <span class="input-group-text buscador-icon">
+                <div class="card-header bg-warning text-dark">
 
-                                <i class="bi bi-search"></i>
+                    <div class="d-flex justify-content-between">
 
-                            </span>
+                        <span class="fw-bold">
 
-                            <input type="text"
-                                   name="buscar"
-                                   value="@ViewBag.Buscar"
-                                   class="form-control buscador-input"
-                                   placeholder="Buscar cliente por nombre, cédula, teléfono o correo..." />
+                            <i class="bi bi-hourglass-split me-2"></i>
+
+                            Pendientes
+
+                        </span>
+
+                        <span class="badge bg-dark">
+
+                            @pendientes.Count
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    @if (!pendientes.Any())
+                    {
+                        <div class="text-center text-muted py-4">
+
+                            <i class="bi bi-check-circle display-6"></i>
+
+                            <p class="mb-0 mt-2">
+                                No hay pedidos pendientes.
+                            </p>
 
                         </div>
+                    }
 
-                    </form>
+                    @foreach (var pedido in pendientes)
+                    {
+                        <div class="card border mb-3">
 
-                </div>
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between mb-2">
+
+                                    <strong>
+                                        @pedido.NumeroPedido
+                                    </strong>
+
+                                    <span class="badge bg-warning text-dark">
+                                        Pendiente
+                                    </span>
+
+                                </div>
+
+                                <div class="small text-muted mb-2">
+
+                                    <i class="bi bi-person me-1"></i>
+
+                                    @pedido.IdClienteNavigation?.Nombres
+                                    @pedido.IdClienteNavigation?.Apellidos
+
+                                </div>
+
+                                @if (pedido.IdMesaNavigation != null)
+                                {
+                                    <div class="small mb-2">
+
+                                        <i class="bi bi-grid me-1"></i>
+
+                                        Mesa @pedido.IdMesaNavigation.NumeroMesa
+
+                                    </div>
+                                }
 
 
-                <div class="col-lg-2 col-md-2">
-
-                    <form asp-action="Index"
-                          method="get">
-
-                        <input type="hidden"
-                               name="buscar"
-                               value="@ViewBag.Buscar" />
-
-                        <button type="submit"
-                                class="btn btn-outline-primary btn-buscar w-100">
-
-                            <i class="bi bi-search me-1"></i>
-
-                            Buscar
-
-                        </button>
-
-                    </form>
-
-                </div>
+                                <hr />
 
 
-                <div class="col-lg-2 col-md-3">
+                                <div class="small">
 
-                    <a asp-action="Index"
-                       class="btn btn-outline-secondary btn-limpiar w-100">
+                                    @foreach (var detalle in pedido.DetallePedidos)
+                                    {
+                                        <div class="d-flex justify-content-between mb-1">
 
-                        <i class="bi bi-arrow-clockwise me-1"></i>
+                                            <span>
 
-                        Limpiar
+                                                <strong>
+                                                    @detalle.Cantidad
+                                                </strong>
 
-                    </a>
+                                                ×
+
+                                                @detalle.IdProductoNavigation?.Nombre
+
+                                            </span>
+
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            detalle.Observacion))
+                                        {
+                                            <div class="text-muted mb-2">
+
+                                                <i class="bi bi-chat-left-text me-1"></i>
+
+                                                @detalle.Observacion
+
+                                            </div>
+                                        }
+                                    }
+
+                                </div>
+
+
+                                <form asp-action="EnviarACocina"
+                                      method="post"
+                                      class="mt-3">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@pedido.IdPedido" />
+
+                                    <button type="submit"
+                                            class="btn btn-primary w-100">
+
+                                        <i class="bi bi-fire me-1"></i>
+
+                                        Enviar a cocina
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+                    }
 
                 </div>
 
@@ -548,363 +272,380 @@
         </div>
 
 
-        <!--CONTENIDO-->
+        <!-- ===================================================== -->
+        <!-- EN COCINA -->
+        <!-- ===================================================== -->
 
-        <div class="card-body p-0">
+        <div class="col-xl-3 col-lg-6">
 
+            <div class="card shadow-sm border-0 h-100">
 
-            @if (!Model.Any())
-            {
+                <div class="card-header bg-primary text-white">
 
-                <!-- SIN CLIENTES -->
+                    <div class="d-flex justify-content-between">
 
-                <div class="sin-clientes">
+                        <span class="fw-bold">
 
-                    <div class="sin-clientes-icon">
+                            <i class="bi bi-fire me-2"></i>
 
-                        <i class="bi bi-person-x"></i>
+                            En cocina
+
+                        </span>
+
+                        <span class="badge bg-light text-dark">
+
+                            @enCocina.Count
+
+                        </span>
 
                     </div>
 
+                </div>
 
-                    <h5>
-                        No se encontraron clientes
-                    </h5>
+                <div class="card-body">
+
+                    @if (!enCocina.Any())
+                    {
+                        <div class="text-center text-muted py-4">
+
+                            <i class="bi bi-emoji-smile display-6"></i>
+
+                            <p class="mb-0 mt-2">
+                                No hay pedidos en cocina.
+                            </p>
+
+                        </div>
+                    }
+
+                    @foreach (var pedido in enCocina)
+                    {
+                        <div class="card border mb-3">
+
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between mb-2">
+
+                                    <strong>
+                                        @pedido.NumeroPedido
+                                    </strong>
+
+                                    <span class="badge bg-primary">
+                                        En cocina
+                                    </span>
+
+                                </div>
+
+                                @if (pedido.IdMesaNavigation != null)
+                                {
+                                    <div class="small mb-2">
+
+                                        <i class="bi bi-grid me-1"></i>
+
+                                        Mesa @pedido.IdMesaNavigation.NumeroMesa
+
+                                    </div>
+                                }
+
+                                <hr />
+
+                                @foreach (var detalle in pedido.DetallePedidos)
+                                {
+                                    <div class="mb-2">
+
+                                        <strong>
+                                            @detalle.Cantidad ×
+                                        </strong>
+
+                                        @detalle.IdProductoNavigation?.Nombre
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            detalle.Observacion))
+                                        {
+                                            <div class="small text-muted">
+
+                                                @detalle.Observacion
+
+                                            </div>
+                                        }
+
+                                    </div>
+                                }
 
 
-                    <p class="mb-0">
-                        No existen clientes que coincidan con la búsqueda.
-                    </p>
+                                <form asp-action="ComenzarPreparacion"
+                                      method="post"
+                                      class="mt-3">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@pedido.IdPedido" />
+
+                                    <button type="submit"
+                                            class="btn btn-warning w-100">
+
+                                        <i class="bi bi-play-circle me-1"></i>
+
+                                        Comenzar preparación
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+                    }
 
                 </div>
 
-            }
-            else
-            {
+            </div>
 
-                <!--TABLA -->
+        </div>
 
-                <div class="table-responsive">
 
-                    <table class="table clientes-table align-middle">
+        <!-- ===================================================== -->
+        <!-- PREPARÁNDOSE -->
+        <!-- ===================================================== -->
 
+        <div class="col-xl-3 col-lg-6">
 
-                        <thead>
+            <div class="card shadow-sm border-0 h-100">
 
-                            <tr>
+                <div class="card-header bg-warning text-dark">
 
-                                <th>
-                                    Cliente
-                                </th>
+                    <div class="d-flex justify-content-between">
 
-                                <th>
-                                    Cédula
-                                </th>
+                        <span class="fw-bold">
 
-                                <th>
-                                    Teléfono
-                                </th>
+                            <i class="bi bi-gear-wide-connected me-2"></i>
 
-                                <th>
-                                    Correo
-                                </th>
+                            Preparándose
 
-                                <th>
-                                    Estado
-                                </th>
+                        </span>
 
-                                <th>
-                                    Cliente desde
-                                </th>
+                        <span class="badge bg-dark">
 
-                                <th class="text-center">
-                                    Acciones
-                                </th>
+                            @preparandose.Count
 
-                            </tr>
+                        </span>
 
-                        </thead>
-
-
-                        <tbody>
-
-
-                            @foreach (var cliente in Model)
-                            {
-
-                                <tr>
-
-
-                                    <!--CLIENTE -->
-
-                                    <td>
-
-                                        <div class="cliente-info">
-
-
-                                            <div class="cliente-avatar">
-
-                                                <i class="bi bi-person-fill"></i>
-
-                                            </div>
-
-
-                                            <div>
-
-                                                <div class="cliente-nombre">
-
-                                                    @cliente.Nombres
-                                                    @cliente.Apellidos
-
-                                                </div>
-
-                                                <div class="cliente-label">
-                                                    Cliente del restaurante
-                                                </div>
-
-                                            </div>
-
-                                        </div>
-
-                                    </td>
-
-
-                                    <!-- CEDULA-->
-
-                                    <td>
-
-                                        @if (!string.IsNullOrWhiteSpace(cliente.Cedula))
-                                        {
-
-                                            <div class="dato-cliente">
-
-                                                <i class="bi bi-card-text"></i>
-
-                                                @cliente.Cedula
-
-                                            </div>
-
-                                        }
-                                        else
-                                        {
-
-                                            <span class="text-muted">
-                                                No registrada
-                                            </span>
-
-                                        }
-
-                                    </td>
-
-
-                                    <!--TELEFONO-->
-
-                                    <td>
-
-                                        @if (!string.IsNullOrWhiteSpace(cliente.Telefono))
-                                        {
-
-                                            <div class="dato-cliente">
-
-                                                <i class="bi bi-telephone-fill"></i>
-
-                                                @cliente.Telefono
-
-                                            </div>
-
-                                        }
-                                        else
-                                        {
-
-                                            <span class="text-muted">
-                                                No registrado
-                                            </span>
-
-                                        }
-
-                                    </td>
-
-
-                                    <!-- CORREO -->
-
-                                    <td>
-
-                                        @if (!string.IsNullOrWhiteSpace(cliente.Correo))
-                                        {
-
-                                            <div class="dato-cliente">
-
-                                                <i class="bi bi-envelope-fill"></i>
-
-                                                @cliente.Correo
-
-                                            </div>
-
-                                        }
-                                        else
-                                        {
-
-                                            <span class="text-muted">
-                                                No registrado
-                                            </span>
-
-                                        }
-
-                                    </td>
-
-
-                                    <!-- ESTADO-->
-
-                                    <td>
-
-                                        @if (cliente.Estado)
-                                        {
-
-                                            <span class="estado-badge estado-activo">
-
-                                                <i class="bi bi-check-circle-fill"></i>
-
-                                                Activo
-
-                                            </span>
-
-                                        }
-                                        else
-                                        {
-
-                                            <span class="estado-badge estado-inactivo">
-
-                                                <i class="bi bi-x-circle-fill"></i>
-
-                                                Inactivo
-
-                                            </span>
-
-                                        }
-
-                                    </td>
-
-
-                                    <!--FECHA-->
-
-                                    <td>
-
-                                        <span class="fecha-registro">
-
-                                            <i class="bi bi-calendar3 me-1"></i>
-
-                                            @cliente.FechaRegistro.ToString("dd/MM/yyyy")
-
-                                        </span>
-
-                                    </td>
-
-
-                                    <!-- ACCIONES -->
-
-                                    <td class="text-center acciones">
-
-
-                                        <!-- VER -->
-
-                                        <a asp-action="Details"
-                                           asp-route-id="@cliente.IdCliente"
-                                           class="btn btn-sm btn-outline-info"
-                                           title="Ver información del cliente">
-
-                                            <i class="bi bi-eye"></i>
-
-                                        </a>
-
-
-                                        <!-- EDITAR -->
-                                        @if (User.IsInRole("Administrador") ||
-                                                                                     User.IsInRole("Gerente"))
-                                        {
-
-                                            <a asp-action="Edit"
-                                               asp-route-id="@cliente.IdCliente"
-                                               class="btn btn-sm btn-outline-primary"
-                                               title="Editar cliente">
-
-                                                <i class="bi bi-pencil"></i>
-
-                                            </a>
-
-                                        }
-
-
-                                        <!-- ACTIVAR / DESACTIVAR -->
-                                        @if (User.IsInRole("Administrador") ||
-                                                                                     User.IsInRole("Gerente"))
-                                        {
-
-                                            @if (cliente.Estado)
-                                            {
-
-                                                <form asp-action="Desactivar"
-                                                      asp-route-id="@cliente.IdCliente"
-                                                      method="post"
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('¿Está seguro de desactivar este cliente?');">
-
-                                                    @Html.AntiForgeryToken()
-
-                                                    <button type="submit"
-                                                            class="btn btn-sm btn-outline-danger"
-                                                            title="Desactivar cliente">
-
-                                                        <i class="bi bi-person-x"></i>
-
-                                                    </button>
-
-                                                </form>
-
-                                            }
-                                            else
-                                            {
-
-                                                <form asp-action="Activar"
-                                                      asp-route-id="@cliente.IdCliente"
-                                                      method="post"
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('¿Desea activar este cliente?');">
-
-                                                    @Html.AntiForgeryToken()
-
-                                                    <button type="submit"
-                                                            class="btn btn-sm btn-outline-success"
-                                                            title="Activar cliente">
-
-                                                        <i class="bi bi-person-check"></i>
-
-                                                    </button>
-
-                                                </form>
-
-                                            }
-
-                                        }
-
-                                    </td>
-
-
-                                </tr>
-
-                            }
-
-
-                        </tbody>
-
-                    </table>
+                    </div>
 
                 </div>
 
-            }
+                <div class="card-body">
+
+                    @if (!preparandose.Any())
+                    {
+                        <div class="text-center text-muted py-4">
+
+                            <i class="bi bi-cup-hot display-6"></i>
+
+                            <p class="mb-0 mt-2">
+                                No hay pedidos preparándose.
+                            </p>
+
+                        </div>
+                    }
+
+                    @foreach (var pedido in preparandose)
+                    {
+                        <div class="card border mb-3">
+
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between mb-2">
+
+                                    <strong>
+                                        @pedido.NumeroPedido
+                                    </strong>
+
+                                    <span class="badge bg-warning text-dark">
+                                        Preparándose
+                                    </span>
+
+                                </div>
+
+                                @if (pedido.IdMesaNavigation != null)
+                                {
+                                    <div class="small mb-2">
+
+                                        <i class="bi bi-grid me-1"></i>
+
+                                        Mesa @pedido.IdMesaNavigation.NumeroMesa
+
+                                    </div>
+                                }
+
+                                <hr />
+
+                                @foreach (var detalle in pedido.DetallePedidos)
+                                {
+                                    <div class="mb-2">
+
+                                        <strong>
+                                            @detalle.Cantidad ×
+                                        </strong>
+
+                                        @detalle.IdProductoNavigation?.Nombre
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            detalle.Observacion))
+                                        {
+                                            <div class="small text-muted">
+
+                                                @detalle.Observacion
+
+                                            </div>
+                                        }
+
+                                    </div>
+                                }
+
+
+                                <form asp-action="MarcarListo"
+                                      method="post"
+                                      class="mt-3">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@pedido.IdPedido" />
+
+                                    <button type="submit"
+                                            class="btn btn-success w-100">
+
+                                        <i class="bi bi-check-circle me-1"></i>
+
+                                        Marcar como listo
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- LISTOS -->
+        <!-- ===================================================== -->
+
+        <div class="col-xl-3 col-lg-6">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-header bg-success text-white">
+
+                    <div class="d-flex justify-content-between">
+
+                        <span class="fw-bold">
+
+                            <i class="bi bi-check-circle me-2"></i>
+
+                            Listos
+
+                        </span>
+
+                        <span class="badge bg-light text-dark">
+
+                            @listos.Count
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    @if (!listos.Any())
+                    {
+                        <div class="text-center text-muted py-4">
+
+                            <i class="bi bi-check2-all display-6"></i>
+
+                            <p class="mb-0 mt-2">
+                                No hay pedidos listos.
+                            </p>
+
+                        </div>
+                    }
+
+                    @foreach (var pedido in listos)
+                    {
+                        <div class="card border border-success mb-3">
+
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between mb-2">
+
+                                    <strong>
+                                        @pedido.NumeroPedido
+                                    </strong>
+
+                                    <span class="badge bg-success">
+                                        LISTO
+                                    </span>
+
+                                </div>
+
+                                @if (pedido.IdMesaNavigation != null)
+                                {
+                                    <div class="small mb-2">
+
+                                        <i class="bi bi-grid me-1"></i>
+
+                                        Mesa @pedido.IdMesaNavigation.NumeroMesa
+
+                                    </div>
+                                }
+
+                                <hr />
+
+                                @foreach (var detalle in pedido.DetallePedidos)
+                                {
+                                    <div class="mb-2">
+
+                                        <strong>
+                                            @detalle.Cantidad ×
+                                        </strong>
+
+                                        @detalle.IdProductoNavigation?.Nombre
+
+                                    </div>
+                                }
+
+                                <div class="alert alert-success small mb-0 mt-3">
+
+                                    <i class="bi bi-info-circle me-1"></i>
+
+                                    Listo para entregar.
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
 
         </div>
 
     </div>
-
 
 </div>

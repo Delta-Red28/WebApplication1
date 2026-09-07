@@ -19,6 +19,7 @@ public partial class MovimientoCaja
     // CAJA
     // ============================================================
 
+    [Required]
     public int IdCaja { get; set; }
 
 
@@ -26,11 +27,25 @@ public partial class MovimientoCaja
     // TIPO DE MOVIMIENTO
     // ============================================================
 
+    [Required]
     public int IdTipoMovimiento { get; set; }
 
 
     // ============================================================
     // PAGO
+    // ============================================================
+    //
+    // NULL = movimiento manual
+    //
+    // CON VALOR = movimiento generado por un Pago
+    //
+    // Regla:
+    //
+    // Un pago que afecta caja debe tener exactamente un
+    // MovimientoCaja asociado.
+    //
+    // Los movimientos manuales mantienen IdPago = null.
+    //
     // ============================================================
 
     public int? IdPago { get; set; }
@@ -40,6 +55,7 @@ public partial class MovimientoCaja
     // MONEDA
     // ============================================================
 
+    [Required]
     public int? IdMoneda { get; set; }
 
 
@@ -47,6 +63,7 @@ public partial class MovimientoCaja
     // MONTO
     // ============================================================
 
+    [Required]
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Monto { get; set; }
 
@@ -63,22 +80,33 @@ public partial class MovimientoCaja
     // FECHA DEL MOVIMIENTO
     // ============================================================
 
+    [Required]
     public DateTime FechaMovimiento { get; set; }
 
 
     // ============================================================
     // ANULACIÓN
     // ============================================================
+    //
+    // IMPORTANTE:
+    //
+    // Un movimiento NO se elimina físicamente.
+    //
+    // Cuando se anula:
+    //
+    //     Anulado = true
+    //
+    // Y desde ese momento:
+    //
+    //     NO afecta los totales de caja.
+    //
+    // ============================================================
 
-    /// <summary>
-    /// Indica si el movimiento fue anulado.
-    /// Un movimiento anulado NO debe afectar los totales de caja.
-    /// </summary>
     public bool Anulado { get; set; }
 
 
     /// <summary>
-    /// Fecha y hora en que se realizó la anulación.
+    /// Fecha y hora en que se anuló el movimiento.
     /// </summary>
     public DateTime? FechaAnulacion { get; set; }
 
@@ -90,7 +118,7 @@ public partial class MovimientoCaja
 
 
     /// <summary>
-    /// Motivo por el cual se anuló el movimiento.
+    /// Motivo de la anulación.
     /// </summary>
     [StringLength(500)]
     public string? MotivoAnulacion { get; set; }
@@ -134,4 +162,5 @@ public partial class MovimientoCaja
 
     [ForeignKey(nameof(IdUsuarioAnulo))]
     public virtual Usuario? IdUsuarioAnuloNavigation { get; set; }
+
 }

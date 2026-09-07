@@ -25,7 +25,7 @@ public partial class Factura
 
     [StringLength(25)]
     [Unicode(false)]
-    public string NumeroFactura { get; set; } = null!;
+    public string? NumeroFactura { get; set; }
 
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Subtotal { get; set; }
@@ -65,12 +65,18 @@ public partial class Factura
     [Column(TypeName = "decimal(18, 6)")]
     public decimal? TipoCambioAplicado { get; set; }
 
+
+    // ============================================================
+    // NAVEGACIONES
+    // ============================================================
+
     [InverseProperty("IdFacturaNavigation")]
-    public virtual ICollection<HistorialFactura> HistorialFacturas { get; set; } = new List<HistorialFactura>();
+    public virtual ICollection<HistorialFactura> HistorialFacturas { get; set; }
+        = new List<HistorialFactura>();
 
     [ForeignKey("IdEstadoFactura")]
     [InverseProperty("Facturas")]
-    public virtual EstadoFactura IdEstadoFacturaNavigation { get; set; } = null!;
+    public virtual EstadoFactura? IdEstadoFacturaNavigation { get; set; }
 
     [ForeignKey("IdImpuesto")]
     [InverseProperty("Facturas")]
@@ -78,7 +84,7 @@ public partial class Factura
 
     [ForeignKey("IdMoneda")]
     [InverseProperty("Facturas")]
-    public virtual Monedum IdMonedaNavigation { get; set; } = null!;
+    public virtual Monedum? IdMonedaNavigation { get; set; }
 
     [ForeignKey("IdMotivoAnulacion")]
     [InverseProperty("Facturas")]
@@ -86,20 +92,22 @@ public partial class Factura
 
     [ForeignKey("IdPedido")]
     [InverseProperty("Factura")]
-    public virtual Pedido IdPedidoNavigation { get; set; } = null!;
+    public virtual Pedido? IdPedidoNavigation { get; set; }
 
     [ForeignKey("IdSerieFactura")]
     [InverseProperty("Facturas")]
-    public virtual SerieFactura IdSerieFacturaNavigation { get; set; } = null!;
+    public virtual SerieFactura? IdSerieFacturaNavigation { get; set; }
 
     [ForeignKey("IdTipoComprobante")]
     [InverseProperty("Facturas")]
-    public virtual TipoComprobante IdTipoComprobanteNavigation { get; set; } = null!;
+    public virtual TipoComprobante? IdTipoComprobanteNavigation { get; set; }
 
     [ForeignKey("IdUsuarioAnulo")]
     [InverseProperty("Facturas")]
     public virtual Usuario? IdUsuarioAnuloNavigation { get; set; }
 
     [InverseProperty("IdFacturaNavigation")]
-    public virtual ICollection<Pago> Pagos { get; set; } = new List<Pago>();
+    public virtual ICollection<Pago> Pagos { get; set; }
+        = new List<Pago>();
+
 }

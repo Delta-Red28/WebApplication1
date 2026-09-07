@@ -1,0 +1,1679 @@
+﻿@model IEnumerable<WebApplication1.Models.Pedido>
+
+@{
+    ViewData["Title"] = "Cocina";
+
+    var pedidos = Model?.ToList()
+        ?? new List<WebApplication1.Models.Pedido>();
+
+    // =========================================================
+    // ESTADOS
+    // =========================================================
+
+    const int PENDIENTE = 1;
+    const int EN_COCINA = 2;
+    const int PREPARANDO = 3;
+    const int LISTO = 4;
+    const int ENTREGADO = 5;
+    const int FACTURADO = 6;
+    const int CANCELADO = 7;
+
+    // =========================================================
+    // FILTROS
+    // =========================================================
+
+    var filtroActual = Context.Request.Query["filtro"].ToString();
+
+    if (string.IsNullOrWhiteSpace(filtroActual))
+    {
+        filtroActual = "activos";
+    }
+
+    filtroActual = filtroActual.Trim().ToLowerInvariant();
+
+    var buscarActual = Context.Request.Query["buscar"].ToString();
+
+    // =========================================================
+    // AGRUPACIONES
+    // =========================================================
+
+    var pendientes = pedidos
+        .Where(p => p.IdEstadoPedido == PENDIENTE)
+        .ToList();
+
+    var enCocina = pedidos
+        .Where(p => p.IdEstadoPedido == EN_COCINA)
+        .ToList();
+
+    var preparando = pedidos
+        .Where(p => p.IdEstadoPedido == PREPARANDO)
+        .ToList();
+
+    var listos = pedidos
+        .Where(p => p.IdEstadoPedido == LISTO)
+        .ToList();
+
+    var historicos = pedidos
+        .Where(p =>
+            p.IdEstadoPedido == ENTREGADO ||
+            p.IdEstadoPedido == FACTURADO ||
+            p.IdEstadoPedido == CANCELADO)
+        .ToList();
+
+    // =========================================================
+    // FUNCIONES
+    // =========================================================
+
+    string TiempoTranscurrido(DateTime fecha)
+    {
+        var diferencia = DateTime.Now - fecha;
+
+        if (diferencia.TotalMinutes < 0)
+            return "Ahora";
+
+        if (diferencia.TotalMinutes < 1)
+            return "Hace menos de 1 min";
+
+        if (diferencia.TotalMinutes < 60)
+        {
+            var minutos = (int)diferencia.TotalMinutes;
+
+            return $"Hace {minutos} min";
+        }
+
+        if (diferencia.TotalHours < 24)
+        {
+            var horas = (int)diferencia.TotalHours;
+
+            return $"Hace {horas} h";
+        }
+
+        var dias = (int)diferencia.TotalDays;
+
+        return $"Hace {dias} día{(dias == 1 ? "" : "s")}";
+    }
+
+    string ClaseEstado(int estado)
+    {
+        return estado switch
+        {
+            PENDIENTE => "estado-pendiente",
+            EN_COCINA => "estado-cocina",
+            PREPARANDO => "estado-preparando",
+            LISTO => "estado-listo",
+            ENTREGADO => "estado-entregado",
+            FACTURADO => "estado-facturado",
+            CANCELADO => "estado-cancelado",
+            _ => "estado-desconocido"
+        };
+    }
+
+    string ClaseBadgeEstado(int estado)
+    {
+        return estado switch
+        {
+            PENDIENTE => "badge-pendiente",
+            EN_COCINA => "badge-cocina",
+            PREPARANDO => "badge-preparando",
+            LISTO => "badge-listo",
+            ENTREGADO => "badge-entregado",
+            FACTURADO => "badge-facturado",
+            CANCELADO => "badge-cancelado",
+            _ => "badge-desconocido"
+        };
+    }
+
+    string NombreEstado(int estado)
+    {
+        return estado switch
+        {
+            PENDIENTE => "Pendiente",
+            EN_COCINA => "En cocina",
+            PREPARANDO => "Preparándose",
+            LISTO => "Listo",
+            ENTREGADO => "Entregado",
+            FACTURADO => "Facturado",
+            CANCELADO => "Cancelado",
+            _ => "Desconocido"
+        };
+    }
+
+    string IconoEstado(int estado)
+    {
+        return estado switch
+        {
+            PENDIENTE => "bi-clock",
+            EN_COCINA => "bi-fire",
+            PREPARANDO => "bi-hourglass-split",
+            LISTO => "bi-check-circle-fill",
+            ENTREGADO => "bi-check2-all",
+            FACTURADO => "bi-receipt",
+            CANCELADO => "bi-x-circle-fill",
+            _ => "bi-question-circle"
+        };
+    }
+
+    string TipoPedido(WebApplication1.Models.Pedido pedido)
+    {
+        var nombre = pedido.IdTipoPedidoNavigation?.Nombre;
+
+        return !string.IsNullOrWhiteSpace(nombre)
+            ? nombre
+            : "No especificado";
+    }
+
+    string ClientePedido(WebApplication1.Models.Pedido pedido)
+    {
+        if (pedido.IdClienteNavigation != null)
+        {
+            var nombres = pedido.IdClienteNavigation.Nombres ?? "";
+            var apellidos = pedido.IdClienteNavigation.Apellidos ?? "";
+
+            var nombre = $"{nombres} {apellidos}".Trim();
+
+            if (!string.IsNullOrWhiteSpace(nombre))
+                return nombre;
+        }
+
+        return "Sin cliente";
+    }
+
+    string NumeroPedido(WebApplication1.Models.Pedido pedido)
+    {
+        if (!string.IsNullOrWhiteSpace(pedido.NumeroPedido))
+            return pedido.NumeroPedido;
+
+        return $"PED-{pedido.IdPedido:000000}";
+    }
+
+    // =========================================================
+    // PEDIDOS A MOSTRAR
+    // =========================================================
+
+    List<WebApplication1.Models.Pedido> pedidosMostrar;
+
+    switch (filtroActual)
+    {
+        case "pendientes":
+            pedidosMostrar = pendientes;
+            break;
+
+        case "cocina":
+        case "encocina":
+            pedidosMostrar = enCocina;
+            break;
+
+        case "preparando":
+        case "preparandose":
+            pedidosMostrar = preparando;
+            break;
+
+        case "listos":
+            pedidosMostrar = listos;
+            break;
+
+        case "historico":
+        case "historial":
+            pedidosMostrar = historicos;
+            break;
+
+        case "todos":
+            pedidosMostrar = pedidos;
+            break;
+
+        default:
+            pedidosMostrar = pedidos
+                .Where(p =>
+                    p.IdEstadoPedido == PENDIENTE ||
+                    p.IdEstadoPedido == EN_COCINA ||
+                    p.IdEstadoPedido == PREPARANDO ||
+                    p.IdEstadoPedido == LISTO)
+                .ToList();
+            break;
+    }
+
+    pedidosMostrar = pedidosMostrar
+        .OrderBy(p => p.IdEstadoPedido)
+        .ThenBy(p => p.FechaPedido)
+        .ToList();
+
+    // =========================================================
+    // TÍTULOS
+    // =========================================================
+
+    string tituloSeccion = filtroActual switch
+    {
+        "historico" or "historial" => "Historial",
+        "pendientes" => "Pedidos pendientes",
+        "cocina" or "encocina" => "Pedidos en cocina",
+        "preparando" or "preparandose" => "Pedidos preparándose",
+        "listos" => "Pedidos listos",
+        "todos" => "Todos los pedidos",
+        _ => "Pedidos activos"
+    };
+
+    string iconoVacio = filtroActual switch
+    {
+        "pendientes" => "bi-clock",
+        "cocina" or "encocina" => "bi-fire",
+        "preparando" or "preparandose" => "bi-hourglass-split",
+        "listos" => "bi-check-circle",
+        "historico" or "historial" => "bi-archive",
+        _ => "bi-egg-fried"
+    };
+
+    string tituloVacio = filtroActual switch
+    {
+        "pendientes" => "No hay pedidos pendientes",
+        "cocina" or "encocina" => "No hay pedidos en cocina",
+        "preparando" or "preparandose" => "No hay pedidos preparándose",
+        "listos" => "No hay pedidos listos",
+        "historico" or "historial" => "No hay pedidos históricos",
+        _ => "No hay pedidos activos"
+    };
+
+}
+
+<style>
+        /* ========================================================= BASE ========================================================= */ .cocina-page {
+            padding-bottom: 45px;
+        }
+        /* ========================================================= HEADER ========================================================= */
+
+        .cocina-header {
+            background: radial-gradient(circle at top right, rgba(255,255,255,.12), transparent 35%), linear-gradient(135deg, #111827, #1f2937);
+            color: white;
+            border-radius: 20px;
+            padding: 25px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.12);
+        }
+
+            .cocina-header h2 {
+                margin: 0;
+                font-size: 28px;
+                font-weight: 900;
+                letter-spacing: -.5px;
+            }
+
+            .cocina-header p {
+                margin: 5px 0 0;
+                color: rgba(255,255,255,.65);
+            }
+
+        .btn-actualizar {
+            border-radius: 11px;
+            padding: 9px 15px;
+            font-weight: 700;
+        }
+        /* ========================================================= ESTADÍSTICAS ========================================================= */
+
+        .estadisticas {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 17px 19px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,.045);
+        }
+
+            .stat-card::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 5px;
+            }
+
+        .stat-pendientes::before {
+            background: #f59e0b;
+        }
+
+        .stat-cocina::before {
+            background: #2563eb;
+        }
+
+        .stat-preparando::before {
+            background: #f97316;
+        }
+
+        .stat-listos::before {
+            background: #16a34a;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            margin-bottom: 10px;
+        }
+
+        .stat-pendientes .stat-icon {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .stat-cocina .stat-icon {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .stat-preparando .stat-icon {
+            background: #ffedd5;
+            color: #c2410c;
+        }
+
+        .stat-listos .stat-icon {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .stat-title {
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .stat-number {
+            color: #111827;
+            font-size: 30px;
+            font-weight: 900;
+            line-height: 1;
+            margin-top: 6px;
+        }
+        /* ========================================================= FILTROS ========================================================= */
+
+        .filtros {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 12px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 14px rgba(0,0,0,.035);
+        }
+
+            .filtros .btn {
+                border-radius: 9px;
+                margin: 2px;
+                font-weight: 700;
+            }
+
+        .filtro-activo {
+            box-shadow: 0 0 0 2px rgba(13,110,253,.15);
+        }
+        /* ========================================================= TÍTULO ========================================================= */
+
+        .seccion-titulo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+            .seccion-titulo h4 {
+                margin: 0;
+                color: #111827;
+                font-size: 21px;
+                font-weight: 900;
+            }
+
+        .contador {
+            background: #f3f4f6;
+            color: #374151;
+            border-radius: 20px;
+            padding: 6px 13px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+        /* ========================================================= GRID ========================================================= */
+
+        .pedidos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 18px;
+        }
+        /* ========================================================= TARJETA ========================================================= */
+
+        .pedido-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-top: 6px solid #9ca3af;
+            border-radius: 17px;
+            overflow: hidden;
+            box-shadow: 0 5px 18px rgba(0,0,0,.06);
+            transition: .15s ease;
+        }
+
+            .pedido-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 27px rgba(0,0,0,.10);
+            }
+
+            .pedido-card.estado-pendiente {
+                border-top-color: #f59e0b;
+            }
+
+            .pedido-card.estado-cocina {
+                border-top-color: #2563eb;
+            }
+
+            .pedido-card.estado-preparando {
+                border-top-color: #f97316;
+            }
+
+            .pedido-card.estado-listo {
+                border-top-color: #16a34a;
+            }
+
+            .pedido-card.estado-entregado, .pedido-card.estado-facturado {
+                border-top-color: #6b7280;
+                opacity: .86;
+            }
+
+            .pedido-card.estado-cancelado {
+                border-top-color: #dc2626;
+                opacity: .78;
+            }
+        /* ========================================================= HEADER PEDIDO ========================================================= */
+
+        .pedido-header {
+            padding: 15px 17px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .numero-pedido {
+            font-size: 19px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+        .estado-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 20px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .badge-pendiente {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-cocina {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-preparando {
+            background: #ffedd5;
+            color: #9a3412;
+        }
+
+        .badge-listo {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-entregado, .badge-facturado {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .badge-cancelado {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-desconocido {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        /* ========================================================= BODY ========================================================= */
+
+        .pedido-body {
+            padding: 17px;
+        }
+
+        .pedido-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            color: #1f2937;
+            font-size: 14px;
+            min-width: 0;
+        }
+
+        .info-label {
+            display: block;
+            color: #9ca3af;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 3px;
+        }
+        /* ========================================================= PRODUCTOS ========================================================= */
+
+        .productos {
+            border-top: 1px solid #eef0f2;
+            padding-top: 13px;
+        }
+
+        .producto-linea {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            padding: 7px 0;
+            border-bottom: 1px dashed #eeeeee;
+        }
+
+            .producto-linea:last-of-type {
+                border-bottom: 0;
+            }
+
+        .producto-cantidad {
+            flex: 0 0 auto;
+            min-width: 42px;
+            padding: 4px 7px;
+            border-radius: 7px;
+            background: #f3f4f6;
+            color: #111827;
+            text-align: center;
+            font-weight: 900;
+            font-size: 13px;
+        }
+
+        .producto-nombre {
+            color: #1f2937;
+            font-weight: 700;
+            line-height: 1.4;
+            padding-top: 3px;
+        }
+        /* ========================================================= OBSERVACIONES ========================================================= */
+
+        .observacion {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            border-radius: 7px;
+            padding: 9px 10px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #78350f;
+        }
+
+            .observacion strong {
+                font-weight: 900;
+            }
+        /* ========================================================= FOOTER ========================================================= */
+
+        .pedido-footer {
+            padding: 14px 17px;
+            background: #fafafa;
+            border-top: 1px solid #eeeeee;
+        }
+
+        .tiempo {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .acciones-cocina form {
+            width: 100%;
+            margin: 0;
+        }
+
+        .acciones-cocina .btn {
+            width: 100%;
+            border-radius: 10px;
+            padding: 11px;
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        .estado-final {
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+            .estado-final strong {
+                color: #374151;
+            }
+
+            .estado-final.cancelado {
+                color: #dc2626;
+            }
+        /* ========================================================= EMPTY STATE ========================================================= */
+
+        .empty-state {
+            background: white;
+            border: 2px dashed #d1d5db;
+            border-radius: 18px;
+            padding: 60px 20px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .empty-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 15px;
+            border-radius: 20px;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        .empty-state h5 {
+            color: #374151;
+            font-weight: 900;
+        }
+        /* ========================================================= FLUJO ========================================================= */
+
+        .flujo-card {
+            border-radius: 17px;
+        }
+
+        .flujo-paso {
+            height: 100%;
+            border-radius: 13px;
+            padding: 17px;
+            border: 1px solid rgba(0,0,0,.04);
+        }
+
+            .flujo-paso .icono-flujo {
+                width: 45px;
+                height: 45px;
+                margin: 0 auto 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 13px;
+                font-size: 21px;
+            }
+        /* ========================================================= RESPONSIVE ========================================================= */
+
+        @@media (max-width: 1100px) {
+            .estadisticas {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 700px) {
+            .pedidos-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pedido-info {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .cocina-header {
+                padding: 20px;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .estadisticas {
+                grid-template-columns: 1fr;
+            }
+
+            .pedido-info {
+                grid-template-columns: 1fr;
+            }
+
+            .cocina-header h2 {
+                font-size: 23px;
+            }
+
+            .cocina-header .d-flex {
+                align-items: flex-start !important;
+                gap: 15px;
+            }
+
+            .btn-actualizar {
+                padding: 8px 10px;
+            }
+        }
+</style> <div class="container-fluid py-4 cocina-page">
+<!-- =====================================================
+     ENCABEZADO
+     ===================================================== -->
+
+<div class="cocina-header">
+
+    <div class="d-flex justify-content-between align-items-center">
+
+        <div>
+            <h2>
+                <i class="bi bi-fire me-2"></i>
+                Cocina
+            </h2>
+
+            <p>
+                Control de preparación y seguimiento de pedidos
+            </p>
+        </div>
+
+        <a asp-controller="Cocina"
+           asp-action="Index"
+           asp-route-filtro="@filtroActual"
+           asp-route-buscar="@buscarActual"
+           class="btn btn-outline-light btn-actualizar">
+
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            Actualizar
+
+        </a>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+     ESTADÍSTICAS
+     ===================================================== -->
+
+<div class="estadisticas">
+
+    <div class="stat-card stat-pendientes">
+
+        <div class="stat-icon">
+            <i class="bi bi-clock"></i>
+        </div>
+
+        <div class="stat-title">
+            Pendientes
+        </div>
+
+        <div class="stat-number">
+            @pendientes.Count
+        </div>
+
+    </div>
+
+    <div class="stat-card stat-cocina">
+
+        <div class="stat-icon">
+            <i class="bi bi-fire"></i>
+        </div>
+
+        <div class="stat-title">
+            En cocina
+        </div>
+
+        <div class="stat-number">
+            @enCocina.Count
+        </div>
+
+    </div>
+
+    <div class="stat-card stat-preparando">
+
+        <div class="stat-icon">
+            <i class="bi bi-hourglass-split"></i>
+        </div>
+
+        <div class="stat-title">
+            Preparándose
+        </div>
+
+        <div class="stat-number">
+            @preparando.Count
+        </div>
+
+    </div>
+
+    <div class="stat-card stat-listos">
+
+        <div class="stat-icon">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+
+        <div class="stat-title">
+            Listos
+        </div>
+
+        <div class="stat-number">
+            @listos.Count
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+     MENSAJES
+     ===================================================== -->
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show"
+         role="alert">
+
+        <i class="bi bi-check-circle me-2"></i>
+
+        @TempData["Mensaje"]
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show"
+         role="alert">
+
+        <i class="bi bi-exclamation-triangle me-2"></i>
+
+        @TempData["Error"]
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+
+    </div>
+}
+
+<!-- =====================================================
+     FILTROS
+     ===================================================== -->
+
+<div class="filtros">
+
+    <a asp-controller="Cocina"
+       asp-action="Index"
+       asp-route-filtro="todos"
+       asp-route-buscar="@buscarActual"
+       class="btn @(filtroActual == "todos"
+                   ? "btn-dark filtro-activo"
+                   : "btn-outline-dark")">
+
+        <i class="bi bi-grid me-1"></i>
+        Todos
+
+        <span class="badge bg-secondary ms-1">
+            @ViewBag.TotalPedidos
+        </span>
+
+    </a>
+
+    <a asp-controller="Cocina"
+       asp-action="Index"
+       asp-route-filtro="pendientes"
+       asp-route-buscar="@buscarActual"
+       class="btn @(filtroActual == "pendientes"
+                   ? "btn-warning filtro-activo"
+                   : "btn-outline-warning")">
+
+        <i class="bi bi-clock me-1"></i>
+        Pendientes
+
+        <span class="badge bg-secondary ms-1">
+            @ViewBag.Pendientes
+        </span>
+
+    </a>
+
+    <a asp-controller="Cocina"
+       asp-action="Index"
+       asp-route-filtro="encocina"
+       asp-route-buscar="@buscarActual"
+       class="btn @(filtroActual == "encocina" ||
+                            filtroActual == "cocina"
+                   ? "btn-primary filtro-activo"
+                   : "btn-outline-primary")">
+
+        <i class="bi bi-fire me-1"></i>
+        En cocina
+
+        <span class="badge bg-secondary ms-1">
+            @ViewBag.EnCocina
+        </span>
+
+    </a>
+
+    <a asp-controller="Cocina"
+       asp-action="Index"
+       asp-route-filtro="preparandose"
+       asp-route-buscar="@buscarActual"
+       class="btn @(filtroActual == "preparandose" ||
+                            filtroActual == "preparando"
+                   ? "btn-warning filtro-activo"
+                   : "btn-outline-warning")">
+
+        <i class="bi bi-hourglass-split me-1"></i>
+        Preparándose
+
+        <span class="badge bg-secondary ms-1">
+            @ViewBag.Preparandose
+        </span>
+
+    </a>
+
+    <a asp-controller="Cocina"
+       asp-action="Index"
+       asp-route-filtro="listos"
+       asp-route-buscar="@buscarActual"
+       class="btn @(filtroActual == "listos"
+                   ? "btn-success filtro-activo"
+                   : "btn-outline-success")">
+
+        <i class="bi bi-check-circle me-1"></i>
+        Listos
+
+        <span class="badge bg-secondary ms-1">
+            @ViewBag.Listos
+        </span>
+
+    </a>
+
+    <a asp-controller="Cocina"
+       asp-action="Index"
+       asp-route-filtro="historial"
+       asp-route-buscar="@buscarActual"
+       class="btn @(filtroActual == "historial" ||
+                            filtroActual == "historico"
+                   ? "btn-secondary filtro-activo"
+                   : "btn-outline-secondary")">
+
+        <i class="bi bi-archive me-1"></i>
+        Historial
+
+        <span class="badge bg-secondary ms-1">
+            @(
+                Convert.ToInt32(ViewBag.Entregados)
+                + Convert.ToInt32(ViewBag.Facturados)
+                + Convert.ToInt32(ViewBag.Cancelados)
+            )
+        </span>
+
+    </a>
+
+</div>
+
+<!-- =====================================================
+     TÍTULO
+     ===================================================== -->
+
+<div class="seccion-titulo">
+
+    <h4>
+        @tituloSeccion
+    </h4>
+
+    <span class="contador">
+
+        @pedidosMostrar.Count
+
+        pedido@(pedidosMostrar.Count == 1 ? "" : "s")
+
+    </span>
+
+</div>
+
+<!-- =====================================================
+     EMPTY STATE
+     ===================================================== -->
+@if (pedidosMostrar.Count == 0)
+{
+    <div class="empty-state">
+
+        <div class="empty-icon">
+
+            <i class="bi @iconoVacio"></i>
+
+        </div>
+
+        <h5>
+            @tituloVacio
+        </h5>
+
+        <p class="mb-0">
+
+            @if (filtroActual == "historico" ||
+                 filtroActual == "historial")
+            {
+                <span>
+                    Los pedidos entregados, facturados o cancelados aparecerán aquí.
+                </span>
+            }
+            else
+            {
+                <span>
+                    No hay pedidos que requieran atención en este momento.
+                </span>
+            }
+
+        </p>
+
+    </div>
+}
+else
+{
+    <!-- =================================================
+         GRID
+         ================================================= -->
+
+    <div class="pedidos-grid">
+
+        @foreach (var pedido in pedidosMostrar)
+        {
+            var estado = pedido.IdEstadoPedido;
+
+            var esHistorico =
+                estado == ENTREGADO ||
+                estado == FACTURADO ||
+                estado == CANCELADO;
+
+            <div class="pedido-card @ClaseEstado(estado)">
+
+                <!-- =====================================
+                     HEADER
+                     ===================================== -->
+
+                <div class="pedido-header">
+
+                    <div class="numero-pedido">
+                        @NumeroPedido(pedido)
+                    </div>
+
+                    <span class="estado-badge @ClaseBadgeEstado(estado)">
+
+                        <i class="bi @IconoEstado(estado)"></i>
+
+                        @NombreEstado(estado)
+
+                    </span>
+
+                </div>
+
+                <!-- =====================================
+                     BODY
+                     ===================================== -->
+
+                <div class="pedido-body">
+
+                    <div class="pedido-info">
+
+                        <!-- UBICACIÓN -->
+
+                        <div class="info-item">
+
+                            <span class="info-label">
+                                Ubicación
+                            </span>
+
+                            @if (pedido.IdMesaNavigation != null)
+                            {
+                                <span>
+                                    <i class="bi bi-grid-3x3-gap me-1"></i>
+                                    Mesa @pedido.IdMesaNavigation.NumeroMesa
+                                </span>
+                            }
+                            else
+                            {
+                                <span>
+                                    <i class="bi bi-bag me-1"></i>
+                                    Para llevar
+                                </span>
+                            }
+
+                        </div>
+
+                        <!-- TIPO -->
+
+                        <div class="info-item">
+
+                            <span class="info-label">
+                                Tipo
+                            </span>
+
+                            <i class="bi bi-tag me-1"></i>
+                            @TipoPedido(pedido)
+
+                        </div>
+
+                        <!-- CLIENTE -->
+
+                        <div class="info-item">
+
+                            <span class="info-label">
+                                Cliente
+                            </span>
+
+                            <i class="bi bi-person me-1"></i>
+                            @ClientePedido(pedido)
+
+                        </div>
+
+                        <!-- FECHA -->
+
+                        <div class="info-item">
+
+                            <span class="info-label">
+                                Fecha
+                            </span>
+
+                            <i class="bi bi-calendar3 me-1"></i>
+                            @pedido.FechaPedido.ToString("dd/MM/yyyy HH:mm")
+
+                        </div>
+
+                    </div>
+
+                    <!-- =================================
+                         PRODUCTOS
+                         ================================= -->
+
+                    <div class="productos">
+
+                        <div class="info-label mb-2">
+                            <i class="bi bi-basket me-1"></i>
+                            Productos
+                        </div>
+
+                        @if (pedido.DetallePedidos != null &&
+                             pedido.DetallePedidos.Any())
+                        {
+                            foreach (var detalle in pedido.DetallePedidos)
+                            {
+                                <div class="producto-linea">
+
+                                    <span class="producto-cantidad">
+
+                                        @detalle.Cantidad.ToString("0")×
+
+                                    </span>
+
+                                    <span class="producto-nombre">
+
+                                        @(detalle.IdProductoNavigation?.Nombre
+                                            ?? "Producto")
+
+                                    </span>
+
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(
+                                    detalle.Observacion))
+                                {
+                                    <div class="observacion">
+
+                                        <strong>
+                                            <i class="bi bi-chat-left-text me-1"></i>
+                                            Nota:
+                                        </strong>
+
+                                        @detalle.Observacion
+
+                                    </div>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-muted small">
+                                No hay productos registrados.
+                            </div>
+                        }
+
+                    </div>
+
+                    <!-- =================================
+                         OBSERVACIÓN PEDIDO
+                         ================================= -->
+                    @if (!string.IsNullOrWhiteSpace(
+                                            pedido.Observacion))
+                    {
+                        <div class="observacion">
+
+                            <strong>
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                Observación:
+                            </strong>
+
+                            @pedido.Observacion
+
+                        </div>
+                    }
+
+                </div>
+
+                <!-- =====================================
+                     FOOTER
+                     ===================================== -->
+
+                <div class="pedido-footer">
+
+                    <div class="tiempo">
+
+                        <i class="bi bi-clock"></i>
+
+                        @TiempoTranscurrido(pedido.FechaPedido)
+
+                    </div>
+
+                    <!-- =================================
+                         PENDIENTE
+                         ================================= -->
+                    @if (estado == PENDIENTE)
+                    {
+                        <div class="acciones-cocina">
+
+                            <form asp-controller="Cocina"
+                                  asp-action="EnviarACocina"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@pedido.IdPedido" />
+
+                                <button type="submit"
+                                        class="btn btn-primary">
+
+                                    <i class="bi bi-fire me-1"></i>
+
+                                    Enviar a cocina
+
+                                </button>
+
+                            </form>
+
+                        </div>
+                    }
+
+                    <!-- =================================
+                         EN COCINA
+                         ================================= -->
+                    @if (estado == EN_COCINA)
+                    {
+                        <div class="acciones-cocina">
+
+                            <form asp-controller="Cocina"
+                                  asp-action="ComenzarPreparacion"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@pedido.IdPedido" />
+
+                                <button type="submit"
+                                        class="btn btn-warning">
+
+                                    <i class="bi bi-hourglass-split me-1"></i>
+
+                                    Comenzar preparación
+
+                                </button>
+
+                            </form>
+
+                        </div>
+                    }
+
+                    <!-- =================================
+                         PREPARANDO
+                         ================================= -->
+                    @if (estado == PREPARANDO)
+                    {
+                        <div class="acciones-cocina">
+
+                            <form asp-controller="Cocina"
+                                  asp-action="MarcarListo"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@pedido.IdPedido" />
+
+                                <button type="submit"
+                                        class="btn btn-success">
+
+                                    <i class="bi bi-check-circle me-1"></i>
+
+                                    Marcar como listo
+
+                                </button>
+
+                            </form>
+
+                        </div>
+                    }
+
+                    <!-- =================================
+                         LISTO
+                         ================================= -->
+                    @if (estado == LISTO)
+                    {
+                        <div class="estado-final">
+
+                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+
+                            <strong>
+                                Pedido listo
+                            </strong>
+
+                            <br />
+
+                            <span>
+                                Esperando que el mesero lo entregue.
+                            </span>
+
+                        </div>
+                    }
+
+                    <!-- =================================
+                         ENTREGADO
+                         ================================= -->
+                    @if (estado == ENTREGADO)
+                    {
+                        <div class="estado-final">
+
+                            <i class="bi bi-check2-all text-secondary me-1"></i>
+
+                            <strong>
+                                Pedido entregado
+                            </strong>
+
+                            <br />
+
+                            <span>
+                                Cocina ya no puede modificar este pedido.
+                            </span>
+
+                        </div>
+                    }
+
+                    <!-- =================================
+                         FACTURADO
+                         ================================= -->
+                    @if (estado == FACTURADO)
+                    {
+                        <div class="estado-final">
+
+                            <i class="bi bi-receipt text-secondary me-1"></i>
+
+                            <strong>
+                                Pedido facturado
+                            </strong>
+
+                            <br />
+
+                            <span>
+                                Este pedido está cerrado.
+                            </span>
+
+                        </div>
+                    }
+
+                    <!-- =================================
+                         CANCELADO
+                         ================================= -->
+                    @if (estado == CANCELADO)
+                    {
+                        <div class="estado-final cancelado">
+
+                            <i class="bi bi-x-circle-fill me-1"></i>
+
+                            <strong>
+                                Pedido cancelado
+                            </strong>
+
+                            <br />
+
+                            <span>
+                                Este pedido no puede continuar preparación.
+                            </span>
+
+                        </div>
+                    }
+
+                    <!-- =================================
+                         DESCONOCIDO
+                         ================================= -->
+                    @if (estado != PENDIENTE &&
+                                             estado != EN_COCINA &&
+                                             estado != PREPARANDO &&
+                                             estado != LISTO &&
+                                             estado != ENTREGADO &&
+                                             estado != FACTURADO &&
+                                             estado != CANCELADO)
+                    {
+                        <div class="estado-final">
+
+                            <i class="bi bi-question-circle me-1"></i>
+
+                            Estado no disponible.
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+}
+
+<!-- =====================================================
+     FLUJO DE COCINA
+     ===================================================== -->
+
+<div class="card border-0 shadow-sm mt-4 flujo-card">
+
+    <div class="card-body p-4">
+
+        <div class="d-flex align-items-center mb-3">
+
+            <div class="stat-icon bg-primary-subtle text-primary me-2 mb-0">
+                <i class="bi bi-diagram-3"></i>
+            </div>
+
+            <div>
+
+                <h5 class="mb-0 fw-bold">
+                    Flujo de cocina
+                </h5>
+
+                <small class="text-muted">
+                    Secuencia de preparación del pedido
+                </small>
+
+            </div>
+
+        </div>
+
+        <div class="row text-center g-3">
+
+            <div class="col-md-3">
+
+                <div class="flujo-paso bg-warning-subtle">
+
+                    <div class="icono-flujo bg-warning text-dark">
+                        <i class="bi bi-clock"></i>
+                    </div>
+
+                    <strong>
+                        Pendiente
+                    </strong>
+
+                    <div class="small text-muted mt-1">
+                        Esperando ingreso a cocina
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <div class="flujo-paso bg-primary-subtle">
+
+                    <div class="icono-flujo bg-primary text-white">
+                        <i class="bi bi-fire"></i>
+                    </div>
+
+                    <strong>
+                        En cocina
+                    </strong>
+
+                    <div class="small text-muted mt-1">
+                        Pedido recibido por cocina
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <div class="flujo-paso bg-warning-subtle">
+
+                    <div class="icono-flujo bg-warning text-dark">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+
+                    <strong>
+                        Preparándose
+                    </strong>
+
+                    <div class="small text-muted mt-1">
+                        Pedido en preparación
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <div class="flujo-paso bg-success-subtle">
+
+                    <div class="icono-flujo bg-success text-white">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+
+                    <strong>
+                        Listo
+                    </strong>
+
+                    <div class="small text-muted mt-1">
+                        Esperando entrega al cliente
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="alert alert-light border mt-4 mb-0">
+
+            <i class="bi bi-info-circle text-primary me-2"></i>
+
+            <strong>
+                Cocina finaliza su proceso en "Listo".
+            </strong>
+
+            Los estados
+            <strong>Entregado</strong>,
+            <strong>Facturado</strong> y
+            <strong>Cancelado</strong>
+            son gestionados fuera de Cocina.
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+@section Scripts {
+
+    <script>
+
+            document.addEventListener("DOMContentLoaded", function () {
+
+                const formularios =
+                    document.querySelectorAll(".acciones-cocina form");
+
+                formularios.forEach(function (formulario) {
+
+                    formulario.addEventListener("submit", function () {
+
+                        const boton =
+                            formulario.querySelector("button");
+
+                        if (!boton) {
+                            return;
+                        }
+
+                        if (boton.disabled) {
+                            return;
+                        }
+
+                        boton.disabled = true;
+
+                        boton.dataset.textoOriginal =
+                            boton.innerHTML;
+
+                        boton.innerHTML =
+                            '<span class="spinner-border spinner-border-sm me-1"></span>' +
+                            'Actualizando...';
+
+                    });
+
+                });
+
+            });
+
+    </script>
+
+}

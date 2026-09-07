@@ -25,13 +25,9 @@ namespace WebApplication1.Controllers
         // ESTADOS DE PEDIDO
         // ============================================================
 
-        private const int ESTADO_PEDIDO_PENDIENTE = 1;
-        private const int ESTADO_PEDIDO_EN_COCINA = 2;
-        private const int ESTADO_PEDIDO_PREPARANDOSE = 3;
         private const int ESTADO_PEDIDO_LISTO = 4;
         private const int ESTADO_PEDIDO_ENTREGADO = 5;
         private const int ESTADO_PEDIDO_FACTURADO = 6;
-        private const int ESTADO_PEDIDO_CANCELADO = 7;
 
         // ============================================================
         // ESTADOS DE PAGO
@@ -56,12 +52,16 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Index()
         {
             var facturas = await _context.Facturas
+                .AsNoTracking()
                 .Include(f => f.IdPedidoNavigation)
+                    .ThenInclude(p => p!.IdClienteNavigation)
                 .Include(f => f.IdEstadoFacturaNavigation)
                 .Include(f => f.IdMonedaNavigation)
                 .Include(f => f.IdTipoComprobanteNavigation)
                 .Include(f => f.IdSerieFacturaNavigation)
+                .Include(f => f.IdImpuestoNavigation)
                 .OrderByDescending(f => f.FechaFactura)
+                .ThenByDescending(f => f.IdFactura)
                 .ToListAsync();
 
             return View(facturas);
@@ -80,7 +80,9 @@ namespace WebApplication1.Controllers
             }
 
             var factura = await _context.Facturas
+                .AsNoTracking()
                 .Include(f => f.IdPedidoNavigation)
+                    .ThenInclude(p => p!.IdClienteNavigation)
                 .Include(f => f.IdEstadoFacturaNavigation)
                 .Include(f => f.IdMonedaNavigation)
                 .Include(f => f.IdTipoComprobanteNavigation)
@@ -94,8 +96,7 @@ namespace WebApplication1.Controllers
                     .ThenInclude(p => p.IdEstadoPagoNavigation)
                 .Include(f => f.Pagos)
                     .ThenInclude(p => p.IdMonedaNavigation)
-                .FirstOrDefaultAsync(f =>
-                    f.IdFactura == id.Value);
+                .FirstOrDefaultAsync(f => f.IdFactura == id.Value);
 
             if (factura == null)
             {
@@ -103,10 +104,10 @@ namespace WebApplication1.Controllers
             }
 
             var historial = await _context.HistorialFacturas
+                .AsNoTracking()
                 .Include(h => h.IdEstadoFacturaNavigation)
                 .Include(h => h.IdUsuarioNavigation)
-                .Where(h =>
-                    h.IdFactura == factura.IdFactura)
+                .Where(h => h.IdFactura == factura.IdFactura)
                 .OrderByDescending(h => h.Fecha)
                 .ToListAsync();
 
@@ -122,9 +123,7 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var usuario = ObtenerUsuarioActual();
-
-            if (usuario <= 0)
+            if (ObtenerUsuarioActual() <= 0)
             {
                 TempData["Error"] =
                     "No se pudo identificar al usuario actual.";
@@ -134,12 +133,8 @@ namespace WebApplication1.Controllers
 
             var factura = new Factura
             {
-                IdEstadoFactura =
-                    ESTADO_FACTURA_PENDIENTE,
-
-                FechaFactura =
-                    DateTime.Now,
-
+                IdEstadoFactura = ESTADO_FACTURA_PENDIENTE,
+                FechaFactura = DateTime.Now,
                 SaldoPendiente = 0m
             };
 
@@ -156,7 +151,7 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Factura factura)
         {
-            var idUsuario = ObtenerUsuarioActual();
+            int idUsuario = ObtenerUsuarioActual();
 
             if (idUsuario <= 0)
             {
@@ -165,15 +160,26 @@ namespace WebApplication1.Controllers
                     "No se pudo identificar al usuario actual.");
             }
 
-            // ========================================================
-            // PEDIDO
-            // ========================================================
-
             Pedido? pedido = null;
+            Monedum? moneda = null;
+            TipoComprobante? tipoComprobante = null;
+            SerieFactura? serie = null;
+            Impuesto? impuesto = null;
 
-            if (factura.IdPedido > 0)
+            // ========================================================
+            // VALIDAR PEDIDO
+            // ========================================================
+
+            if (factura.IdPedido <= 0)
+            {
+                ModelState.AddModelError(
+                    "IdPedido",
+                    "Debe seleccionar un pedido.");
+            }
+            else
             {
                 pedido = await _context.Pedidos
+                    .AsNoTracking()
                     .Include(p => p.IdEstadoPedidoNavigation)
                     .Include(p => p.Factura)
                     .FirstOrDefaultAsync(p =>
@@ -186,152 +192,131 @@ namespace WebApplication1.Controllers
                         "El pedido seleccionado no existe.");
                 }
             }
-            else
-            {
-                ModelState.AddModelError(
-                    "IdPedido",
-                    "Debe seleccionar un pedido.");
-            }
-
-            // ========================================================
-            // VALIDAR ESTADO DEL PEDIDO
-            // ========================================================
 
             if (pedido != null)
             {
-                if (pedido.IdEstadoPedido !=
-                    ESTADO_PEDIDO_ENTREGADO)
+                if (pedido.IdEstadoPedido != ESTADO_PEDIDO_LISTO)
                 {
-                    string estadoActual =
+                    string estado =
                         pedido.IdEstadoPedidoNavigation?.Nombre
                         ?? "desconocido";
 
                     ModelState.AddModelError(
                         "IdPedido",
-                        $"Solo se puede facturar un pedido que haya sido entregado. " +
-                        $"El pedido seleccionado actualmente está en estado \"{estadoActual}\".");
+                        $"Solo se puede facturar un pedido que esté Listo. " +
+                        $"El pedido actualmente está en estado \"{estado}\".");
                 }
-            }
 
-            // ========================================================
-            // VALIDAR QUE NO TENGA FACTURA
-            // ========================================================
+                var facturaPedido = pedido.Factura;
 
-            if (pedido != null)
-            {
-                var facturaExistente =
-                    await _context.Facturas
-                        .AnyAsync(f =>
-                            f.IdPedido == pedido.IdPedido);
-
-                if (facturaExistente)
+                if (facturaPedido != null)
                 {
                     ModelState.AddModelError(
                         "IdPedido",
                         "El pedido seleccionado ya tiene una factura.");
                 }
+
+                if (pedido.Total <= 0)
+                {
+                    ModelState.AddModelError(
+                        "IdPedido",
+                        "El pedido no tiene un total válido para facturar.");
+                }
             }
 
             // ========================================================
-            // MONEDA
+            // VALIDAR MONEDA
             // ========================================================
 
-            Monedum? moneda = null;
-
-            if (factura.IdMoneda > 0)
+            if (factura.IdMoneda <= 0)
+            {
+                ModelState.AddModelError(
+                    "IdMoneda",
+                    "Debe seleccionar una moneda.");
+            }
+            else
             {
                 moneda = await _context.Moneda
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(m =>
-                        m.IdMoneda == factura.IdMoneda);
+                        m.IdMoneda == factura.IdMoneda &&
+                        m.Estado);
 
-                if (moneda == null ||
-                    !moneda.Estado)
+                if (moneda == null)
                 {
                     ModelState.AddModelError(
                         "IdMoneda",
                         "La moneda seleccionada no es válida.");
                 }
             }
-            else
+
+            // ========================================================
+            // VALIDAR TIPO COMPROBANTE
+            // ========================================================
+
+            if (factura.IdTipoComprobante <= 0)
             {
                 ModelState.AddModelError(
-                    "IdMoneda",
-                    "Debe seleccionar una moneda.");
+                    "IdTipoComprobante",
+                    "Debe seleccionar un tipo de comprobante.");
             }
-
-            // ========================================================
-            // TIPO COMPROBANTE
-            // ========================================================
-
-            TipoComprobante? tipoComprobante = null;
-
-            if (factura.IdTipoComprobante > 0)
+            else
             {
                 tipoComprobante =
                     await _context.TipoComprobantes
+                        .AsNoTracking()
                         .FirstOrDefaultAsync(t =>
                             t.IdTipoComprobante ==
-                            factura.IdTipoComprobante);
+                            factura.IdTipoComprobante &&
+                            t.Estado);
 
-                if (tipoComprobante == null ||
-                    !tipoComprobante.Estado)
+                if (tipoComprobante == null)
                 {
                     ModelState.AddModelError(
                         "IdTipoComprobante",
                         "El tipo de comprobante seleccionado no es válido.");
                 }
             }
-            else
+
+            // ========================================================
+            // VALIDAR SERIE
+            // ========================================================
+
+            if (factura.IdSerieFactura <= 0)
             {
                 ModelState.AddModelError(
-                    "IdTipoComprobante",
-                    "Debe seleccionar un tipo de comprobante.");
+                    "IdSerieFactura",
+                    "Debe seleccionar una serie.");
             }
-
-            // ========================================================
-            // SERIE
-            // ========================================================
-
-            SerieFactura? serie = null;
-
-            if (factura.IdSerieFactura > 0)
+            else
             {
                 serie = await _context.SerieFacturas
                     .FirstOrDefaultAsync(s =>
-                        s.IdSerieFactura ==
-                        factura.IdSerieFactura);
+                        s.IdSerieFactura == factura.IdSerieFactura &&
+                        s.Estado);
 
-                if (serie == null ||
-                    !serie.Estado)
+                if (serie == null)
                 {
                     ModelState.AddModelError(
                         "IdSerieFactura",
                         "La serie seleccionada no es válida.");
                 }
             }
-            else
-            {
-                ModelState.AddModelError(
-                    "IdSerieFactura",
-                    "Debe seleccionar una serie.");
-            }
 
             // ========================================================
-            // IMPUESTO / IVA
+            // VALIDAR IMPUESTO
             // ========================================================
-
-            Impuesto? impuesto = null;
 
             if (factura.IdImpuesto.HasValue &&
                 factura.IdImpuesto.Value > 0)
             {
                 impuesto = await _context.Impuestos
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(i =>
-                        i.IdImpuesto ==
-                        factura.IdImpuesto.Value);
+                        i.IdImpuesto == factura.IdImpuesto.Value &&
+                        i.Estado);
 
-                if (impuesto == null ||
-                    !impuesto.Estado)
+                if (impuesto == null)
                 {
                     ModelState.AddModelError(
                         "IdImpuesto",
@@ -343,11 +328,7 @@ namespace WebApplication1.Controllers
             // FECHA
             // ========================================================
 
-            if (factura.FechaFactura == default)
-            {
-                factura.FechaFactura =
-                    DateTime.Now;
-            }
+            factura.FechaFactura = DateTime.Now;
 
             // ========================================================
             // CALCULAR IMPORTES
@@ -361,33 +342,22 @@ namespace WebApplication1.Controllers
                     impuesto);
             }
 
-            // ========================================================
-            // VALIDAR TOTAL
-            // ========================================================
-
-            if (pedido != null &&
-                pedido.Total <= 0)
-            {
-                ModelState.AddModelError(
-                    "IdPedido",
-                    "El pedido seleccionado no tiene un total válido para facturar.");
-            }
-
-            // ========================================================
-            // ESTADO FACTURA
-            // ========================================================
-
             factura.IdEstadoFactura =
                 ESTADO_FACTURA_PENDIENTE;
 
-            var estadoPendiente =
+            // ========================================================
+            // VALIDAR ESTADO PENDIENTE
+            // ========================================================
+
+            bool estadoValido =
                 await _context.EstadoFacturas
-                    .FirstOrDefaultAsync(e =>
+                    .AsNoTracking()
+                    .AnyAsync(e =>
                         e.IdEstadoFactura ==
                         ESTADO_FACTURA_PENDIENTE &&
                         e.Estado);
 
-            if (estadoPendiente == null)
+            if (!estadoValido)
             {
                 ModelState.AddModelError(
                     "",
@@ -401,7 +371,6 @@ namespace WebApplication1.Controllers
             if (!ModelState.IsValid)
             {
                 await CargarListas(factura);
-
                 return View(factura);
             }
 
@@ -414,12 +383,9 @@ namespace WebApplication1.Controllers
 
             try
             {
-                // ----------------------------------------------------
-                // RECARGAR PEDIDO
-                // ----------------------------------------------------
-
                 pedido = await _context.Pedidos
                     .Include(p => p.IdEstadoPedidoNavigation)
+                    .Include(p => p.Factura)
                     .FirstOrDefaultAsync(p =>
                         p.IdPedido == factura.IdPedido);
 
@@ -429,37 +395,25 @@ namespace WebApplication1.Controllers
                         "No se encontró el pedido seleccionado.");
                 }
 
-                // ----------------------------------------------------
-                // VALIDAR QUE SEA ENTREGADO
-                // ----------------------------------------------------
-
                 if (pedido.IdEstadoPedido !=
-                    ESTADO_PEDIDO_ENTREGADO)
+                    ESTADO_PEDIDO_LISTO)
                 {
-                    string estadoActual =
-                        pedido.IdEstadoPedidoNavigation?.Nombre
-                        ?? "desconocido";
-
                     throw new InvalidOperationException(
-                        $"No se puede facturar el pedido porque actualmente " +
-                        $"está en estado \"{estadoActual}\". " +
-                        $"El pedido debe estar en estado \"Entregado\".");
+                        "El pedido debe estar en estado \"Listo\" para poder facturarlo.");
                 }
 
-                // ----------------------------------------------------
-                // VALIDAR FACTURA EXISTENTE
-                // ----------------------------------------------------
+                var facturaPedido = pedido.Factura;
 
-                var yaTieneFactura =
-                    await _context.Facturas
-                        .AnyAsync(f =>
-                            f.IdPedido ==
-                            pedido.IdPedido);
-
-                if (yaTieneFactura)
+                if (facturaPedido != null)
                 {
                     throw new InvalidOperationException(
                         "El pedido seleccionado ya tiene una factura.");
+                }
+
+                if (pedido.Total <= 0)
+                {
+                    throw new InvalidOperationException(
+                        "El pedido no tiene un total válido.");
                 }
 
                 // ----------------------------------------------------
@@ -468,8 +422,7 @@ namespace WebApplication1.Controllers
 
                 moneda = await _context.Moneda
                     .FirstOrDefaultAsync(m =>
-                        m.IdMoneda ==
-                        factura.IdMoneda &&
+                        m.IdMoneda == factura.IdMoneda &&
                         m.Estado);
 
                 if (moneda == null)
@@ -479,7 +432,7 @@ namespace WebApplication1.Controllers
                 }
 
                 // ----------------------------------------------------
-                // RECARGAR TIPO DE COMPROBANTE
+                // RECARGAR TIPO COMPROBANTE
                 // ----------------------------------------------------
 
                 tipoComprobante =
@@ -501,8 +454,7 @@ namespace WebApplication1.Controllers
 
                 serie = await _context.SerieFacturas
                     .FirstOrDefaultAsync(s =>
-                        s.IdSerieFactura ==
-                        factura.IdSerieFactura &&
+                        s.IdSerieFactura == factura.IdSerieFactura &&
                         s.Estado);
 
                 if (serie == null)
@@ -520,12 +472,10 @@ namespace WebApplication1.Controllers
                 if (factura.IdImpuesto.HasValue &&
                     factura.IdImpuesto.Value > 0)
                 {
-                    impuesto =
-                        await _context.Impuestos
-                            .FirstOrDefaultAsync(i =>
-                                i.IdImpuesto ==
-                                factura.IdImpuesto.Value &&
-                                i.Estado);
+                    impuesto = await _context.Impuestos
+                        .FirstOrDefaultAsync(i =>
+                            i.IdImpuesto == factura.IdImpuesto.Value &&
+                            i.Estado);
 
                     if (impuesto == null)
                     {
@@ -535,7 +485,7 @@ namespace WebApplication1.Controllers
                 }
 
                 // ----------------------------------------------------
-                // CALCULAR IMPORTES DEFINITIVAMENTE
+                // RECALCULAR IMPORTES
                 // ----------------------------------------------------
 
                 CalcularImportesFactura(
@@ -545,6 +495,9 @@ namespace WebApplication1.Controllers
 
                 factura.IdEstadoFactura =
                     ESTADO_FACTURA_PENDIENTE;
+
+                factura.FechaFactura =
+                    DateTime.Now;
 
                 factura.IdPedidoNavigation =
                     pedido;
@@ -558,18 +511,21 @@ namespace WebApplication1.Controllers
                 factura.IdSerieFacturaNavigation =
                     serie;
 
-                if (impuesto != null)
-                {
-                    factura.IdImpuestoNavigation =
-                        impuesto;
-                }
+                factura.IdImpuestoNavigation =
+                    impuesto;
 
                 // ----------------------------------------------------
-                // GENERAR NÚMERO
+                // GENERAR CONSECUTIVO
                 // ----------------------------------------------------
 
                 int siguienteNumero =
                     serie.NumeroActual + 1;
+
+                if (siguienteNumero <= 0)
+                {
+                    throw new InvalidOperationException(
+                        "El consecutivo de la serie no es válido.");
+                }
 
                 string numero =
                     siguienteNumero
@@ -582,7 +538,7 @@ namespace WebApplication1.Controllers
                     $"{serie.Prefijo}{numero}";
 
                 // ----------------------------------------------------
-                // VALIDAR NÚMERO
+                // VERIFICAR DUPLICADO
                 // ----------------------------------------------------
 
                 bool numeroExiste =
@@ -610,17 +566,6 @@ namespace WebApplication1.Controllers
 
                 _context.Facturas.Add(factura);
 
-                // ----------------------------------------------------
-                // ENTREGADO → FACTURADO
-                // ----------------------------------------------------
-
-                pedido.IdEstadoPedido =
-                    ESTADO_PEDIDO_FACTURADO;
-
-                // ----------------------------------------------------
-                // GUARDAR
-                // ----------------------------------------------------
-
                 await _context.SaveChangesAsync();
 
                 // ----------------------------------------------------
@@ -642,7 +587,7 @@ namespace WebApplication1.Controllers
                         Observacion =
                             $"Factura #{factura.NumeroFactura} creada " +
                             $"para el pedido #{pedido.IdPedido}. " +
-                            $"Pedido cambiado de Entregado a Facturado. " +
+                            $"El pedido permanece en estado Listo hasta confirmar el pago. " +
                             $"Subtotal: {factura.Subtotal:N2}. " +
                             $"Descuento: {factura.Descuento:N2}. " +
                             $"Impuesto: {factura.Impuesto:N2}. " +
@@ -652,15 +597,9 @@ namespace WebApplication1.Controllers
                             DateTime.Now
                     };
 
-                _context.HistorialFacturas.Add(
-                    historial);
+                _context.HistorialFacturas.Add(historial);
 
                 await _context.SaveChangesAsync();
-
-                // ----------------------------------------------------
-                // COMMIT
-                // ----------------------------------------------------
-
                 await transaction.CommitAsync();
 
                 TempData["Success"] =
@@ -685,14 +624,26 @@ namespace WebApplication1.Controllers
 
                 return View(factura);
             }
-            catch (Exception ex)
+            catch (DbUpdateException)
             {
                 await transaction.RollbackAsync();
 
                 ModelState.AddModelError(
                     "",
-                    "Ocurrió un error al crear la factura: " +
-                    ex.Message);
+                    "No fue posible guardar la factura. " +
+                    "Es posible que el número de factura haya sido utilizado por otra operación.");
+
+                await CargarListas(factura);
+
+                return View(factura);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+
+                ModelState.AddModelError(
+                    "",
+                    "Ocurrió un error inesperado al crear la factura.");
 
                 await CargarListas(factura);
 
@@ -712,16 +663,17 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var factura = await _context.Facturas
-                .Include(f => f.IdPedidoNavigation)
-                .Include(f => f.IdEstadoFacturaNavigation)
-                .Include(f => f.IdMonedaNavigation)
-                .Include(f => f.IdTipoComprobanteNavigation)
-                .Include(f => f.IdSerieFacturaNavigation)
-                .Include(f => f.IdImpuestoNavigation)
-                .Include(f => f.Pagos)
-                .FirstOrDefaultAsync(f =>
-                    f.IdFactura == id.Value);
+            var factura =
+                await _context.Facturas
+                    .Include(f => f.IdPedidoNavigation)
+                        .ThenInclude(p => p!.IdClienteNavigation)
+                    .Include(f => f.IdEstadoFacturaNavigation)
+                    .Include(f => f.IdMonedaNavigation)
+                    .Include(f => f.IdTipoComprobanteNavigation)
+                    .Include(f => f.IdSerieFacturaNavigation)
+                    .Include(f => f.IdImpuestoNavigation)
+                    .FirstOrDefaultAsync(f =>
+                        f.IdFactura == id.Value);
 
             if (factura == null)
             {
@@ -769,6 +721,7 @@ namespace WebApplication1.Controllers
 
             var facturaOriginal =
                 await _context.Facturas
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(f =>
                         f.IdFactura == id);
 
@@ -799,21 +752,26 @@ namespace WebApplication1.Controllers
             }
 
             // ========================================================
-            // NÚMERO Y SERIE
+            // NO CAMBIAR NÚMERO
             // ========================================================
 
             factura.NumeroFactura =
                 facturaOriginal.NumeroFactura;
 
+            // ========================================================
+            // NO CAMBIAR SERIE
+            // ========================================================
+
             factura.IdSerieFactura =
                 facturaOriginal.IdSerieFactura;
 
             // ========================================================
-            // PAGOS
+            // PAGOS CONFIRMADOS
             // ========================================================
 
-            var tienePagos =
+            bool tienePagos =
                 await _context.Pagos
+                    .AsNoTracking()
                     .AnyAsync(p =>
                         p.IdFactura == id &&
                         p.IdEstadoPago ==
@@ -826,10 +784,11 @@ namespace WebApplication1.Controllers
             var moneda =
                 await _context.Moneda
                     .FirstOrDefaultAsync(m =>
-                        m.IdMoneda == factura.IdMoneda);
+                        m.IdMoneda ==
+                        factura.IdMoneda &&
+                        m.Estado);
 
-            if (moneda == null ||
-                !moneda.Estado)
+            if (moneda == null)
             {
                 ModelState.AddModelError(
                     "IdMoneda",
@@ -842,7 +801,7 @@ namespace WebApplication1.Controllers
             {
                 ModelState.AddModelError(
                     "IdMoneda",
-                    "No se puede cambiar la moneda de una factura que ya tiene pagos.");
+                    "No se puede cambiar la moneda de una factura que ya tiene pagos confirmados.");
             }
 
             // ========================================================
@@ -887,18 +846,17 @@ namespace WebApplication1.Controllers
                 }
             }
 
-            // ========================================================
-            // FECHA
-            // ========================================================
-
-            if (factura.FechaFactura == default)
+            if (tienePagos &&
+                factura.IdImpuesto !=
+                facturaOriginal.IdImpuesto)
             {
-                factura.FechaFactura =
-                    facturaOriginal.FechaFactura;
+                ModelState.AddModelError(
+                    "IdImpuesto",
+                    "No se puede cambiar el impuesto de una factura que ya tiene pagos confirmados.");
             }
 
             // ========================================================
-            // IMPORTES
+            // IMPORTES INMUTABLES
             // ========================================================
 
             factura.Subtotal =
@@ -919,19 +877,21 @@ namespace WebApplication1.Controllers
             factura.IdEstadoFactura =
                 facturaOriginal.IdEstadoFactura;
 
+            factura.FechaFactura =
+                facturaOriginal.FechaFactura;
+
             // ========================================================
-            // ERRORES
+            // SI HAY ERRORES
             // ========================================================
 
             if (!ModelState.IsValid)
             {
                 await CargarListas(factura);
-
                 return View(factura);
             }
 
             // ========================================================
-            // ACTUALIZAR
+            // TRANSACCIÓN
             // ========================================================
 
             await using var transaction =
@@ -939,58 +899,188 @@ namespace WebApplication1.Controllers
 
             try
             {
-                facturaOriginal.IdMoneda =
+                var facturaDb =
+                    await _context.Facturas
+                        .FirstOrDefaultAsync(f =>
+                            f.IdFactura == id);
+
+                if (facturaDb == null)
+                {
+                    throw new InvalidOperationException(
+                        "La factura ya no existe.");
+                }
+
+                if (facturaDb.IdEstadoFactura ==
+                    ESTADO_FACTURA_ANULADA)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede modificar una factura anulada.");
+                }
+
+                // ----------------------------------------------------
+                // REVALIDAR PAGOS
+                // ----------------------------------------------------
+
+                tienePagos =
+                    await _context.Pagos
+                        .AsNoTracking()
+                        .AnyAsync(p =>
+                            p.IdFactura == id &&
+                            p.IdEstadoPago ==
+                            ESTADO_PAGO_CONFIRMADO);
+
+                if (tienePagos &&
+                    factura.IdMoneda !=
+                    facturaDb.IdMoneda)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede cambiar la moneda porque la factura tiene pagos confirmados.");
+                }
+
+                if (tienePagos &&
+                    factura.IdImpuesto !=
+                    facturaDb.IdImpuesto)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede cambiar el impuesto porque la factura tiene pagos confirmados.");
+                }
+
+                // ----------------------------------------------------
+                // VALIDAR MONEDA
+                // ----------------------------------------------------
+
+                moneda =
+                    await _context.Moneda
+                        .FirstOrDefaultAsync(m =>
+                            m.IdMoneda ==
+                            factura.IdMoneda &&
+                            m.Estado);
+
+                if (moneda == null)
+                {
+                    throw new InvalidOperationException(
+                        "La moneda seleccionada no está disponible.");
+                }
+
+                // ----------------------------------------------------
+                // VALIDAR TIPO COMPROBANTE
+                // ----------------------------------------------------
+
+                tipoComprobante =
+                    await _context.TipoComprobantes
+                        .FirstOrDefaultAsync(t =>
+                            t.IdTipoComprobante ==
+                            factura.IdTipoComprobante &&
+                            t.Estado);
+
+                if (tipoComprobante == null)
+                {
+                    throw new InvalidOperationException(
+                        "El tipo de comprobante seleccionado no está disponible.");
+                }
+
+                // ----------------------------------------------------
+                // VALIDAR IMPUESTO
+                // ----------------------------------------------------
+
+                impuesto = null;
+
+                if (factura.IdImpuesto.HasValue &&
+                    factura.IdImpuesto.Value > 0)
+                {
+                    impuesto =
+                        await _context.Impuestos
+                            .FirstOrDefaultAsync(i =>
+                                i.IdImpuesto ==
+                                factura.IdImpuesto.Value &&
+                                i.Estado);
+
+                    if (impuesto == null)
+                    {
+                        throw new InvalidOperationException(
+                            "El impuesto seleccionado no está disponible.");
+                    }
+                }
+
+                // ----------------------------------------------------
+                // ACTUALIZAR SOLO CAMPOS PERMITIDOS
+                // ----------------------------------------------------
+
+                facturaDb.IdMoneda =
                     factura.IdMoneda;
 
-                facturaOriginal.IdTipoComprobante =
+                facturaDb.IdTipoComprobante =
                     factura.IdTipoComprobante;
 
-                facturaOriginal.IdImpuesto =
+                facturaDb.IdImpuesto =
                     factura.IdImpuesto;
 
-                facturaOriginal.FechaFactura =
-                    factura.FechaFactura;
-
-                facturaOriginal.Observacion =
+                facturaDb.Observacion =
                     factura.Observacion;
 
                 await _context.SaveChangesAsync();
+
+                // ----------------------------------------------------
+                // HISTORIAL
+                // ----------------------------------------------------
 
                 var historial =
                     new HistorialFactura
                     {
                         IdFactura =
-                            facturaOriginal.IdFactura,
+                            facturaDb.IdFactura,
 
                         IdEstadoFactura =
-                            facturaOriginal.IdEstadoFactura,
+                            facturaDb.IdEstadoFactura,
 
                         IdUsuario =
                             idUsuario,
 
                         Observacion =
-                            $"Factura #{facturaOriginal.NumeroFactura} modificada.",
+                            $"Factura #{facturaDb.NumeroFactura} modificada.",
 
                         Fecha =
                             DateTime.Now
                     };
 
-                _context.HistorialFacturas.Add(
-                    historial);
+                _context.HistorialFacturas.Add(historial);
 
                 await _context.SaveChangesAsync();
-
                 await transaction.CommitAsync();
 
                 TempData["Success"] =
-                    $"Factura #{facturaOriginal.NumeroFactura} actualizada correctamente.";
+                    $"Factura #{facturaDb.NumeroFactura} actualizada correctamente.";
 
                 return RedirectToAction(
                     nameof(Details),
                     new
                     {
-                        id = facturaOriginal.IdFactura
+                        id = facturaDb.IdFactura
                     });
+            }
+            catch (InvalidOperationException ex)
+            {
+                await transaction.RollbackAsync();
+
+                ModelState.AddModelError(
+                    "",
+                    ex.Message);
+
+                await CargarListas(factura);
+
+                return View(factura);
+            }
+            catch (DbUpdateException)
+            {
+                await transaction.RollbackAsync();
+
+                ModelState.AddModelError(
+                    "",
+                    "No fue posible modificar la factura.");
+
+                await CargarListas(factura);
+
+                return View(factura);
             }
             catch (Exception)
             {
@@ -1018,15 +1108,18 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var factura = await _context.Facturas
-                .Include(f => f.IdPedidoNavigation)
-                .Include(f => f.IdEstadoFacturaNavigation)
-                .Include(f => f.IdMonedaNavigation)
-                .Include(f => f.IdTipoComprobanteNavigation)
-                .Include(f => f.IdSerieFacturaNavigation)
-                .Include(f => f.IdMotivoAnulacionNavigation)
-                .FirstOrDefaultAsync(f =>
-                    f.IdFactura == id.Value);
+            var factura =
+                await _context.Facturas
+                    .AsNoTracking()
+                    .Include(f => f.IdPedidoNavigation)
+                        .ThenInclude(p => p!.IdClienteNavigation)
+                    .Include(f => f.IdEstadoFacturaNavigation)
+                    .Include(f => f.IdMonedaNavigation)
+                    .Include(f => f.IdTipoComprobanteNavigation)
+                    .Include(f => f.IdSerieFacturaNavigation)
+                    .Include(f => f.IdMotivoAnulacionNavigation)
+                    .FirstOrDefaultAsync(f =>
+                        f.IdFactura == id.Value);
 
             if (factura == null)
             {
@@ -1048,7 +1141,7 @@ namespace WebApplication1.Controllers
         }
 
         // ============================================================
-        // DELETE POST
+        // DELETE POST - ANULAR
         // ============================================================
 
         [HttpPost]
@@ -1095,6 +1188,7 @@ namespace WebApplication1.Controllers
 
             var motivo =
                 await _context.MotivoAnulacions
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(m =>
                         m.IdMotivoAnulacion ==
                         idMotivoAnulacion &&
@@ -1111,14 +1205,14 @@ namespace WebApplication1.Controllers
             }
 
             // ========================================================
-            // PAGOS
+            // PAGOS CONFIRMADOS
             // ========================================================
 
-            var tienePagos =
+            bool tienePagos =
                 await _context.Pagos
+                    .AsNoTracking()
                     .AnyAsync(p =>
-                        p.IdFactura ==
-                        factura.IdFactura &&
+                        p.IdFactura == factura.IdFactura &&
                         p.IdEstadoPago ==
                         ESTADO_PAGO_CONFIRMADO);
 
@@ -1132,11 +1226,56 @@ namespace WebApplication1.Controllers
                     new { id });
             }
 
+            // ========================================================
+            // TRANSACCIÓN
+            // ========================================================
+
             await using var transaction =
                 await _context.Database.BeginTransactionAsync();
 
             try
             {
+                factura =
+                    await _context.Facturas
+                        .FirstOrDefaultAsync(f =>
+                            f.IdFactura == id);
+
+                if (factura == null)
+                {
+                    throw new InvalidOperationException(
+                        "La factura ya no existe.");
+                }
+
+                if (factura.IdEstadoFactura ==
+                    ESTADO_FACTURA_ANULADA)
+                {
+                    throw new InvalidOperationException(
+                        "La factura ya se encuentra anulada.");
+                }
+
+                // ----------------------------------------------------
+                // VERIFICAR PAGOS NUEVAMENTE
+                // ----------------------------------------------------
+
+                tienePagos =
+                    await _context.Pagos
+                        .AsNoTracking()
+                        .AnyAsync(p =>
+                            p.IdFactura ==
+                            factura.IdFactura &&
+                            p.IdEstadoPago ==
+                            ESTADO_PAGO_CONFIRMADO);
+
+                if (tienePagos)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede anular la factura porque tiene pagos confirmados.");
+                }
+
+                // ----------------------------------------------------
+                // ANULAR
+                // ----------------------------------------------------
+
                 factura.IdEstadoFactura =
                     ESTADO_FACTURA_ANULADA;
 
@@ -1150,7 +1289,25 @@ namespace WebApplication1.Controllers
                     idUsuario;
 
                 factura.ObservacionAnulacion =
-                    observacionAnulacion;
+                    string.IsNullOrWhiteSpace(
+                        observacionAnulacion)
+                        ? null
+                        : observacionAnulacion.Trim();
+
+                // ----------------------------------------------------
+                // HISTORIAL
+                // ----------------------------------------------------
+
+                string observacion =
+                    $"Factura #{factura.NumeroFactura} anulada. " +
+                    $"Motivo: {motivo.Nombre}.";
+
+                if (!string.IsNullOrWhiteSpace(
+                    observacionAnulacion))
+                {
+                    observacion +=
+                        $" Observación: {observacionAnulacion.Trim()}";
+                }
 
                 var historial =
                     new HistorialFactura
@@ -1165,25 +1322,43 @@ namespace WebApplication1.Controllers
                             idUsuario,
 
                         Observacion =
-                            $"Factura #{factura.NumeroFactura} anulada. " +
-                            $"Motivo: {motivo.Nombre}. " +
-                            $"{observacionAnulacion}",
+                            observacion,
 
                         Fecha =
                             DateTime.Now
                     };
 
-                _context.HistorialFacturas.Add(
-                    historial);
+                _context.HistorialFacturas.Add(historial);
 
                 await _context.SaveChangesAsync();
-
                 await transaction.CommitAsync();
 
                 TempData["Success"] =
                     $"Factura #{factura.NumeroFactura} anulada correctamente.";
 
                 return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                await transaction.RollbackAsync();
+
+                TempData["Error"] =
+                    ex.Message;
+
+                return RedirectToAction(
+                    nameof(Delete),
+                    new { id });
+            }
+            catch (DbUpdateException)
+            {
+                await transaction.RollbackAsync();
+
+                TempData["Error"] =
+                    "No fue posible anular la factura.";
+
+                return RedirectToAction(
+                    nameof(Delete),
+                    new { id });
             }
             catch (Exception)
             {
@@ -1211,13 +1386,19 @@ namespace WebApplication1.Controllers
         {
             var query =
                 _context.Facturas
+                    .AsNoTracking()
                     .Include(f => f.IdPedidoNavigation)
+                        .ThenInclude(p => p!.IdClienteNavigation)
                     .Include(f => f.IdEstadoFacturaNavigation)
                     .Include(f => f.IdMonedaNavigation)
                     .Include(f => f.IdTipoComprobanteNavigation)
                     .Include(f => f.IdSerieFacturaNavigation)
                     .Include(f => f.IdImpuestoNavigation)
                     .AsQueryable();
+
+            // ========================================================
+            // TEXTO / NÚMERO
+            // ========================================================
 
             if (!string.IsNullOrWhiteSpace(buscar))
             {
@@ -1227,49 +1408,80 @@ namespace WebApplication1.Controllers
                     buscar,
                     out int numero))
                 {
-                    query = query.Where(f =>
-                        f.IdFactura == numero ||
-                        f.IdPedido == numero);
+                    query =
+                        query.Where(f =>
+                            f.IdFactura == numero ||
+                            f.IdPedido == numero);
                 }
                 else
                 {
-                    query = query.Where(f =>
-                        f.NumeroFactura.Contains(buscar) ||
-                        f.IdPedidoNavigation.NumeroPedido.Contains(buscar));
+                    query =
+                          query.Where(f =>
+                             (f.NumeroFactura != null &&
+                              f.NumeroFactura.Contains(buscar)) ||
+                                 (f.IdPedidoNavigation != null &&
+                                   f.IdPedidoNavigation.NumeroPedido != null &&
+                                     f.IdPedidoNavigation.NumeroPedido.Contains(buscar)));
+
                 }
             }
 
+            // ========================================================
+            // FECHA INICIO
+            // ========================================================
+
             if (fechaInicio.HasValue)
             {
-                var fecha =
+                DateTime fecha =
                     fechaInicio.Value.Date;
 
-                query = query.Where(f =>
-                    f.FechaFactura >= fecha);
+                query =
+                    query.Where(f =>
+                        f.FechaFactura >= fecha);
             }
+
+            // ========================================================
+            // FECHA FIN
+            // ========================================================
 
             if (fechaFin.HasValue)
             {
-                var fechaHasta =
+                DateTime fechaHasta =
                     fechaFin.Value.Date.AddDays(1);
 
-                query = query.Where(f =>
-                    f.FechaFactura < fechaHasta);
+                query =
+                    query.Where(f =>
+                        f.FechaFactura < fechaHasta);
             }
+
+            // ========================================================
+            // ESTADO
+            // ========================================================
 
             if (idEstadoFactura.HasValue &&
                 idEstadoFactura.Value > 0)
             {
-                query = query.Where(f =>
-                    f.IdEstadoFactura ==
-                    idEstadoFactura.Value);
+                query =
+                    query.Where(f =>
+                        f.IdEstadoFactura ==
+                        idEstadoFactura.Value);
             }
+
+            // ========================================================
+            // RESULTADO
+            // ========================================================
 
             var facturas =
                 await query
                     .OrderByDescending(f =>
                         f.FechaFactura)
+                    .ThenByDescending(f =>
+                        f.IdFactura)
                     .ToListAsync();
+
+            // ========================================================
+            // DATOS PARA LA VISTA
+            // ========================================================
 
             ViewBag.Buscar = buscar;
             ViewBag.FechaInicio = fechaInicio;
@@ -1278,10 +1490,9 @@ namespace WebApplication1.Controllers
 
             ViewBag.EstadosFactura =
                 await _context.EstadoFacturas
-                    .Where(e =>
-                        e.Estado)
-                    .OrderBy(e =>
-                        e.IdEstadoFactura)
+                    .AsNoTracking()
+                    .Where(e => e.Estado)
+                    .OrderBy(e => e.IdEstadoFactura)
                     .ToListAsync();
 
             return View(facturas);
@@ -1296,6 +1507,7 @@ namespace WebApplication1.Controllers
         {
             var factura =
                 await _context.Facturas
+                    .AsNoTracking()
                     .Include(f =>
                         f.IdEstadoFacturaNavigation)
                     .FirstOrDefaultAsync(f =>
@@ -1308,6 +1520,7 @@ namespace WebApplication1.Controllers
 
             var historial =
                 await _context.HistorialFacturas
+                    .AsNoTracking()
                     .Include(h =>
                         h.IdEstadoFacturaNavigation)
                     .Include(h =>
@@ -1331,10 +1544,24 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> CreateParaPedido(
             int id)
         {
+            if (ObtenerUsuarioActual() <= 0)
+            {
+                TempData["Error"] =
+                    "No se pudo identificar al usuario actual.";
+
+                return RedirectToAction(
+                    "Index",
+                    "Home");
+            }
+
             var pedido =
                 await _context.Pedidos
+                    .AsNoTracking()
                     .Include(p => p.Factura)
-                    .Include(p => p.IdEstadoPedidoNavigation)
+                    .Include(p =>
+                        p.IdEstadoPedidoNavigation)
+                    .Include(p =>
+                        p.IdClienteNavigation)
                     .FirstOrDefaultAsync(p =>
                         p.IdPedido == id);
 
@@ -1344,11 +1571,11 @@ namespace WebApplication1.Controllers
             }
 
             // ========================================================
-            // SOLO PEDIDOS ENTREGADOS
+            // VALIDAR ESTADO
             // ========================================================
 
             if (pedido.IdEstadoPedido !=
-                ESTADO_PEDIDO_ENTREGADO)
+                ESTADO_PEDIDO_LISTO)
             {
                 string estadoActual =
                     pedido.IdEstadoPedidoNavigation?.Nombre
@@ -1357,19 +1584,25 @@ namespace WebApplication1.Controllers
                 TempData["Error"] =
                     $"No se puede facturar este pedido. " +
                     $"Actualmente está en estado \"{estadoActual}\". " +
-                    $"El pedido debe estar en estado \"Entregado\".";
+                    $"El pedido debe estar en estado \"Listo\".";
 
                 return RedirectToAction(
                     "Details",
                     "Pedido",
-                    new { id = pedido.IdPedido });
+                    new
+                    {
+                        id = pedido.IdPedido
+                    });
             }
 
             // ========================================================
             // YA FACTURADO
             // ========================================================
 
-            if (pedido.Factura != null)
+            var facturaExistente =
+                pedido.Factura;
+
+            if (facturaExistente != null)
             {
                 TempData["Error"] =
                     "El pedido ya tiene una factura asociada.";
@@ -1378,12 +1611,30 @@ namespace WebApplication1.Controllers
                     nameof(Details),
                     new
                     {
-                        id = pedido.Factura.IdFactura
+                        id = facturaExistente.IdFactura
                     });
             }
 
             // ========================================================
-            // CREAR MODELO CON IMPORTES DEL PEDIDO
+            // VALIDAR TOTAL
+            // ========================================================
+
+            if (pedido.Total <= 0)
+            {
+                TempData["Error"] =
+                    "El pedido no tiene un total válido para facturar.";
+
+                return RedirectToAction(
+                    "Details",
+                    "Pedido",
+                    new
+                    {
+                        id = pedido.IdPedido
+                    });
+            }
+
+            // ========================================================
+            // CREAR FACTURA
             // ========================================================
 
             var factura =
@@ -1393,19 +1644,29 @@ namespace WebApplication1.Controllers
                         pedido.IdPedido,
 
                     Subtotal =
-                        pedido.Subtotal,
+                        Math.Round(
+                            pedido.Subtotal,
+                            2),
 
                     Descuento =
-                        pedido.Descuento,
+                        Math.Round(
+                            pedido.Descuento,
+                            2),
 
                     Impuesto =
-                        pedido.Impuesto,
+                        Math.Round(
+                            pedido.Impuesto,
+                            2),
 
                     Total =
-                        pedido.Total,
+                        Math.Round(
+                            pedido.Total,
+                            2),
 
                     SaldoPendiente =
-                        pedido.Total,
+                        Math.Round(
+                            pedido.Total,
+                            2),
 
                     IdEstadoFactura =
                         ESTADO_FACTURA_PENDIENTE,
@@ -1416,8 +1677,7 @@ namespace WebApplication1.Controllers
 
             await CargarListas(factura);
 
-            ViewBag.Pedido =
-                pedido;
+            ViewBag.Pedido = pedido;
 
             return View(
                 "Create",
@@ -1425,7 +1685,7 @@ namespace WebApplication1.Controllers
         }
 
         // ============================================================
-        // CALCULAR IMPORTES DE FACTURA
+        // CALCULAR IMPORTES
         // ============================================================
 
         private void CalcularImportesFactura(
@@ -1433,80 +1693,137 @@ namespace WebApplication1.Controllers
             Pedido pedido,
             Impuesto? impuesto)
         {
-            // --------------------------------------------------------
-            // SUBTOTAL Y DESCUENTO VIENEN DEL PEDIDO
-            // --------------------------------------------------------
-
             decimal subtotal =
-                pedido.Subtotal;
+                Math.Round(
+                    pedido.Subtotal,
+                    2);
 
             decimal descuento =
-                pedido.Descuento;
+                Math.Round(
+                    pedido.Descuento,
+                    2);
 
-            // --------------------------------------------------------
-            // BASE IMPONIBLE
-            // --------------------------------------------------------
-
-            decimal baseImponible =
-                subtotal - descuento;
-
-            if (baseImponible < 0)
+            if (subtotal < 0)
             {
-                baseImponible = 0;
+                subtotal = 0;
             }
 
-            // --------------------------------------------------------
-            // IVA / IMPUESTO
-            // --------------------------------------------------------
+            if (descuento < 0)
+            {
+                descuento = 0;
+            }
 
-            decimal importeImpuesto = 0m;
+            if (descuento > subtotal)
+            {
+                descuento = subtotal;
+            }
+
+            decimal baseImponible =
+                Math.Round(
+                    subtotal - descuento,
+                    2);
+
+            decimal importeImpuesto;
 
             if (impuesto != null)
             {
+                decimal porcentaje =
+                    impuesto.Porcentaje;
+
+                if (porcentaje < 0)
+                {
+                    porcentaje = 0;
+                }
+
                 importeImpuesto =
                     Math.Round(
                         baseImponible *
-                        (impuesto.Porcentaje / 100m),
+                        (porcentaje / 100m),
                         2);
             }
             else
             {
                 importeImpuesto =
-                    pedido.Impuesto;
+                    Math.Round(
+                        Math.Max(
+                            pedido.Impuesto,
+                            0m),
+                        2);
             }
 
-            // --------------------------------------------------------
-            // TOTAL
-            // --------------------------------------------------------
-
             decimal total =
-                baseImponible +
-                importeImpuesto;
-
-            factura.Subtotal =
                 Math.Round(
-                    subtotal,
-                    2);
-
-            factura.Descuento =
-                Math.Round(
-                    descuento,
-                    2);
-
-            factura.Impuesto =
-                Math.Round(
+                    baseImponible +
                     importeImpuesto,
                     2);
 
+            factura.Subtotal =
+                subtotal;
+
+            factura.Descuento =
+                descuento;
+
+            factura.Impuesto =
+                importeImpuesto;
+
             factura.Total =
-                Math.Round(
-                    total,
-                    2);
+                total;
 
             factura.SaldoPendiente =
-                Math.Round(
-                    total,
-                    2);
+                total;
+        }
+
+        // ============================================================
+        // ACTUALIZAR ESTADO FACTURA
+        // ============================================================
+
+        private void ActualizarEstadoFactura(
+            Factura factura)
+        {
+            if (factura.IdEstadoFactura ==
+                ESTADO_FACTURA_ANULADA)
+            {
+                return;
+            }
+
+            if (factura.Total < 0)
+            {
+                factura.Total = 0;
+            }
+
+            if (factura.SaldoPendiente < 0)
+            {
+                factura.SaldoPendiente = 0;
+            }
+
+            if (factura.SaldoPendiente >
+                factura.Total)
+            {
+                factura.SaldoPendiente =
+                    factura.Total;
+            }
+
+            if (factura.SaldoPendiente <= 0)
+            {
+                factura.SaldoPendiente = 0;
+
+                factura.IdEstadoFactura =
+                    ESTADO_FACTURA_PAGADA;
+
+                return;
+            }
+
+            if (factura.SaldoPendiente <
+                factura.Total)
+            {
+                factura.IdEstadoFactura =
+                    ESTADO_FACTURA_PARCIAL;
+
+                return;
+            }
+
+            factura.IdEstadoFactura =
+                ESTADO_FACTURA_PENDIENTE;
         }
 
         // ============================================================
@@ -1516,145 +1833,118 @@ namespace WebApplication1.Controllers
         private async Task CargarListas(
             Factura? factura = null)
         {
-            // --------------------------------------------------------
-            // PEDIDOS DISPONIBLES PARA FACTURAR
-            // --------------------------------------------------------
-            // IMPORTANTE:
-            // Solo aparecen pedidos:
-            //
-            //   1. Sin factura
-            //   2. Entregados
-            //
-            // Por tanto NO aparecerán:
-            //
-            //   Pendiente
-            //   En cocina
-            //   Preparándose
-            //   Listo
-            //   Facturado
-            //   Cancelado
-            // --------------------------------------------------------
-
             var pedidos =
                 await _context.Pedidos
-                    .Include(p =>
-                        p.Factura)
-                    .Include(p =>
-                        p.IdEstadoPedidoNavigation)
+                    .AsNoTracking()
+                    .Include(p => p.Factura)
+                    .Include(p => p.IdEstadoPedidoNavigation)
+                    .Include(p => p.IdClienteNavigation)
                     .Where(p =>
                         p.Factura == null &&
                         p.IdEstadoPedido ==
-                        ESTADO_PEDIDO_ENTREGADO)
+                        ESTADO_PEDIDO_LISTO)
                     .OrderByDescending(p =>
                         p.FechaPedido)
                     .ToListAsync();
 
-            // --------------------------------------------------------
-            // AGREGAR PEDIDO ACTUAL SI ES NECESARIO
-            // --------------------------------------------------------
+            // ========================================================
+            // PEDIDO ACTUAL
+            // ========================================================
 
             if (factura != null &&
                 factura.IdPedido > 0)
             {
                 var pedidoActual =
                     await _context.Pedidos
-                        .Include(p =>
-                            p.IdEstadoPedidoNavigation)
-                        .Include(p =>
-                            p.Factura)
+                        .AsNoTracking()
+                        .Include(p => p.Factura)
+                        .Include(p => p.IdEstadoPedidoNavigation)
+                        .Include(p => p.IdClienteNavigation)
                         .FirstOrDefaultAsync(p =>
                             p.IdPedido ==
                             factura.IdPedido);
 
                 if (pedidoActual != null &&
                     pedidoActual.IdEstadoPedido ==
-                    ESTADO_PEDIDO_ENTREGADO &&
+                    ESTADO_PEDIDO_LISTO &&
                     pedidoActual.Factura == null &&
                     !pedidos.Any(p =>
                         p.IdPedido ==
                         pedidoActual.IdPedido))
                 {
-                    pedidos.Add(
-                        pedidoActual);
+                    pedidos.Add(pedidoActual);
                 }
             }
 
-            ViewBag.Pedidos =
-                pedidos;
+            ViewBag.Pedidos = pedidos;
 
-            // --------------------------------------------------------
+            // ========================================================
             // MONEDAS
-            // --------------------------------------------------------
+            // ========================================================
 
             ViewBag.Monedas =
                 await _context.Moneda
-                    .Where(m =>
-                        m.Estado)
-                    .OrderBy(m =>
-                        m.Nombre)
+                    .AsNoTracking()
+                    .Where(m => m.Estado)
+                    .OrderBy(m => m.Nombre)
                     .ToListAsync();
 
-            // --------------------------------------------------------
-            // TIPOS DE COMPROBANTE
-            // --------------------------------------------------------
+            // ========================================================
+            // TIPOS COMPROBANTE
+            // ========================================================
 
             ViewBag.TiposComprobante =
                 await _context.TipoComprobantes
-                    .Where(t =>
-                        t.Estado)
-                    .OrderBy(t =>
-                        t.Nombre)
+                    .AsNoTracking()
+                    .Where(t => t.Estado)
+                    .OrderBy(t => t.Nombre)
                     .ToListAsync();
 
-            // --------------------------------------------------------
+            // ========================================================
             // SERIES
-            // --------------------------------------------------------
+            // ========================================================
 
             ViewBag.SeriesFactura =
                 await _context.SerieFacturas
-                    .Where(s =>
-                        s.Estado)
-                    .OrderBy(s =>
-                        s.Nombre)
+                    .AsNoTracking()
+                    .Where(s => s.Estado)
+                    .OrderBy(s => s.Nombre)
                     .ToListAsync();
 
-            // --------------------------------------------------------
+            // ========================================================
             // IMPUESTOS
-            // --------------------------------------------------------
+            // ========================================================
 
             ViewBag.Impuestos =
                 await _context.Impuestos
-                    .Where(i =>
-                        i.Estado)
-                    .OrderBy(i =>
-                        i.Nombre)
+                    .AsNoTracking()
+                    .Where(i => i.Estado)
+                    .OrderBy(i => i.Nombre)
                     .ToListAsync();
 
-            // --------------------------------------------------------
-            // ESTADOS FACTURA
-            // --------------------------------------------------------
+            // ========================================================
+            // ESTADOS
+            // ========================================================
 
             ViewBag.EstadosFactura =
                 await _context.EstadoFacturas
-                    .Where(e =>
-                        e.Estado)
-                    .OrderBy(e =>
-                        e.IdEstadoFactura)
+                    .AsNoTracking()
+                    .Where(e => e.Estado)
+                    .OrderBy(e => e.IdEstadoFactura)
                     .ToListAsync();
         }
 
         // ============================================================
-        // CARGAR MOTIVOS DE ANULACIÓN
+        // MOTIVOS DE ANULACIÓN
         // ============================================================
 
         private async Task CargarListasAnulacion()
         {
             ViewBag.MotivosAnulacion =
                 await _context.MotivoAnulacions
-                    .Where(m =>
-                        m.Estado)
-                    .OrderBy(m =>
-                        m.Nombre)
+                    .AsNoTracking()
+                    .Where(m => m.Estado)
+                    .OrderBy(m => m.Nombre)
                     .ToListAsync();
         }
 
@@ -1681,46 +1971,15 @@ namespace WebApplication1.Controllers
         }
 
         // ============================================================
-        // ACTUALIZAR ESTADO FACTURA
-        // ============================================================
-
-        private void ActualizarEstadoFactura(
-            Factura factura)
-        {
-            if (factura.IdEstadoFactura ==
-                ESTADO_FACTURA_ANULADA)
-            {
-                return;
-            }
-
-            if (factura.SaldoPendiente <= 0)
-            {
-                factura.SaldoPendiente = 0;
-
-                factura.IdEstadoFactura =
-                    ESTADO_FACTURA_PAGADA;
-            }
-            else if (factura.SaldoPendiente <
-                     factura.Total)
-            {
-                factura.IdEstadoFactura =
-                    ESTADO_FACTURA_PARCIAL;
-            }
-            else
-            {
-                factura.IdEstadoFactura =
-                    ESTADO_FACTURA_PENDIENTE;
-            }
-        }
-
-        // ============================================================
         // FACTURA EXISTS
         // ============================================================
 
-        private bool FacturaExists(int id)
+        private async Task<bool> FacturaExistsAsync(
+            int id)
         {
-            return _context.Facturas
-                .Any(f =>
+            return await _context.Facturas
+                .AsNoTracking()
+                .AnyAsync(f =>
                     f.IdFactura == id);
         }
     }

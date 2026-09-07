@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
@@ -219,10 +220,12 @@ namespace WebApplication1.Controllers
             int idUsuario = ObtenerUsuarioActual();
 
             caja.IdUsuario = idUsuario;
+
             caja.IdEstadoCaja =
                 estadoAbierta!.IdEstadoCaja;
 
             caja.FechaApertura = DateTime.Now;
+
             caja.FechaCierre = null;
 
             caja.TotalIngresos = 0;
@@ -380,8 +383,10 @@ namespace WebApplication1.Controllers
             await ActualizarTotalesCaja(caja);
 
             caja.TotalContado = totalContado;
+
             caja.TotalContadoCordobas =
                 totalContadoCordobas;
+
             caja.TotalContadoDolares =
                 totalContadoDolares;
 
@@ -508,7 +513,17 @@ namespace WebApplication1.Controllers
                 Anulado = false
             };
 
-            return View(movimiento);
+            // ========================================================
+            // IMPORTANTE
+            // ========================================================
+            // La acción se llama CrearMovimiento,
+            // pero el archivo de vista se llama:
+            //
+            // Views/Caja/RegistrarMovimiento.cshtml
+            //
+            return View(
+                "RegistrarMovimiento",
+                movimiento);
         }
 
         // ============================================================
@@ -586,14 +601,28 @@ namespace WebApplication1.Controllers
 
                 ViewBag.Caja = caja;
 
-                return View(movimiento);
+                // ====================================================
+                // IMPORTANTE
+                // ====================================================
+                // Si hay errores de validación, también debemos
+                // regresar explícitamente a RegistrarMovimiento.cshtml.
+                //
+                return View(
+                    "RegistrarMovimiento",
+                    movimiento);
             }
 
             movimiento.IdPago = null;
-            movimiento.FechaMovimiento = DateTime.Now;
+
+            movimiento.FechaMovimiento =
+                DateTime.Now;
+
             movimiento.Anulado = false;
+
             movimiento.FechaAnulacion = null;
+
             movimiento.IdUsuarioAnulo = null;
+
             movimiento.MotivoAnulacion = null;
 
             await using var transaction =
@@ -601,11 +630,13 @@ namespace WebApplication1.Controllers
 
             try
             {
-                _context.MovimientoCajas.Add(movimiento);
+                _context.MovimientoCajas.Add(
+                    movimiento);
 
                 await _context.SaveChangesAsync();
 
-                await ActualizarTotalesCaja(caja);
+                await ActualizarTotalesCaja(
+                    caja);
 
                 await _context.SaveChangesAsync();
 
@@ -616,7 +647,10 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Movimientos),
-                    new { id = caja.IdCaja });
+                    new
+                    {
+                        id = caja.IdCaja
+                    });
             }
             catch
             {
@@ -631,7 +665,13 @@ namespace WebApplication1.Controllers
 
                 ViewBag.Caja = caja;
 
-                return View(movimiento);
+                // ====================================================
+                // IMPORTANTE
+                // ====================================================
+
+                return View(
+                    "RegistrarMovimiento",
+                    movimiento);
             }
         }
 
@@ -640,7 +680,8 @@ namespace WebApplication1.Controllers
         // ============================================================
 
         [HttpGet]
-        public async Task<IActionResult> AnularMovimiento(int? id)
+        public async Task<IActionResult> AnularMovimiento(
+            int? id)
         {
             if (id == null)
             {
@@ -667,7 +708,10 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Movimientos),
-                    new { id = movimiento.IdCaja });
+                    new
+                    {
+                        id = movimiento.IdCaja
+                    });
             }
 
             return View(movimiento);
@@ -700,10 +744,14 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Movimientos),
-                    new { id = movimiento.IdCaja });
+                    new
+                    {
+                        id = movimiento.IdCaja
+                    });
             }
 
-            if (string.IsNullOrWhiteSpace(motivoAnulacion))
+            if (string.IsNullOrWhiteSpace(
+                motivoAnulacion))
             {
                 ModelState.AddModelError(
                     "MotivoAnulacion",
@@ -711,10 +759,14 @@ namespace WebApplication1.Controllers
 
                 var movimientoView =
                     await _context.MovimientoCajas
-                        .Include(m => m.IdCajaNavigation)
-                        .Include(m => m.IdTipoMovimientoNavigation)
-                        .Include(m => m.IdMonedaNavigation)
-                        .Include(m => m.IdPagoNavigation)
+                        .Include(m =>
+                            m.IdCajaNavigation)
+                        .Include(m =>
+                            m.IdTipoMovimientoNavigation)
+                        .Include(m =>
+                            m.IdMonedaNavigation)
+                        .Include(m =>
+                            m.IdPagoNavigation)
                         .FirstOrDefaultAsync(m =>
                             m.IdMovimientoCaja == id);
 
@@ -722,7 +774,8 @@ namespace WebApplication1.Controllers
             }
 
             var caja = await _context.Cajas
-                .Include(c => c.IdEstadoCajaNavigation)
+                .Include(c =>
+                    c.IdEstadoCajaNavigation)
                 .FirstOrDefaultAsync(c =>
                     c.IdCaja == movimiento.IdCaja);
 
@@ -738,12 +791,14 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Movimientos),
-                    new { id = movimiento.IdCaja });
+                    new
+                    {
+                        id = movimiento.IdCaja
+                    });
             }
 
             // ========================================================
-            // LOS MOVIMIENTOS ASOCIADOS A PAGOS SE
-            // ANULAN DESDE PagoController
+            // MOVIMIENTOS ASOCIADOS A PAGOS
             // ========================================================
 
             if (movimiento.IdPago.HasValue)
@@ -754,7 +809,10 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Movimientos),
-                    new { id = movimiento.IdCaja });
+                    new
+                    {
+                        id = movimiento.IdCaja
+                    });
             }
 
             await using var transaction =
@@ -775,7 +833,8 @@ namespace WebApplication1.Controllers
 
                 await _context.SaveChangesAsync();
 
-                await ActualizarTotalesCaja(caja);
+                await ActualizarTotalesCaja(
+                    caja);
 
                 await _context.SaveChangesAsync();
 
@@ -786,7 +845,10 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Movimientos),
-                    new { id = movimiento.IdCaja });
+                    new
+                    {
+                        id = movimiento.IdCaja
+                    });
             }
             catch
             {
@@ -797,32 +859,24 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Movimientos),
-                    new { id = movimiento.IdCaja });
+                    new
+                    {
+                        id = movimiento.IdCaja
+                    });
             }
         }
 
         // ============================================================
         // REGISTRAR PAGO DESDE CAJA
         // ============================================================
-        //
-        // Esta acción NO guarda el pago.
-        //
-        // Solamente verifica la caja y envía al formulario
-        // correspondiente del PagoController.
-        //
-        // Flujo:
-        //
-        // Caja/RegistrarPago/2
-        //        ↓
-        // Pago/Create?idCaja=2
-        //
-        // ============================================================
 
         [HttpGet]
-        public async Task<IActionResult> RegistrarPago(int id)
+        public async Task<IActionResult> RegistrarPago(
+            int id)
         {
             var caja = await _context.Cajas
-                .Include(c => c.IdEstadoCajaNavigation)
+                .Include(c =>
+                    c.IdEstadoCajaNavigation)
                 .FirstOrDefaultAsync(c =>
                     c.IdCaja == id);
 
@@ -838,7 +892,10 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id = caja.IdCaja });
+                    new
+                    {
+                        id = caja.IdCaja
+                    });
             }
 
             return RedirectToAction(
@@ -853,26 +910,14 @@ namespace WebApplication1.Controllers
         // ============================================================
         // BUSCAR PAGOS DESDE CAJA
         // ============================================================
-        //
-        // Esta acción NO realiza la búsqueda.
-        //
-        // Solamente redirige al PagoController.
-        //
-        // Flujo:
-        //
-        // Caja/BuscarPago?idCaja=2
-        //        ↓
-        // Pago/BuscarPago?idCaja=2
-        //        ↓
-        // Views/Pago/BuscarPago.cshtml
-        //
-        // ============================================================
 
         [HttpGet]
-        public async Task<IActionResult> BuscarPago(int idCaja)
+        public async Task<IActionResult> BuscarPago(
+            int idCaja)
         {
             var caja = await _context.Cajas
-                .Include(c => c.IdEstadoCajaNavigation)
+                .Include(c =>
+                    c.IdEstadoCajaNavigation)
                 .FirstOrDefaultAsync(c =>
                     c.IdCaja == idCaja);
 
@@ -904,7 +949,8 @@ namespace WebApplication1.Controllers
                 TempData["Error"] =
                     "No tienes una caja abierta actualmente.";
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(
+                    nameof(Index));
             }
 
             await ActualizarTotalesCaja(caja);
@@ -913,7 +959,10 @@ namespace WebApplication1.Controllers
 
             return RedirectToAction(
                 nameof(Details),
-                new { id = caja.IdCaja });
+                new
+                {
+                    id = caja.IdCaja
+                });
         }
 
         // ============================================================
@@ -927,13 +976,16 @@ namespace WebApplication1.Controllers
             int? idEstadoCaja)
         {
             var query = _context.Cajas
-                .Include(c => c.IdUsuarioNavigation)
-                .Include(c => c.IdEstadoCajaNavigation)
+                .Include(c =>
+                    c.IdUsuarioNavigation)
+                .Include(c =>
+                    c.IdEstadoCajaNavigation)
                 .AsQueryable();
 
             if (fechaInicio.HasValue)
             {
-                var inicio = fechaInicio.Value.Date;
+                var inicio =
+                    fechaInicio.Value.Date;
 
                 query = query.Where(c =>
                     c.FechaApertura >= inicio);
@@ -951,7 +1003,8 @@ namespace WebApplication1.Controllers
             if (idEstadoCaja.HasValue)
             {
                 query = query.Where(c =>
-                    c.IdEstadoCaja == idEstadoCaja.Value);
+                    c.IdEstadoCaja ==
+                    idEstadoCaja.Value);
             }
 
             var cajas = await query
@@ -959,9 +1012,14 @@ namespace WebApplication1.Controllers
                     c.FechaApertura)
                 .ToListAsync();
 
-            ViewBag.FechaInicio = fechaInicio;
-            ViewBag.FechaFin = fechaFin;
-            ViewBag.IdEstadoCaja = idEstadoCaja;
+            ViewBag.FechaInicio =
+                fechaInicio;
+
+            ViewBag.FechaFin =
+                fechaFin;
+
+            ViewBag.IdEstadoCaja =
+                idEstadoCaja;
 
             ViewBag.EstadosCaja =
                 await _context.EstadoCajas
@@ -976,7 +1034,8 @@ namespace WebApplication1.Controllers
         // RECALCULAR TOTALES DE CAJA
         // ============================================================
 
-        private async Task ActualizarTotalesCaja(Caja caja)
+        private async Task ActualizarTotalesCaja(
+            Caja caja)
         {
             var movimientos =
                 await _context.MovimientoCajas
@@ -1006,7 +1065,9 @@ namespace WebApplication1.Controllers
                 }
 
                 string tipo =
-                    movimiento.IdTipoMovimientoNavigation.Nombre
+                    movimiento
+                        .IdTipoMovimientoNavigation
+                        .Nombre
                         .Trim()
                         .ToLowerInvariant();
 
@@ -1039,7 +1100,9 @@ namespace WebApplication1.Controllers
                 }
 
                 string codigoMoneda =
-                    movimiento.IdMonedaNavigation.CodigoIso
+                    movimiento
+                        .IdMonedaNavigation
+                        .CodigoIso
                         .Trim()
                         .ToUpperInvariant();
 
@@ -1112,7 +1175,8 @@ namespace WebApplication1.Controllers
         // DETERMINAR INGRESO
         // ============================================================
 
-        private bool EsIngreso(string tipo)
+        private bool EsIngreso(
+            string tipo)
         {
             return tipo == "ingreso"
                 || tipo == "entrada"
@@ -1126,7 +1190,8 @@ namespace WebApplication1.Controllers
         // DETERMINAR EGRESO
         // ============================================================
 
-        private bool EsEgreso(string tipo)
+        private bool EsEgreso(
+            string tipo)
         {
             return tipo == "egreso"
                 || tipo == "salida"
@@ -1138,13 +1203,15 @@ namespace WebApplication1.Controllers
         // OBTENER CAJA ABIERTA DEL USUARIO
         // ============================================================
 
-        private async Task<Caja?> ObtenerCajaAbiertaUsuario()
+        private async Task<Caja?>
+            ObtenerCajaAbiertaUsuario()
         {
             int idUsuario =
                 ObtenerUsuarioActual();
 
             var estadoAbierta =
-                await ObtenerEstadoCaja("Abierta");
+                await ObtenerEstadoCaja(
+                    "Abierta");
 
             if (estadoAbierta == null)
             {
@@ -1165,10 +1232,12 @@ namespace WebApplication1.Controllers
         // OBTENER ESTADO DE CAJA
         // ============================================================
 
-        private async Task<EstadoCaja?> ObtenerEstadoCaja(
-            string nombre)
+        private async Task<EstadoCaja?>
+            ObtenerEstadoCaja(
+                string nombre)
         {
-            nombre = nombre.Trim();
+            nombre =
+                nombre.Trim();
 
             return await _context.EstadoCajas
                 .FirstOrDefaultAsync(e =>
@@ -1220,11 +1289,13 @@ namespace WebApplication1.Controllers
         // VALIDAR CAJA ABIERTA
         // ============================================================
 
-        private async Task<bool> EsCajaAbiertaAsync(
-            Caja caja)
+        private async Task<bool>
+            EsCajaAbiertaAsync(
+                Caja caja)
         {
             var estadoAbierta =
-                await ObtenerEstadoCaja("Abierta");
+                await ObtenerEstadoCaja(
+                    "Abierta");
 
             if (estadoAbierta == null)
             {
@@ -1242,16 +1313,19 @@ namespace WebApplication1.Controllers
 
         private int ObtenerUsuarioActual()
         {
-            // ========================================================
-            // TEMPORAL
-            // ========================================================
-            //
-            // Mientras no esté conectado el sistema de autenticación,
-            // utilizamos el usuario 1.
-            //
-            // ========================================================
+            var claimId =
+                User.FindFirstValue(
+                    ClaimTypes.NameIdentifier);
 
-            return 1;
+            if (!int.TryParse(
+                claimId,
+                out int idUsuario))
+            {
+                throw new UnauthorizedAccessException(
+                    "No fue posible identificar al usuario autenticado.");
+            }
+
+            return idUsuario;
         }
     }
 }

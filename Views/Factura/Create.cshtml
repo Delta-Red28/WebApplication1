@@ -23,13 +23,15 @@
      * PEDIDO ACTUAL
      * ============================================================
      *
-     * Cuando la vista viene desde CreateParaPedido(), el controlador
+     * Cuando CreateParaPedido() abre esta vista, el controlador
      * envía ViewBag.Pedido.
      *
-     * Cuando viene desde Create(), buscamos el pedido en ViewBag.Pedidos.
+     * Cuando se utiliza Create() normalmente, el pedido se obtiene
+     * de ViewBag.Pedidos.
      */
 
-    WebApplication1.Models.Pedido? pedidoActual = ViewBag.Pedido as WebApplication1.Models.Pedido;
+    WebApplication1.Models.Pedido? pedidoActual =
+        ViewBag.Pedido as WebApplication1.Models.Pedido;
 
     if (pedidoActual == null && Model.IdPedido > 0)
     {
@@ -67,12 +69,12 @@
 
         <div>
             <h2 class="mb-1">
-                <i class="bi bi-receipt"></i>
+                <i class="bi bi-receipt me-2"></i>
                 Crear Factura
             </h2>
 
             <p class="text-muted mb-0">
-                Registra una nueva factura a partir de un pedido entregado.
+                Registra una nueva factura a partir de un pedido listo.
             </p>
         </div>
 
@@ -81,7 +83,7 @@
                asp-action="Index"
                class="btn btn-secondary">
 
-                <i class="bi bi-arrow-left"></i>
+                <i class="bi bi-arrow-left me-1"></i>
                 Volver
 
             </a>
@@ -141,7 +143,7 @@
 
                 <i class="bi bi-cart-check fs-2 me-3"></i>
 
-                <div>
+                <div class="flex-grow-1">
 
                     <strong>
                         Pedido seleccionado:
@@ -158,9 +160,9 @@
                         &nbsp; | &nbsp;
 
                         Estado:
-                        <strong>
-                            Entregado
-                        </strong>
+                        <span class="badge bg-success">
+                            Listo
+                        </span>
 
                         &nbsp; | &nbsp;
 
@@ -185,12 +187,14 @@
 
     <form asp-controller="Factura"
           asp-action="Create"
-          method="post">
+          method="post"
+          autocomplete="off">
 
         @Html.AntiForgeryToken()
 
+
         <!-- ========================================================
-             PEDIDO Y FECHA
+             PEDIDO
         ======================================================== -->
 
         <div class="card shadow-sm mb-4">
@@ -208,11 +212,7 @@
 
                 <div class="row">
 
-                    <!-- ==================================================
-                         PEDIDO
-                    ================================================== -->
-
-                    <div class="col-md-8 mb-3">
+                    <div class="col-md-12 mb-3">
 
                         <label asp-for="IdPedido"
                                class="form-label fw-bold">
@@ -225,11 +225,11 @@
                         @if (pedidoActual != null)
                         {
                             /*
-                             * El select visual está deshabilitado para
-                             * impedir que se cambie el pedido cuando
-                             * CreateParaPedido() abrió esta vista.
+                             * El pedido viene directamente desde
+                             * CreateParaPedido().
                              *
-                             * El hidden sí envía IdPedido al controlador.
+                             * El select se deshabilita visualmente,
+                             * pero el hidden permite enviar el valor.
                              */
 
                             <select class="form-select"
@@ -256,7 +256,7 @@
                                     class="form-select">
 
                                 <option value="0">
-                                    -- Seleccione un pedido entregado --
+                                    -- Seleccione un pedido listo --
                                 </option>
 
                                 @foreach (var pedido in pedidos)
@@ -286,39 +286,9 @@
 
                         <div class="form-text">
 
-                            Solo se muestran pedidos entregados
-                            que todavía no tienen factura.
+                            Solo se muestran pedidos en estado
+                            <strong>Listo</strong> que todavía no tienen factura.
 
-                        </div>
-
-                    </div>
-
-
-                    <!-- ==================================================
-                         FECHA
-                    ================================================== -->
-
-                    <div class="col-md-4 mb-3">
-
-                        <label asp-for="FechaFactura"
-                               class="form-label fw-bold">
-
-                            Fecha de factura
-                            <span class="text-danger">*</span>
-
-                        </label>
-
-                        <input asp-for="FechaFactura"
-                               type="datetime-local"
-                               class="form-control" />
-
-                        <span asp-validation-for="FechaFactura"
-                              class="text-danger">
-                        </span>
-
-                        <div class="form-text">
-                            Si se deja vacío, el controlador utilizará
-                            la fecha actual.
                         </div>
 
                     </div>
@@ -339,11 +309,8 @@
             <div class="card-header bg-light">
 
                 <h5 class="mb-0">
-
                     <i class="bi bi-file-earmark-text me-2"></i>
-
                     Datos del comprobante
-
                 </h5>
 
             </div>
@@ -376,9 +343,7 @@
                             @foreach (var tipo in tiposComprobante)
                             {
                                 <option value="@tipo.IdTipoComprobante">
-
                                     @tipo.Nombre
-
                                 </option>
                             }
 
@@ -431,7 +396,7 @@
                         <div class="form-text">
 
                             El número de factura será generado
-                            automáticamente por el controlador.
+                            automáticamente por el sistema.
 
                         </div>
 
@@ -453,11 +418,8 @@
             <div class="card-header bg-light">
 
                 <h5 class="mb-0">
-
                     <i class="bi bi-currency-exchange me-2"></i>
-
                     Configuración fiscal y monetaria
-
                 </h5>
 
             </div>
@@ -509,9 +471,7 @@
                         </span>
 
                         <div class="form-text">
-
                             Solo se muestran monedas activas.
-
                         </div>
 
                     </div>
@@ -558,10 +518,76 @@
 
                         <div class="form-text">
 
-                            Si selecciona un impuesto, el controlador
-                            calculará el impuesto sobre la base imponible.
-                            Si no selecciona ninguno, se utilizará el
-                            impuesto registrado en el pedido.
+                            Si selecciona un impuesto, se calculará sobre
+                            la base imponible. Si no selecciona ninguno,
+                            se utilizará el impuesto registrado en el pedido.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ============================================================
+             FECHA DE FACTURA
+        ============================================================ -->
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header bg-light">
+
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    Fecha de factura
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-bold">
+                            Fecha de factura
+                        </label>
+
+                        <input type="text"
+                               class="form-control bg-light"
+                               value="@DateTime.Now.ToString("dd/MM/yyyy HH:mm")"
+                               readonly />
+
+                        <div class="form-text">
+                            La fecha oficial será establecida por el servidor
+                            al momento de crear la factura.
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <div class="alert alert-secondary mb-0 h-100 d-flex align-items-center">
+
+                            <div>
+
+                                <i class="bi bi-info-circle me-2"></i>
+
+                                <strong>
+                                    Fecha automática
+                                </strong>
+
+                                <div class="small mt-1">
+                                    No es posible modificar la fecha desde
+                                    este formulario.
+                                </div>
+
+                            </div>
 
                         </div>
 
@@ -583,11 +609,8 @@
             <div class="card-header bg-success text-white">
 
                 <h5 class="mb-0">
-
                     <i class="bi bi-calculator me-2"></i>
-
                     Resumen de la factura
-
                 </h5>
 
             </div>
@@ -598,8 +621,8 @@
 
                     <i class="bi bi-info-circle me-2"></i>
 
-                    Los importes se calculan automáticamente a partir
-                    del pedido. El servidor volverá a calcularlos
+                    Los importes se muestran como una previsualización.
+                    El servidor volverá a calcularlos y validarlos
                     antes de guardar la factura.
 
                 </div>
@@ -660,7 +683,10 @@
                         <div id="resumenBase"
                              class="form-control bg-light fw-bold">
 
-                            0.00
+                            @Math.Max(
+                                Model.Subtotal - Model.Descuento,
+                                0m
+                            ).ToString("N2")
 
                         </div>
 
@@ -686,10 +712,20 @@
 
                         <div class="small text-muted mt-1">
 
-                            Porcentaje aplicado:
+                            Aplicación:
 
                             <strong id="resumenPorcentajeImpuesto">
-                                @porcentajeImpuesto.ToString("N2")%
+
+                                @if (impuestoSeleccionado != null)
+                                {
+                                    @porcentajeImpuesto.ToString("N2")
+                                    @:%
+                                }
+                                else
+                                {
+                                    @:Impuesto del pedido
+                                }
+
                             </strong>
 
                         </div>
@@ -756,11 +792,8 @@
             <div class="card-header">
 
                 <h5 class="mb-0">
-
                     <i class="bi bi-chat-left-text me-2"></i>
-
                     Observación
-
                 </h5>
 
             </div>
@@ -785,9 +818,7 @@
                 </span>
 
                 <div class="form-text">
-
                     Máximo 300 caracteres.
-
                 </div>
 
             </div>
@@ -813,8 +844,8 @@
 
                     <p class="mb-0">
 
-                        El número será generado automáticamente
-                        utilizando la serie seleccionada.
+                        Será generado automáticamente utilizando
+                        la serie seleccionada y el consecutivo actual.
 
                     </p>
 
@@ -840,7 +871,6 @@
                        class="btn btn-secondary">
 
                         <i class="bi bi-x-circle me-1"></i>
-
                         Cancelar
 
                     </a>
@@ -849,7 +879,6 @@
                             class="btn btn-primary btn-lg">
 
                         <i class="bi bi-check-circle me-1"></i>
-
                         Crear factura
 
                     </button>
@@ -910,7 +939,7 @@
 
 
             // ========================================================
-            // DATOS DEL PEDIDO SELECCIONADO DESDE EL SERVIDOR
+            // PEDIDO PROVENIENTE DE CreateParaPedido()
             // ========================================================
 
             let pedidoServidor = null;
@@ -952,7 +981,7 @@
                     const numero = Number(valor);
 
                     if (!Number.isFinite(numero)) {
-                        return "0.00";
+                        return "0,00";
                     }
 
                     return numero.toLocaleString("es-NI", {
@@ -963,39 +992,58 @@
 
 
             // ========================================================
-            // OBTENER PEDIDO
+            // REDONDEAR COMO DECIMAL A 2 POSICIONES
+            // ========================================================
+
+            function redondear2(valor) {
+
+                return Math.round(
+                    (Number(valor) + Number.EPSILON) * 100
+                ) / 100;
+
+            }
+
+
+            // ========================================================
+            // OBTENER DATOS DEL PEDIDO
             // ========================================================
 
             function obtenerDatosPedido() {
 
                 // ----------------------------------------------------
-                // Si viene desde CreateParaPedido()
+                // Pedido enviado por CreateParaPedido()
                 // ----------------------------------------------------
 
                 if (pedidoServidor !== null) {
 
                     return {
-                        subtotal: Number(
-                            pedidoServidor.subtotal
-                        ) || 0,
 
-                        descuento: Number(
-                            pedidoServidor.descuento
-                        ) || 0,
+                        subtotal:
+                            Number(
+                                pedidoServidor.subtotal
+                            ) || 0,
 
-                        impuesto: Number(
-                            pedidoServidor.impuesto
-                        ) || 0,
+                        descuento:
+                            Number(
+                                pedidoServidor.descuento
+                            ) || 0,
 
-                        total: Number(
-                            pedidoServidor.total
-                        ) || 0
+                        impuesto:
+                            Number(
+                                pedidoServidor.impuesto
+                            ) || 0,
+
+                        total:
+                            Number(
+                                pedidoServidor.total
+                            ) || 0
+
                     };
                 }
 
 
                 // ----------------------------------------------------
-                // Si se seleccionó desde el combo
+                // Pedido seleccionado manualmente
                 // ----------------------------------------------------
 
                 if (!pedidoSelect) {
@@ -1006,6 +1054,7 @@
                         impuesto: 0,
                         total: 0
                     };
+
                 }
 
 
@@ -1023,6 +1072,7 @@
                         impuesto: 0,
                         total: 0
                     };
+
                 }
 
 
@@ -1055,12 +1105,14 @@
                                 "data-total"
                             )
                         ) || 0
+
                 };
+
             }
 
 
             // ========================================================
-            // OBTENER IMPUESTO SELECCIONADO
+            // OBTENER IMPUESTO
             // ========================================================
 
             function obtenerImpuestoSeleccionado() {
@@ -1071,6 +1123,7 @@
                         seleccionado: false,
                         porcentaje: 0
                     };
+
                 }
 
 
@@ -1078,16 +1131,13 @@
                     impuestoSelect.value;
 
 
-                // ----------------------------------------------------
-                // SIN IMPUESTO SELECCIONADO
-                // ----------------------------------------------------
-
                 if (!valor) {
 
                     return {
                         seleccionado: false,
                         porcentaje: 0
                     };
+
                 }
 
 
@@ -1103,6 +1153,7 @@
                         seleccionado: false,
                         porcentaje: 0
                     };
+
                 }
 
 
@@ -1115,9 +1166,12 @@
 
 
                 return {
+
                     seleccionado: true,
                     porcentaje: porcentaje
+
                 };
+
             }
 
 
@@ -1130,23 +1184,36 @@
                 const datos =
                     obtenerDatosPedido();
 
-
                 const impuestoSeleccionado =
                     obtenerImpuestoSeleccionado();
 
 
-                const subtotal =
-                    Math.round(
-                        (datos.subtotal + Number.EPSILON) *
-                        100
-                    ) / 100;
+                // ----------------------------------------------------
+                // SUBTOTAL
+                // ----------------------------------------------------
+
+                let subtotal =
+                    redondear2(datos.subtotal);
+
+                if (subtotal < 0) {
+                    subtotal = 0;
+                }
 
 
-                const descuento =
-                    Math.round(
-                        (datos.descuento + Number.EPSILON) *
-                        100
-                    ) / 100;
+                // ----------------------------------------------------
+                // DESCUENTO
+                // ----------------------------------------------------
+
+                let descuento =
+                    redondear2(datos.descuento);
+
+                if (descuento < 0) {
+                    descuento = 0;
+                }
+
+                if (descuento > subtotal) {
+                    descuento = subtotal;
+                }
 
 
                 // ----------------------------------------------------
@@ -1154,19 +1221,13 @@
                 // ----------------------------------------------------
 
                 let baseImponible =
-                    subtotal - descuento;
-
+                    redondear2(
+                        subtotal - descuento
+                    );
 
                 if (baseImponible < 0) {
                     baseImponible = 0;
                 }
-
-
-                baseImponible =
-                    Math.round(
-                        (baseImponible + Number.EPSILON) *
-                        100
-                    ) / 100;
 
 
                 // ----------------------------------------------------
@@ -1175,37 +1236,41 @@
 
                 let impuesto = 0;
 
-
                 if (impuestoSeleccionado.seleccionado) {
 
-                    impuesto =
-                        baseImponible *
-                        (
-                            impuestoSeleccionado.porcentaje /
-                            100
-                        );
+                    let porcentaje =
+                        impuestoSeleccionado.porcentaje;
+
+                    if (porcentaje < 0) {
+                        porcentaje = 0;
+                    }
 
                     impuesto =
-                        Math.round(
-                            (impuesto + Number.EPSILON) *
-                            100
-                        ) / 100;
+                        redondear2(
+                            baseImponible *
+                            (
+                                porcentaje / 100
+                            )
+                        );
 
                 }
                 else {
 
                     /*
-                     * Igual que el controlador:
+                     * Misma lógica que el controlador:
                      *
                      * si no se selecciona un impuesto,
-                     * utiliza pedido.Impuesto.
+                     * se utiliza Pedido.Impuesto.
                      */
 
                     impuesto =
-                        Math.round(
-                            (datos.impuesto + Number.EPSILON) *
-                            100
-                        ) / 100;
+                        redondear2(
+                            Math.max(
+                                datos.impuesto,
+                                0
+                            )
+                        );
+
                 }
 
 
@@ -1214,15 +1279,14 @@
                 // ----------------------------------------------------
 
                 let total =
-                    baseImponible +
-                    impuesto;
+                    redondear2(
+                        baseImponible +
+                        impuesto
+                    );
 
-
-                total =
-                    Math.round(
-                        (total + Number.EPSILON) *
-                        100
-                    ) / 100;
+                if (total < 0) {
+                    total = 0;
+                }
 
 
                 // ----------------------------------------------------
@@ -1234,50 +1298,80 @@
 
 
                 // ====================================================
-                // MOSTRAR
+                // MOSTRAR SUBTOTAL
                 // ====================================================
 
                 if (subtotalElement) {
 
                     subtotalElement.textContent =
                         formatearNumero(subtotal);
+
                 }
 
+
+                // ====================================================
+                // MOSTRAR DESCUENTO
+                // ====================================================
 
                 if (descuentoElement) {
 
                     descuentoElement.textContent =
                         formatearNumero(descuento);
+
                 }
 
+
+                // ====================================================
+                // MOSTRAR BASE
+                // ====================================================
 
                 if (baseElement) {
 
                     baseElement.textContent =
                         formatearNumero(baseImponible);
+
                 }
 
+
+                // ====================================================
+                // MOSTRAR IMPUESTO
+                // ====================================================
 
                 if (impuestoElement) {
 
                     impuestoElement.textContent =
                         formatearNumero(impuesto);
+
                 }
 
+
+                // ====================================================
+                // MOSTRAR TOTAL
+                // ====================================================
 
                 if (totalElement) {
 
                     totalElement.textContent =
                         formatearNumero(total);
+
                 }
 
+
+                // ====================================================
+                // MOSTRAR SALDO
+                // ====================================================
 
                 if (saldoElement) {
 
                     saldoElement.textContent =
                         formatearNumero(saldo);
+
                 }
 
+
+                // ====================================================
+                // MOSTRAR PORCENTAJE
+                // ====================================================
 
                 if (porcentajeElement) {
 
@@ -1297,7 +1391,9 @@
 
                         porcentajeElement.textContent =
                             "Impuesto del pedido";
+
                     }
+
                 }
 
             }
@@ -1314,16 +1410,17 @@
                     function() {
 
                         /*
-                         * Si el usuario selecciona un pedido desde
-                         * Create normal, eliminamos cualquier valor
-                         * servidor.
+                         * Cuando se utiliza Create() normal,
+                         * el pedido seleccionado viene del combo.
                          */
 
                         pedidoServidor = null;
 
                         calcularResumen();
+
                     }
                 );
+
             }
 
 
@@ -1338,8 +1435,10 @@
                     function() {
 
                         calcularResumen();
+
                     }
                 );
+
             }
 
 
