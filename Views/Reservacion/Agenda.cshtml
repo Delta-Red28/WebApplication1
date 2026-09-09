@@ -1,0 +1,368 @@
+﻿@model IEnumerable<WebApplication1.Models.Reservacion>
+
+@{
+    ViewData["Title"] = "Agenda de reservaciones";
+
+    var fechaSeleccionada = ViewBag.Fecha != null
+        ? ViewBag.Fecha.ToString()
+        : DateTime.Today.ToString("yyyy-MM-dd");
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-calendar-week text-primary me-2"></i>
+                Agenda de reservaciones
+            </h2>
+
+            <p class="text-muted mb-0">
+                Consulta las reservaciones organizadas por horario.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a asp-controller="Reservacions"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-table me-1"></i>
+                Vista tabla
+
+            </a>
+
+            <a asp-controller="Reservacions"
+               asp-action="Create"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-lg me-1"></i>
+                Nueva reservación
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- FILTRO DE FECHA -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <form asp-controller="Reservacions"
+                  asp-action="Agenda"
+                  method="get">
+
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-12 col-md-4">
+
+                        <label for="fecha"
+                               class="form-label fw-semibold">
+
+                            Fecha
+
+                        </label>
+
+                        <input type="date"
+                               id="fecha"
+                               name="fecha"
+                               class="form-control"
+                               value="@fechaSeleccionada" />
+
+                    </div>
+
+                    <div class="col-12 col-md-auto">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-search me-1"></i>
+                            Consultar
+
+                        </button>
+
+                    </div>
+
+                    <div class="col-12 col-md-auto">
+
+                        <a asp-controller="Reservacions"
+                           asp-action="Agenda"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-calendar-day me-1"></i>
+                            Hoy
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- AGENDA -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="fw-bold mb-0">
+
+                        <i class="bi bi-calendar-check me-2 text-primary"></i>
+
+                        Reservaciones
+
+                    </h5>
+
+                    <small class="text-muted">
+
+                        @fechaSeleccionada
+
+                    </small>
+
+                </div>
+
+                <span class="badge bg-primary">
+
+                    @(Model?.Count() ?? 0) reservación(es)
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-calendar-x display-4 text-muted"></i>
+
+                    <h5 class="fw-bold mt-3">
+                        No hay reservaciones
+                    </h5>
+
+                    <p class="text-muted">
+                        No existen reservaciones para la fecha seleccionada.
+                    </p>
+
+                    <a asp-controller="Reservacions"
+                       asp-action="Create"
+                       class="btn btn-primary">
+
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Crear reservación
+
+                    </a>
+
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+
+                    @foreach (var reservacion in Model.OrderBy(x => x.HoraInicio))
+                    {
+                        var estadoId =
+                            reservacion.IdEstadoReservacion;
+
+                        string badgeClass = estadoId switch
+                        {
+                            1 => "bg-warning text-dark",
+                            2 => "bg-success",
+                            3 => "bg-info text-dark",
+                            4 => "bg-primary",
+                            5 => "bg-danger",
+                            6 => "bg-secondary",
+                            _ => "bg-secondary"
+                        };
+
+                        string iconoEstado = estadoId switch
+                        {
+                            1 => "bi-clock",
+                            2 => "bi-check-circle",
+                            3 => "bi-person-check",
+                            4 => "bi-check2-all",
+                            5 => "bi-x-circle",
+                            6 => "bi-person-x",
+                            _ => "bi-question-circle"
+                        };
+
+                        <div class="col-12 col-lg-6 col-xl-4">
+
+                            <div class="card h-100 border shadow-sm">
+
+                                <div class="card-body">
+
+                                    <!-- HORA -->
+
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+
+                                        <div>
+
+                                            <div class="fs-4 fw-bold text-primary">
+
+                                                @reservacion.HoraInicio.ToString("HH:mm")
+
+                                            </div>
+
+                                            <small class="text-muted">
+
+                                                hasta
+                                                @reservacion.HoraFin.ToString("HH:mm")
+
+                                            </small>
+
+                                        </div>
+
+                                        <span class="badge @badgeClass">
+
+                                            <i class="bi @iconoEstado me-1"></i>
+
+                                            @reservacion.IdEstadoReservacionNavigation.Nombre
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <hr />
+
+
+                                    <!-- MESA -->
+
+                                    <div class="mb-3">
+
+                                        <div class="text-muted small">
+                                            Mesa
+                                        </div>
+
+                                        <div class="fw-bold">
+
+                                            <i class="bi bi-grid-3x3-gap me-1"></i>
+
+                                            Mesa
+                                            @reservacion.IdMesaNavigation.NumeroMesa.ToString("00")
+
+                                        </div>
+
+                                        <small class="text-muted">
+
+                                            Capacidad:
+                                            @reservacion.IdMesaNavigation.Capacidad
+
+                                        </small>
+
+                                    </div>
+
+
+                                    <!-- CLIENTE -->
+
+                                    <div class="mb-3">
+
+                                        <div class="text-muted small">
+                                            Cliente
+                                        </div>
+
+                                        <div class="fw-semibold">
+
+                                            <i class="bi bi-person me-1"></i>
+
+                                            @reservacion.IdClienteNavigation.Nombres
+                                            @reservacion.IdClienteNavigation.Apellidos
+
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            reservacion.IdClienteNavigation.Telefono))
+                                        {
+                                            <small class="text-muted">
+
+                                                <i class="bi bi-telephone me-1"></i>
+
+                                                @reservacion.IdClienteNavigation.Telefono
+
+                                            </small>
+                                        }
+
+                                    </div>
+
+
+                                    <!-- PERSONAS -->
+
+                                    <div class="mb-3">
+
+                                        <span class="badge bg-light text-dark border">
+
+                                            <i class="bi bi-people me-1"></i>
+
+                                            @reservacion.CantidadPersonas
+                                            personas
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <!-- ACCIONES -->
+
+                                    <div class="d-flex gap-2">
+
+                                        <a asp-controller="Reservacions"
+                                           asp-action="Details"
+                                           asp-route-id="@reservacion.IdReservacion"
+                                           class="btn btn-sm btn-outline-primary flex-grow-1">
+
+                                            <i class="bi bi-eye me-1"></i>
+                                            Detalles
+
+                                        </a>
+
+                                        @if (estadoId != 4 &&
+                                             estadoId != 5 &&
+                                             estadoId != 6)
+                                        {
+                                            <a asp-controller="Reservacions"
+                                               asp-action="Edit"
+                                               asp-route-id="@reservacion.IdReservacion"
+                                               class="btn btn-sm btn-outline-secondary">
+
+                                                <i class="bi bi-pencil"></i>
+
+                                            </a>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

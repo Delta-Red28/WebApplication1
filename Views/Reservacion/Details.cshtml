@@ -1,0 +1,750 @@
+﻿@model WebApplication1.Models.Reservacion
+
+@{
+    ViewData["Title"] = "Detalles de reservación";
+
+    string nombreCliente =
+        $"{Model.IdClienteNavigation.Nombres} {Model.IdClienteNavigation.Apellidos}";
+
+    string estado = Model.IdEstadoReservacionNavigation?.Nombre ?? "Sin estado";
+
+    string badgeEstado = Model.IdEstadoReservacion switch
+    {
+        1 => "bg-warning text-dark",       // Pendiente
+        2 => "bg-primary",                 // Confirmada
+        3 => "bg-info text-dark",           // Cliente llegó
+        4 => "bg-success",                 // Finalizada
+        5 => "bg-danger",                  // Cancelada
+        6 => "bg-secondary",               // No asistió
+        _ => "bg-secondary"
+    };
+
+    string estadoMesa = Model.IdMesaNavigation?.IdEstadoMesaNavigation?.Nombre
+                        ?? "Sin estado";
+
+    string badgeMesa = Model.IdMesaNavigation?.Estado == true
+        ? "bg-success"
+        : "bg-danger";
+
+}
+
+<div class="container-fluid py-4">
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <a asp-action="Index"
+                   class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Volver
+                </a>
+            </div>
+
+            <h1 class="h3 mb-1 fw-bold">
+                Detalles de reservación
+            </h1>
+
+            <p class="text-muted mb-0">
+                Reservación #@Model.IdReservacion.ToString("D5")
+            </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            @if (Model.IdEstadoReservacion == 1 ||
+                 Model.IdEstadoReservacion == 2)
+            {
+                <a asp-action="Edit"
+                   asp-route-id="@Model.IdReservacion"
+                   class="btn btn-outline-primary">
+                    <i class="bi bi-pencil me-1"></i>
+                    Editar
+                </a>
+            }
+
+            @if (Model.IdEstadoReservacion == 1)
+            {
+                <form asp-action="Confirmar"
+                      asp-route-id="@Model.IdReservacion"
+                      method="post"
+                      class="d-inline">
+
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit"
+                            class="btn btn-primary"
+                            onclick="return confirm('¿Desea confirmar esta reservación?');">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Confirmar
+                    </button>
+                </form>
+            }
+
+            @if (Model.IdEstadoReservacion == 2)
+            {
+                <form asp-action="ClienteLlego"
+                      asp-route-id="@Model.IdReservacion"
+                      method="post"
+                      class="d-inline">
+
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit"
+                            class="btn btn-info"
+                            onclick="return confirm('¿Desea marcar al cliente como llegado?');">
+                        <i class="bi bi-person-check me-1"></i>
+                        Cliente llegó
+                    </button>
+                </form>
+            }
+
+            @if (Model.IdEstadoReservacion == 3)
+            {
+                <form asp-action="Finalizar"
+                      asp-route-id="@Model.IdReservacion"
+                      method="post"
+                      class="d-inline">
+
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit"
+                            class="btn btn-success"
+                            onclick="return confirm('¿Desea finalizar esta reservación?');">
+                        <i class="bi bi-check2-all me-1"></i>
+                        Finalizar
+                    </button>
+                </form>
+            }
+
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- ESTADO PRINCIPAL -->
+    <!-- ========================================================= -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-8">
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <div class="rounded-circle bg-primary bg-opacity-10
+                            d-flex align-items-center justify-content-center"
+                             style="width: 58px; height: 58px;">
+
+                            <i class="bi bi-calendar-check text-primary fs-3"></i>
+
+                        </div>
+
+                        <div>
+
+                            <h4 class="mb-1">
+                                Reservación #@Model.IdReservacion.ToString("D5")
+                            </h4>
+
+                            <div class="text-muted">
+                                @nombreCliente
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                    <span class="badge @badgeEstado fs-6 px-3 py-2">
+                        @estado
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN PRINCIPAL -->
+    <!-- ========================================================= -->
+
+    <div class="row g-4">
+
+        <!-- ===================================================== -->
+        <!-- FECHA Y HORARIO -->
+        <!-- ===================================================== -->
+
+        <div class="col-lg-8">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header bg-white border-0 pt-4 px-4">
+
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-calendar3 me-2 text-primary"></i>
+                        Información de la reservación
+                    </h5>
+
+                </div>
+
+                <div class="card-body px-4">
+
+                    <div class="row g-4">
+
+                        <!-- FECHA -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small mb-1">
+                                Fecha
+                            </div>
+
+                            <div class="fs-5 fw-semibold">
+                                <i class="bi bi-calendar-event me-2 text-primary"></i>
+
+                                @Model.FechaReserva.ToString(
+                                    "dddd, dd 'de' MMMM 'de' yyyy",
+                                    new System.Globalization.CultureInfo("es-NI"))
+                            </div>
+
+                        </div>
+
+                        <!-- HORARIO -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small mb-1">
+                                Horario
+                            </div>
+
+                            <div class="fs-5 fw-semibold">
+
+                                <i class="bi bi-clock me-2 text-primary"></i>
+
+                                @Model.HoraInicio.ToString("HH:mm")
+                                -
+                                @Model.HoraFin.ToString("HH:mm")
+
+                            </div>
+
+                        </div>
+
+                        <!-- PERSONAS -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small mb-1">
+                                Cantidad de personas
+                            </div>
+
+                            <div class="fs-5 fw-semibold">
+
+                                <i class="bi bi-people me-2 text-primary"></i>
+
+                                @Model.CantidadPersonas
+
+                                @if (Model.CantidadPersonas == 1)
+                                {
+                                    <span class="text-muted fs-6">
+                                        persona
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fs-6">
+                                        personas
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                        <!-- FECHA REGISTRO -->
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small mb-1">
+                                Registrada el
+                            </div>
+
+                            <div class="fs-6 fw-semibold">
+
+                                <i class="bi bi-calendar-plus me-2 text-primary"></i>
+
+                                @Model.FechaRegistro.ToString(
+                                    "dd/MM/yyyy HH:mm")
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- MESA -->
+        <!-- ===================================================== -->
+
+        <div class="col-lg-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header bg-white border-0 pt-4 px-4">
+
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-grid-3x3-gap me-2 text-primary"></i>
+                        Mesa
+                    </h5>
+
+                </div>
+
+                <div class="card-body px-4">
+
+                    <div class="text-center py-2">
+
+                        <div class="rounded-circle bg-primary bg-opacity-10
+                            d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 75px; height: 75px;">
+
+                            <i class="bi bi-grid-3x3-gap text-primary fs-2"></i>
+
+                        </div>
+
+                        <h3 class="fw-bold mb-1">
+
+                            Mesa @Model.IdMesaNavigation.NumeroMesa.ToString("00")
+
+                        </h3>
+
+                        <p class="text-muted mb-3">
+                            Capacidad:
+                            <strong>
+                                @Model.IdMesaNavigation.Capacidad
+                            </strong>
+                            personas
+                        </p>
+
+                        <span class="badge @badgeMesa px-3 py-2">
+                            @estadoMesa
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- CLIENTE -->
+        <!-- ===================================================== -->
+
+        <div class="col-lg-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header bg-white border-0 pt-4 px-4">
+
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-person me-2 text-primary"></i>
+                        Información del cliente
+                    </h5>
+
+                </div>
+
+                <div class="card-body px-4">
+
+                    <div class="d-flex align-items-center mb-4">
+
+                        <div class="rounded-circle bg-primary bg-opacity-10
+                            d-flex align-items-center justify-content-center me-3"
+                             style="width: 55px; height: 55px;">
+
+                            <i class="bi bi-person-fill text-primary fs-4"></i>
+
+                        </div>
+
+                        <div>
+
+                            <h5 class="mb-1">
+                                @nombreCliente
+                            </h5>
+
+                            <span class="text-muted">
+                                Cliente
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="row g-3">
+
+                        <!-- TELÉFONO -->
+
+                        <div class="col-12">
+
+                            <div class="d-flex align-items-center">
+
+                                <div class="me-3 text-primary">
+                                    <i class="bi bi-telephone fs-5"></i>
+                                </div>
+
+                                <div>
+
+                                    <div class="text-muted small">
+                                        Teléfono
+                                    </div>
+
+                                    <div class="fw-semibold">
+                                        @Model.IdClienteNavigation.Telefono
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- CORREO -->
+                        @if (!string.IsNullOrWhiteSpace(
+                                                Model.IdClienteNavigation.Correo))
+                        {
+                            <div class="col-12">
+
+                                <div class="d-flex align-items-center">
+
+                                    <div class="me-3 text-primary">
+                                        <i class="bi bi-envelope fs-5"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <div class="text-muted small">
+                                            Correo electrónico
+                                        </div>
+
+                                        <div class="fw-semibold">
+                                            @Model.IdClienteNavigation.Correo
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- OBSERVACIÓN -->
+        <!-- ===================================================== -->
+
+        <div class="col-lg-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header bg-white border-0 pt-4 px-4">
+
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-chat-left-text me-2 text-primary"></i>
+                        Observación
+                    </h5>
+
+                </div>
+
+                <div class="card-body px-4">
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Observacion))
+                    {
+                        <div class="bg-light rounded p-3">
+
+                            <p class="mb-0">
+                                @Model.Observacion
+                            </p>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+
+                            <i class="bi bi-chat-square-text fs-2 d-block mb-2"></i>
+
+                            <span>
+                                No hay observaciones para esta reservación.
+                            </span>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- ACCIONES DE ESTADO -->
+    <!-- ========================================================= -->
+
+    <div class="card border-0 shadow-sm mt-4">
+
+        <div class="card-header bg-white border-0 pt-4 px-4">
+
+            <h5 class="mb-0 fw-bold">
+                <i class="bi bi-lightning-charge me-2 text-primary"></i>
+                Acciones
+            </h5>
+
+        </div>
+
+        <div class="card-body px-4 pb-4">
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <!-- EDITAR -->
+                @if (Model.IdEstadoReservacion == 1 ||
+                                 Model.IdEstadoReservacion == 2)
+                {
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.IdReservacion"
+                       class="btn btn-outline-primary">
+
+                        <i class="bi bi-pencil me-1"></i>
+                        Editar reservación
+
+                    </a>
+                }
+
+                <!-- CONFIRMAR -->
+                @if (Model.IdEstadoReservacion == 1)
+                {
+                    <form asp-action="Confirmar"
+                          asp-route-id="@Model.IdReservacion"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="btn btn-primary"
+                                onclick="return confirm('¿Desea confirmar esta reservación?');">
+
+                            <i class="bi bi-check-circle me-1"></i>
+                            Confirmar
+
+                        </button>
+
+                    </form>
+                }
+
+                <!-- CLIENTE LLEGÓ -->
+                @if (Model.IdEstadoReservacion == 2)
+                {
+                    <form asp-action="ClienteLlego"
+                          asp-route-id="@Model.IdReservacion"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="btn btn-info"
+                                onclick="return confirm('¿Desea marcar al cliente como llegado?');">
+
+                            <i class="bi bi-person-check me-1"></i>
+                            Cliente llegó
+
+                        </button>
+
+                    </form>
+                }
+
+                <!-- FINALIZAR -->
+                @if (Model.IdEstadoReservacion == 3)
+                {
+                    <form asp-action="Finalizar"
+                          asp-route-id="@Model.IdReservacion"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="btn btn-success"
+                                onclick="return confirm('¿Desea finalizar esta reservación?');">
+
+                            <i class="bi bi-check2-all me-1"></i>
+                            Finalizar
+
+                        </button>
+
+                    </form>
+                }
+
+                <!-- CANCELAR -->
+                @if (Model.IdEstadoReservacion == 1 ||
+                                 Model.IdEstadoReservacion == 2)
+                {
+                    <form asp-action="Cancelar"
+                          asp-route-id="@Model.IdReservacion"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="btn btn-outline-danger"
+                                onclick="return confirm('¿Está seguro de cancelar esta reservación?');">
+
+                            <i class="bi bi-x-circle me-1"></i>
+                            Cancelar
+
+                        </button>
+
+                    </form>
+                }
+
+                <!-- NO ASISTIÓ -->
+                @if (Model.IdEstadoReservacion == 2)
+                {
+                    <form asp-action="NoAsistio"
+                          asp-route-id="@Model.IdReservacion"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="btn btn-outline-secondary"
+                                onclick="return confirm('¿Desea marcar esta reservación como No asistió?');">
+
+                            <i class="bi bi-person-x me-1"></i>
+                            No asistió
+
+                        </button>
+
+                    </form>
+                }
+
+                <!-- ELIMINAR -->
+                @if (Model.IdEstadoReservacion != 3 &&
+                                 Model.IdEstadoReservacion != 4)
+                {
+                    <a asp-action="Delete"
+                       asp-route-id="@Model.IdReservacion"
+                       class="btn btn-outline-danger ms-lg-auto">
+
+                        <i class="bi bi-trash me-1"></i>
+                        Eliminar
+
+                    </a>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN DEL ESTADO -->
+    <!-- ========================================================= -->
+
+    <div class="alert
+        @(Model.IdEstadoReservacion switch
+         {
+             1 => "alert-warning",
+             2 => "alert-primary",
+             3 => "alert-info",
+             4 => "alert-success",
+             5 => "alert-danger",
+             6 => "alert-secondary",
+             _ => "alert-secondary"
+         })
+        mt-4 mb-0">
+
+        @switch (Model.IdEstadoReservacion)
+        {
+            case 1:
+                <i class="bi bi-hourglass-split me-2"></i>
+                <strong>Pendiente:</strong>
+                <span>
+                    La reservación está pendiente de confirmación.
+                </span>
+                break;
+
+            case 2:
+                <i class="bi bi-check-circle me-2"></i>
+                <strong>Confirmada:</strong>
+                <span>
+                    La reservación está confirmada y esperando al cliente.
+                </span>
+                break;
+
+            case 3:
+                <i class="bi bi-person-check me-2"></i>
+                <strong>Cliente llegó:</strong>
+                <span>
+                    El cliente ya se encuentra en el restaurante.
+                </span>
+                break;
+
+            case 4:
+                <i class="bi bi-check2-all me-2"></i>
+                <strong>Finalizada:</strong>
+                <span>
+                    La reservación fue atendida y finalizada.
+                </span>
+                break;
+
+            case 5:
+                <i class="bi bi-x-circle me-2"></i>
+                <strong>Cancelada:</strong>
+                <span>
+                    Esta reservación fue cancelada.
+                </span>
+                break;
+
+            case 6:
+                <i class="bi bi-person-x me-2"></i>
+                <strong>No asistió:</strong>
+                <span>
+                    El cliente no se presentó a la reservación.
+                </span>
+                break;
+
+            default:
+                <i class="bi bi-question-circle me-2"></i>
+                <strong>Estado desconocido:</strong>
+                <span>
+                    No se pudo determinar el estado de la reservación.
+                </span>
+                break;
+        }
+
+    </div>
+
+</div>

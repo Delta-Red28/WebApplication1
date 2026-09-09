@@ -934,19 +934,17 @@
 
         <ul class="sidebar-menu">
 
-
-            <!-- RESERVACIONES -->
             @if (
-                        User.IsInRole("Administrador") ||
-                        User.IsInRole("Gerente") ||
-                        User.IsInRole("Mesero")
-                    )
+                User.IsInRole("Administrador") ||
+                User.IsInRole("Gerente") ||
+                User.IsInRole("Mesero")
+            )
             {
-
                 <li>
 
-                    <a href="#"
-                       class="@(controladorActual == "Reservaciones" ? "active" : "")">
+                    <a asp-controller="Reservacion"
+                       asp-action="Index"
+                       class="@(controladorActual == "Reservacion" && accionActual == "Index" ? "active" : "")">
 
                         <i class="bi bi-calendar-check"></i>
 
@@ -955,9 +953,7 @@
                     </a>
 
                 </li>
-
             }
-
 
             <!-- PEDIDOS -->
             @if (
@@ -1769,8 +1765,6 @@
 
 </body>
 </html>
-Cambio importante
-La parte de Cocina ahora queda así:
 
 @if (
     User.IsInRole("Administrador") ||

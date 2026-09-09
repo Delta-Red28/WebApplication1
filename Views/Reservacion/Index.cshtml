@@ -1,0 +1,367 @@
+﻿@model IEnumerable<WebApplication1.Models.Reservacion>
+
+@{
+    ViewData["Title"] = "Reservaciones";
+}
+
+<div class="container-fluid px-0">
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex flex-column flex-md-row
+        justify-content-between
+        align-items-md-center
+        gap-3 mb-4">
+
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-calendar-check me-2 text-primary"></i>
+                Reservaciones
+            </h1>
+
+            <p class="text-muted mb-0">
+                Administración de las reservaciones del restaurante.
+            </p>
+        </div>
+
+        <div>
+
+            <a asp-action="Create"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-lg me-1"></i>
+
+                Nueva reservación
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJE DE ÉXITO -->
+    <!-- ========================================================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- TARJETA -->
+    <!-- ========================================================= -->
+
+    <div class="card border-0">
+
+        <div class="card-body p-0">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    Fecha
+                                </th>
+
+                                <th>
+                                    Horario
+                                </th>
+
+                                <th>
+                                    Cliente
+                                </th>
+
+                                <th>
+                                    Mesa
+                                </th>
+
+                                <th>
+                                    Personas
+                                </th>
+
+                                <th>
+                                    Estado
+                                </th>
+
+                                <th class="text-end pe-4">
+                                    Acciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var reservacion in Model)
+                            {
+                                <tr>
+
+                                    <!-- FECHA -->
+
+                                    <td class="ps-4">
+
+                                        <div class="fw-semibold">
+
+                                            @reservacion.FechaReserva.ToString("dd/MM/yyyy")
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- HORARIO -->
+
+                                    <td>
+
+                                        <span class="badge bg-light text-dark border">
+
+                                            @reservacion.HoraInicio.ToString("HH:mm")
+                                            -
+                                            @reservacion.HoraFin.ToString("HH:mm")
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- CLIENTE -->
+
+                                    <td>
+
+                                        @if (reservacion.IdClienteNavigation != null)
+                                        {
+                                            <div class="fw-semibold">
+
+                                                @reservacion.IdClienteNavigation.Nombres
+                                                @reservacion.IdClienteNavigation.Apellidos
+
+                                            </div>
+
+                                            @if (!string.IsNullOrWhiteSpace(
+                                                reservacion.IdClienteNavigation.Telefono))
+                                            {
+                                                <small class="text-muted">
+
+                                                    @reservacion.IdClienteNavigation.Telefono
+
+                                                </small>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Sin cliente
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- MESA -->
+
+                                    <td>
+
+                                        @if (reservacion.IdMesaNavigation != null)
+                                        {
+                                            <span class="fw-semibold">
+
+                                                Mesa
+                                                @reservacion.IdMesaNavigation.NumeroMesa
+
+                                            </span>
+
+                                            <br />
+
+                                            <small class="text-muted">
+
+                                                Capacidad:
+                                                @reservacion.IdMesaNavigation.Capacidad
+
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Sin mesa
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- PERSONAS -->
+
+                                    <td>
+
+                                        <i class="bi bi-people me-1"></i>
+
+                                        @reservacion.CantidadPersonas
+
+                                    </td>
+
+
+                                    <!-- ESTADO -->
+
+                                    <td>
+
+                                        @if (reservacion.IdEstadoReservacionNavigation != null)
+                                        {
+                                            var nombreEstado =
+                                                reservacion.IdEstadoReservacionNavigation.Nombre;
+
+                                            string claseEstado;
+
+                                            if (nombreEstado.Equals(
+                                                "Cancelada",
+                                                StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                claseEstado = "bg-danger";
+                                            }
+                                            else if (nombreEstado.Equals(
+                                                "Confirmada",
+                                                StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                claseEstado = "bg-success";
+                                            }
+                                            else if (nombreEstado.Equals(
+                                                "Pendiente",
+                                                StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                claseEstado = "bg-warning text-dark";
+                                            }
+                                            else
+                                            {
+                                                claseEstado = "bg-secondary";
+                                            }
+
+                                            <span class="badge @claseEstado">
+
+                                                @nombreEstado
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Sin estado
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ACCIONES -->
+
+                                    <td class="text-end pe-4">
+
+                                        <div class="btn-group"
+                                             role="group">
+
+                                            <a asp-action="Details"
+                                               asp-route-id="@reservacion.IdReservacion"
+                                               class="btn btn-sm btn-outline-secondary"
+                                               title="Ver detalles">
+
+                                                <i class="bi bi-eye"></i>
+
+                                            </a>
+
+
+                                            <a asp-action="Edit"
+                                               asp-route-id="@reservacion.IdReservacion"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Editar">
+
+                                                <i class="bi bi-pencil"></i>
+
+                                            </a>
+
+
+                                            <a asp-action="Delete"
+                                               asp-route-id="@reservacion.IdReservacion"
+                                               class="btn btn-sm btn-outline-danger"
+                                               title="Eliminar">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <!-- ================================================= -->
+                <!-- SIN RESERVACIONES -->
+                <!-- ================================================= -->
+
+                <div class="text-center py-5 px-3">
+
+                    <div class="mb-3">
+
+                        <i class="bi bi-calendar-x"
+                           style="font-size: 3.5rem; color: var(--text-muted);">
+                        </i>
+
+                    </div>
+
+                    <h5 class="mb-2">
+                        No hay reservaciones registradas
+                    </h5>
+
+                    <p class="text-muted mb-4">
+
+                        Todavía no se han registrado reservaciones
+                        en el sistema.
+
+                    </p>
+
+                    <a asp-action="Create"
+                       class="btn btn-primary">
+
+                        <i class="bi bi-plus-lg me-1"></i>
+
+                        Registrar reservación
+
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
