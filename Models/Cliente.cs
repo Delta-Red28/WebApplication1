@@ -25,7 +25,7 @@ public partial class Cliente
 
     [StringLength(20)]
     public string? Cedula { get; set; }
-
+    
     [StringLength(20)]
     public string Telefono { get; set; } = null!;
 

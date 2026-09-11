@@ -101,6 +101,48 @@ namespace WebApplication1.Controllers
         }
 
         // ============================================================
+        // COMPROBANTE DEL PAGO
+        // ============================================================
+
+        [HttpGet]
+        public async Task<IActionResult> Comprobante(int id)
+        {
+            var pago = await _context.Pagos
+                .Include(p => p.IdFacturaNavigation)
+                .Include(p => p.IdMetodoPagoNavigation)
+                .Include(p => p.IdMonedaNavigation)
+                .Include(p => p.IdBancoNavigation)
+                .Include(p => p.IdTipoTarjetaNavigation)
+                .Include(p => p.IdEstadoPagoNavigation)
+                .Include(p => p.MovimientoCajas)
+                .FirstOrDefaultAsync(p => p.IdPago == id);
+
+            if (pago == null)
+            {
+                return NotFound();
+            }
+
+            if (pago.IdEstadoPago == ESTADO_PAGO_ANULADO)
+            {
+                TempData["Error"] = "No se puede imprimir un pago anulado.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var factura = await _context.Facturas
+                .Include(f => f.IdEstadoFacturaNavigation)
+                .FirstOrDefaultAsync(f => f.IdFactura == pago.IdFactura);
+
+            if (factura == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.Factura = factura;
+
+            return View(pago);
+        }
+
+        // ============================================================
         // CREATE GET
         // ============================================================
 
@@ -699,11 +741,12 @@ namespace WebApplication1.Controllers
 
                 await transaction.CommitAsync();
 
-                TempData["Success"] =
-                    $"Pago #{pago.IdPago} registrado correctamente.";
+                // ====================================================
+                // AQUÍ ESTÁ EL CAMBIO IMPORTANTE
+                // ====================================================
 
                 return RedirectToAction(
-                    nameof(Details),
+                    nameof(Comprobante),
                     new
                     {
                         id = pago.IdPago
@@ -950,10 +993,6 @@ namespace WebApplication1.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // ========================================================
-            // FACTURA ORIGINAL
-            // ========================================================
-
             var factura =
                 await _context.Facturas
                     .FirstOrDefaultAsync(f =>
@@ -967,10 +1006,6 @@ namespace WebApplication1.Controllers
                     "No se encontró la factura asociada al pago.");
             }
 
-            // ========================================================
-            // NO CAMBIAR FACTURA
-            // ========================================================
-
             if (pago.IdFactura !=
                 pagoOriginal.IdFactura)
             {
@@ -978,10 +1013,6 @@ namespace WebApplication1.Controllers
                     "IdFactura",
                     "No se puede cambiar la factura de un pago existente. Anule el pago y registre uno nuevo.");
             }
-
-            // ========================================================
-            // MOVIMIENTO ORIGINAL
-            // ========================================================
 
             var movimientoOriginal =
                 await _context.MovimientoCajas
@@ -995,10 +1026,6 @@ namespace WebApplication1.Controllers
                     "",
                     "No se encontró el movimiento de caja asociado al pago.");
             }
-
-            // ========================================================
-            // CAJA
-            // ========================================================
 
             Caja? cajaOriginal = null;
 
@@ -1028,20 +1055,12 @@ namespace WebApplication1.Controllers
                     "No se puede editar un pago cuya caja ya está cerrada.");
             }
 
-            // ========================================================
-            // MONTO
-            // ========================================================
-
             if (pago.Monto <= 0)
             {
                 ModelState.AddModelError(
                     "Monto",
                     "El monto debe ser mayor que cero.");
             }
-
-            // ========================================================
-            // MONTO RECIBIDO
-            // ========================================================
 
             if (pago.MontoRecibido.HasValue)
             {
@@ -1061,19 +1080,11 @@ namespace WebApplication1.Controllers
                 }
             }
 
-            // ========================================================
-            // FECHA
-            // ========================================================
-
             if (pago.FechaPago == default)
             {
                 pago.FechaPago =
                     pagoOriginal.FechaPago;
             }
-
-            // ========================================================
-            // MONEDA
-            // ========================================================
 
             var moneda =
                 await _context.Moneda
@@ -1092,10 +1103,6 @@ namespace WebApplication1.Controllers
                     "IdMoneda",
                     "La moneda seleccionada está inactiva.");
             }
-
-            // ========================================================
-            // MÉTODO DE PAGO
-            // ========================================================
 
             var metodoPago =
                 await _context.MetodoPagos
@@ -1116,17 +1123,12 @@ namespace WebApplication1.Controllers
                     "El método de pago seleccionado está inactivo.");
             }
 
-            // ========================================================
-            // BANCO
-            // ========================================================
-
             if (pago.IdBanco.HasValue)
             {
                 var banco =
                     await _context.Bancos
                         .FirstOrDefaultAsync(b =>
-                            b.IdBanco ==
-                            pago.IdBanco.Value);
+                            b.IdBanco == pago.IdBanco.Value);
 
                 if (banco == null)
                 {
@@ -1141,10 +1143,6 @@ namespace WebApplication1.Controllers
                         "El banco seleccionado está inactivo.");
                 }
             }
-
-            // ========================================================
-            // TIPO DE TARJETA
-            // ========================================================
 
             if (pago.IdTipoTarjeta.HasValue)
             {
@@ -1168,10 +1166,6 @@ namespace WebApplication1.Controllers
                 }
             }
 
-            // ========================================================
-            // ESTADO DE PAGO
-            // ========================================================
-
             pago.IdEstadoPago =
                 ESTADO_PAGO_CONFIRMADO;
 
@@ -1188,10 +1182,6 @@ namespace WebApplication1.Controllers
                     "",
                     "No existe un estado activo para pagos confirmados.");
             }
-
-            // ========================================================
-            // FACTURA
-            // ========================================================
 
             if (factura != null)
             {
@@ -1211,10 +1201,6 @@ namespace WebApplication1.Controllers
                 }
             }
 
-            // ========================================================
-            // VALIDACIÓN
-            // ========================================================
-
             if (!ModelState.IsValid)
             {
                 await CargarListas(pago);
@@ -1228,10 +1214,6 @@ namespace WebApplication1.Controllers
 
                 return View(pago);
             }
-
-            // ========================================================
-            // TRANSACCIÓN
-            // ========================================================
 
             await using var transaction =
                 await _context.Database.BeginTransactionAsync();
@@ -1262,16 +1244,8 @@ namespace WebApplication1.Controllers
                         "La caja asociada al pago ya está cerrada.");
                 }
 
-                // ----------------------------------------------------
-                // MONTO ANTERIOR
-                // ----------------------------------------------------
-
                 decimal montoAnterior =
                     pagoOriginal.Monto;
-
-                // ----------------------------------------------------
-                // RESTAURAR SALDO ANTERIOR
-                // ----------------------------------------------------
 
                 factura.SaldoPendiente +=
                     montoAnterior;
@@ -1282,10 +1256,6 @@ namespace WebApplication1.Controllers
                     factura.SaldoPendiente =
                         factura.Total;
                 }
-
-                // ----------------------------------------------------
-                // VALIDAR NUEVO MONTO
-                // ----------------------------------------------------
 
                 if (pago.Monto <= 0)
                 {
@@ -1314,10 +1284,6 @@ namespace WebApplication1.Controllers
                         "El monto recibido no puede ser menor que el monto del pago.");
                 }
 
-                // ----------------------------------------------------
-                // APLICAR NUEVO MONTO
-                // ----------------------------------------------------
-
                 factura.SaldoPendiente -=
                     pago.Monto;
 
@@ -1328,15 +1294,7 @@ namespace WebApplication1.Controllers
 
                 ActualizarEstadoFactura(factura);
 
-                // ----------------------------------------------------
-                // ACTUALIZAR PEDIDO
-                // ----------------------------------------------------
-
                 await ActualizarEstadoPedidoPorFactura(factura);
-
-                // ----------------------------------------------------
-                // ACTUALIZAR PAGO
-                // ----------------------------------------------------
 
                 pagoOriginal.IdMetodoPago =
                     pago.IdMetodoPago;
@@ -1371,10 +1329,6 @@ namespace WebApplication1.Controllers
                 pagoOriginal.IdEstadoPago =
                     ESTADO_PAGO_CONFIRMADO;
 
-                // ----------------------------------------------------
-                // ACTUALIZAR MOVIMIENTO
-                // ----------------------------------------------------
-
                 movimientoOriginal.IdMoneda =
                     pago.IdMoneda;
 
@@ -1387,16 +1341,8 @@ namespace WebApplication1.Controllers
                 movimientoOriginal.Descripcion =
                     $"Pago #{pagoOriginal.IdPago} - Factura #{pagoOriginal.IdFactura}";
 
-                // ----------------------------------------------------
-                // RECALCULAR CAJA
-                // ----------------------------------------------------
-
                 await ActualizarTotalesCaja(
                     cajaOriginal);
-
-                // ----------------------------------------------------
-                // HISTORIAL
-                // ----------------------------------------------------
 
                 decimal cambio = 0;
 
@@ -1453,11 +1399,8 @@ namespace WebApplication1.Controllers
 
                 await transaction.CommitAsync();
 
-                TempData["Success"] =
-                    $"Pago #{pagoOriginal.IdPago} actualizado correctamente.";
-
                 return RedirectToAction(
-                    nameof(Details),
+                    nameof(Comprobante),
                     new
                     {
                         id = pagoOriginal.IdPago
@@ -1584,8 +1527,7 @@ namespace WebApplication1.Controllers
                     .Include(c =>
                         c.IdEstadoCajaNavigation)
                     .FirstOrDefaultAsync(c =>
-                        c.IdCaja ==
-                        movimiento.IdCaja);
+                        c.IdCaja == movimiento.IdCaja);
 
             if (caja == null)
             {
@@ -1628,16 +1570,8 @@ namespace WebApplication1.Controllers
                         "La caja ya está cerrada.");
                 }
 
-                // ----------------------------------------------------
-                // ANULAR PAGO
-                // ----------------------------------------------------
-
                 pago.IdEstadoPago =
                     ESTADO_PAGO_ANULADO;
-
-                // ----------------------------------------------------
-                // ANULAR MOVIMIENTO
-                // ----------------------------------------------------
 
                 movimiento.Anulado = true;
 
@@ -1649,10 +1583,6 @@ namespace WebApplication1.Controllers
 
                 movimiento.MotivoAnulacion =
                     $"Anulación del pago #{pago.IdPago}";
-
-                // ----------------------------------------------------
-                // DEVOLVER MONTO A FACTURA
-                // ----------------------------------------------------
 
                 if (factura.IdEstadoFactura !=
                     ESTADO_FACTURA_ANULADA)
@@ -1669,10 +1599,6 @@ namespace WebApplication1.Controllers
 
                     ActualizarEstadoFactura(
                         factura);
-
-                    // ------------------------------------------------
-                    // ACTUALIZAR PEDIDO
-                    // ------------------------------------------------
 
                     await ActualizarEstadoPedidoPorFactura(
                         factura);
@@ -1723,21 +1649,9 @@ namespace WebApplication1.Controllers
                         historial);
                 }
 
-                // ----------------------------------------------------
-                // RECALCULAR CAJA
-                // ----------------------------------------------------
-
                 await ActualizarTotalesCaja(caja);
 
-                // ----------------------------------------------------
-                // GUARDAR
-                // ----------------------------------------------------
-
                 await _context.SaveChangesAsync();
-
-                // ----------------------------------------------------
-                // COMMIT
-                // ----------------------------------------------------
 
                 await transaction.CommitAsync();
 
@@ -2082,10 +1996,6 @@ namespace WebApplication1.Controllers
                     "No se encontró el pedido asociado a la factura.");
             }
 
-            // --------------------------------------------------------
-            // FACTURA PAGADA
-            // --------------------------------------------------------
-
             if (factura.IdEstadoFactura ==
                 ESTADO_FACTURA_PAGADA)
             {
@@ -2103,10 +2013,6 @@ namespace WebApplication1.Controllers
 
                 return;
             }
-
-            // --------------------------------------------------------
-            // FACTURA YA NO ESTÁ PAGADA
-            // --------------------------------------------------------
 
             if (pedido.IdEstadoPedido ==
                 ESTADO_PEDIDO_ENTREGADO)
@@ -2137,10 +2043,6 @@ namespace WebApplication1.Controllers
                         !m.Anulado)
                     .ToListAsync();
 
-            // --------------------------------------------------------
-            // REINICIAR TOTALES
-            // --------------------------------------------------------
-
             caja.TotalIngresos = 0;
             caja.TotalEgresos = 0;
 
@@ -2149,10 +2051,6 @@ namespace WebApplication1.Controllers
 
             caja.TotalEgresosCordobas = 0;
             caja.TotalEgresosDolares = 0;
-
-            // --------------------------------------------------------
-            // RECORRER MOVIMIENTOS
-            // --------------------------------------------------------
 
             foreach (var movimiento in movimientos)
             {
@@ -2177,10 +2075,6 @@ namespace WebApplication1.Controllers
                     continue;
                 }
 
-                // ----------------------------------------------------
-                // TOTALES GENERALES
-                // ----------------------------------------------------
-
                 if (esIngreso)
                 {
                     caja.TotalIngresos +=
@@ -2191,10 +2085,6 @@ namespace WebApplication1.Controllers
                     caja.TotalEgresos +=
                         movimiento.Monto;
                 }
-
-                // ----------------------------------------------------
-                // TOTALES POR MONEDA
-                // ----------------------------------------------------
 
                 if (movimiento.IdMonedaNavigation == null)
                 {
@@ -2234,27 +2124,15 @@ namespace WebApplication1.Controllers
                 }
             }
 
-            // --------------------------------------------------------
-            // TOTAL SISTEMA GENERAL
-            // --------------------------------------------------------
-
             caja.TotalSistema =
                 caja.MontoInicial +
                 caja.TotalIngresos -
                 caja.TotalEgresos;
 
-            // --------------------------------------------------------
-            // TOTAL SISTEMA NIO
-            // --------------------------------------------------------
-
             caja.TotalSistemaCordobas =
                 caja.MontoInicialCordobas +
                 caja.TotalIngresosCordobas -
                 caja.TotalEgresosCordobas;
-
-            // --------------------------------------------------------
-            // TOTAL SISTEMA USD
-            // --------------------------------------------------------
 
             caja.TotalSistemaDolares =
                 caja.MontoInicialDolares +

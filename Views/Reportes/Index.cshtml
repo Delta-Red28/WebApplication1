@@ -1,12 +1,11 @@
-﻿```cshtml
-@model WebApplication1.ViewModels.Reportes.ReporteDashboardViewModel
+﻿@model WebApplication1.ViewModels.Reportes.ReporteDashboardViewModel
 
 @{
     ViewData["Title"] = "Reportes";
 
-    // ============================================================
+    // =========================================================
     // DATOS PARA GRÁFICA DE VENTAS
-    // ============================================================
+    // =========================================================
 
     var ventasLabels = string.Join(",",
         Model.VentasPorFecha.Select(x =>
@@ -17,13 +16,13 @@
             x.Total.ToString(
                 System.Globalization.CultureInfo.InvariantCulture)));
 
-    // ============================================================
-    // DATOS PARA GRÁFICA DE MÉTODOS DE PAGO
-    // ============================================================
+    // =========================================================
+    // DATOS PARA GRÁFICA DE PAGOS
+    // =========================================================
 
     var pagosLabels = string.Join(",",
         Model.PagosPorMetodo.Select(x =>
-            $"'{(x.MetodoPago ?? "Sin método").Replace("'", "\\'")}'"));
+            $"'{x.MetodoPago.Replace("'", "\\'")}'"));
 
     var pagosData = string.Join(",",
         Model.PagosPorMetodo.Select(x =>
@@ -33,12 +32,14 @@
 
 <div class="container-fluid py-4">
 
-    <!-- =========================================================
-         ENCABEZADO
-    ========================================================== -->
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
 
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
         <div>
+
             <h2 class="fw-bold mb-1">
                 <i class="bi bi-bar-chart-line me-2"></i>
                 Reportes
@@ -47,15 +48,18 @@
             <p class="text-muted mb-0">
                 Resumen general del restaurante
             </p>
+
         </div>
+
     </div>
 
 
-    <!-- =========================================================
-         FILTRO DE FECHAS
-    ========================================================== -->
+    <!-- ========================================================= -->
+    <!-- FILTRO DE FECHAS -->
+    <!-- ========================================================= -->
 
     <div class="card shadow-sm border-0 mb-4">
+
         <div class="card-body">
 
             <form asp-controller="Reportes"
@@ -65,10 +69,14 @@
                 <div class="row g-3 align-items-end">
 
                     <!-- FECHA INICIAL -->
+
                     <div class="col-md-4">
+
                         <label for="fechaInicio"
                                class="form-label fw-semibold">
+
                             Fecha inicial
+
                         </label>
 
                         <input type="date"
@@ -76,14 +84,19 @@
                                name="fechaInicio"
                                class="form-control"
                                value="@Model.FechaInicio.ToString("yyyy-MM-dd")" />
+
                     </div>
 
 
                     <!-- FECHA FINAL -->
+
                     <div class="col-md-4">
+
                         <label for="fechaFin"
                                class="form-label fw-semibold">
+
                             Fecha final
+
                         </label>
 
                         <input type="date"
@@ -91,41 +104,54 @@
                                name="fechaFin"
                                class="form-control"
                                value="@Model.FechaFin.ToString("yyyy-MM-dd")" />
+
                     </div>
 
 
                     <!-- BOTÓN -->
+
                     <div class="col-md-4">
+
                         <button type="submit"
                                 class="btn btn-primary w-100">
 
                             <i class="bi bi-search me-1"></i>
+
                             Consultar reporte
 
                         </button>
+
                     </div>
 
                 </div>
+
             </form>
 
         </div>
+
     </div>
 
 
-    <!-- =========================================================
-         INDICADORES PRINCIPALES
-    ========================================================== -->
+    <!-- ========================================================= -->
+    <!-- INDICADORES PRINCIPALES -->
+    <!-- ========================================================= -->
 
     <div class="row g-4 mb-4">
 
+        <!-- ===================================================== -->
         <!-- TOTAL FACTURADO -->
+        <!-- ===================================================== -->
+
         <div class="col-xl-3 col-md-6">
+
             <div class="card border-0 shadow-sm h-100">
+
                 <div class="card-body">
 
                     <div class="d-flex justify-content-between align-items-start">
 
                         <div>
+
                             <p class="text-muted mb-1">
                                 Total facturado
                             </p>
@@ -133,10 +159,13 @@
                             <h3 class="fw-bold mb-0">
                                 C$ @Model.TotalFacturado.ToString("N2")
                             </h3>
+
                         </div>
 
                         <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+
                             <i class="bi bi-cash-stack text-primary fs-4"></i>
+
                         </div>
 
                     </div>
@@ -144,22 +173,32 @@
                     <hr />
 
                     <small class="text-muted">
+
                         @Model.CantidadFacturas factura(s)
+
                     </small>
 
                 </div>
+
             </div>
+
         </div>
 
 
+        <!-- ===================================================== -->
         <!-- TOTAL PAGOS -->
+        <!-- ===================================================== -->
+
         <div class="col-xl-3 col-md-6">
+
             <div class="card border-0 shadow-sm h-100">
+
                 <div class="card-body">
 
                     <div class="d-flex justify-content-between align-items-start">
 
                         <div>
+
                             <p class="text-muted mb-1">
                                 Total de pagos
                             </p>
@@ -167,10 +206,13 @@
                             <h3 class="fw-bold mb-0">
                                 C$ @Model.TotalPagos.ToString("N2")
                             </h3>
+
                         </div>
 
                         <div class="rounded-circle bg-success bg-opacity-10 p-3">
+
                             <i class="bi bi-wallet2 text-success fs-4"></i>
+
                         </div>
 
                     </div>
@@ -178,22 +220,32 @@
                     <hr />
 
                     <small class="text-muted">
+
                         @Model.CantidadPagos pago(s)
+
                     </small>
 
                 </div>
+
             </div>
+
         </div>
 
 
+        <!-- ===================================================== -->
         <!-- TOTAL COMPRAS -->
+        <!-- ===================================================== -->
+
         <div class="col-xl-3 col-md-6">
+
             <div class="card border-0 shadow-sm h-100">
+
                 <div class="card-body">
 
                     <div class="d-flex justify-content-between align-items-start">
 
                         <div>
+
                             <p class="text-muted mb-1">
                                 Total de compras
                             </p>
@@ -201,10 +253,13 @@
                             <h3 class="fw-bold mb-0">
                                 C$ @Model.TotalCompras.ToString("N2")
                             </h3>
+
                         </div>
 
                         <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+
                             <i class="bi bi-cart-check text-warning fs-4"></i>
+
                         </div>
 
                     </div>
@@ -212,22 +267,32 @@
                     <hr />
 
                     <small class="text-muted">
+
                         @Model.CantidadCompras compra(s)
+
                     </small>
 
                 </div>
+
             </div>
+
         </div>
 
 
+        <!-- ===================================================== -->
         <!-- SALDO PENDIENTE -->
+        <!-- ===================================================== -->
+
         <div class="col-xl-3 col-md-6">
+
             <div class="card border-0 shadow-sm h-100">
+
                 <div class="card-body">
 
                     <div class="d-flex justify-content-between align-items-start">
 
                         <div>
+
                             <p class="text-muted mb-1">
                                 Saldo pendiente
                             </p>
@@ -235,10 +300,13 @@
                             <h3 class="fw-bold mb-0">
                                 C$ @Model.TotalSaldoPendiente.ToString("N2")
                             </h3>
+
                         </div>
 
                         <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+
                             <i class="bi bi-exclamation-circle text-danger fs-4"></i>
+
                         </div>
 
                     </div>
@@ -250,30 +318,38 @@
                     </small>
 
                 </div>
+
             </div>
+
         </div>
 
     </div>
 
 
-    <!-- =========================================================
-         SEGUNDA FILA - CLIENTES / PROVEEDORES / PRODUCTOS
-    ========================================================== -->
+    <!-- ========================================================= -->
+    <!-- SEGUNDA FILA DE INDICADORES -->
+    <!-- ========================================================= -->
 
     <div class="row g-4 mb-4">
 
         <!-- CLIENTES -->
+
         <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm">
+
+            <div class="card border-0 shadow-sm h-100">
+
                 <div class="card-body">
 
                     <div class="d-flex align-items-center">
 
                         <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
+
                             <i class="bi bi-people text-info fs-4"></i>
+
                         </div>
 
                         <div>
+
                             <p class="text-muted mb-1">
                                 Clientes activos
                             </p>
@@ -281,27 +357,36 @@
                             <h4 class="fw-bold mb-0">
                                 @Model.CantidadClientes
                             </h4>
+
                         </div>
 
                     </div>
 
                 </div>
+
             </div>
+
         </div>
 
 
         <!-- PROVEEDORES -->
+
         <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm">
+
+            <div class="card border-0 shadow-sm h-100">
+
                 <div class="card-body">
 
                     <div class="d-flex align-items-center">
 
                         <div class="rounded-circle bg-secondary bg-opacity-10 p-3 me-3">
+
                             <i class="bi bi-truck text-secondary fs-4"></i>
+
                         </div>
 
                         <div>
+
                             <p class="text-muted mb-1">
                                 Proveedores activos
                             </p>
@@ -309,27 +394,36 @@
                             <h4 class="fw-bold mb-0">
                                 @Model.CantidadProveedores
                             </h4>
+
                         </div>
 
                     </div>
 
                 </div>
+
             </div>
+
         </div>
 
 
         <!-- PRODUCTOS -->
+
         <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm">
+
+            <div class="card border-0 shadow-sm h-100">
+
                 <div class="card-body">
 
                     <div class="d-flex align-items-center">
 
                         <div class="rounded-circle bg-dark bg-opacity-10 p-3 me-3">
+
                             <i class="bi bi-box-seam text-dark fs-4"></i>
+
                         </div>
 
                         <div>
+
                             <p class="text-muted mb-1">
                                 Productos activos
                             </p>
@@ -337,20 +431,23 @@
                             <h4 class="fw-bold mb-0">
                                 @Model.CantidadProductos
                             </h4>
+
                         </div>
 
                     </div>
 
                 </div>
+
             </div>
+
         </div>
 
     </div>
 
 
-    <!-- =========================================================
-         PERÍODO CONSULTADO
-    ========================================================== -->
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN DEL PERÍODO -->
+    <!-- ========================================================= -->
 
     <div class="alert alert-light border shadow-sm mb-4">
 
@@ -359,21 +456,23 @@
         <strong>Período consultado:</strong>
 
         @Model.FechaInicio.ToString("dd/MM/yyyy")
+
         -
+
         @Model.FechaFin.ToString("dd/MM/yyyy")
 
     </div>
 
 
-    <!-- =========================================================
-         GRÁFICAS
-    ========================================================== -->
+    <!-- ========================================================= -->
+    <!-- GRÁFICAS -->
+    <!-- ========================================================= -->
 
     <div class="row g-4">
 
-        <!-- =====================================================
-             VENTAS POR FECHA
-        ====================================================== -->
+        <!-- ===================================================== -->
+        <!-- VENTAS POR FECHA -->
+        <!-- ===================================================== -->
 
         <div class="col-lg-8">
 
@@ -384,6 +483,7 @@
                     <div class="d-flex justify-content-between align-items-center">
 
                         <div>
+
                             <h5 class="fw-bold mb-1">
                                 Ventas por fecha
                             </h5>
@@ -391,6 +491,7 @@
                             <small class="text-muted">
                                 Evolución de las ventas durante el período
                             </small>
+
                         </div>
 
                         <i class="bi bi-graph-up-arrow text-primary fs-4"></i>
@@ -405,8 +506,10 @@
                     @if (Model.VentasPorFecha != null &&
                          Model.VentasPorFecha.Any())
                     {
-                        <div style="height: 350px;">
+                        <div style="height:350px;">
+
                             <canvas id="ventasChart"></canvas>
+
                         </div>
                     }
                     else
@@ -416,8 +519,9 @@
                             <i class="bi bi-bar-chart fs-1"></i>
 
                             <p class="mt-3 mb-0">
-                                No hay ventas registradas
-                                en este período.
+
+                                No hay ventas registradas en este período.
+
                             </p>
 
                         </div>
@@ -430,9 +534,9 @@
         </div>
 
 
-        <!-- =====================================================
-             MÉTODOS DE PAGO
-        ====================================================== -->
+        <!-- ===================================================== -->
+        <!-- PAGOS POR MÉTODO -->
+        <!-- ===================================================== -->
 
         <div class="col-lg-4">
 
@@ -443,13 +547,15 @@
                     <div class="d-flex justify-content-between align-items-center">
 
                         <div>
+
                             <h5 class="fw-bold mb-1">
                                 Métodos de pago
                             </h5>
 
                             <small class="text-muted">
-                                Distribución de pagos recibidos
+                                Distribución de pagos
                             </small>
+
                         </div>
 
                         <i class="bi bi-credit-card text-success fs-4"></i>
@@ -464,77 +570,26 @@
                     @if (Model.PagosPorMetodo != null &&
                          Model.PagosPorMetodo.Any())
                     {
-                        <!-- GRÁFICA -->
+                        <div style="height:300px;">
 
-                        <div style="height: 280px;">
                             <canvas id="pagosChart"></canvas>
+
                         </div>
 
 
-                        <!-- DETALLE DE MÉTODOS -->
-
-                        <div class="mt-4">
+                        <div class="mt-3">
 
                             @foreach (var pago in Model.PagosPorMetodo)
                             {
-                                var simbolo =
-                                    string.IsNullOrWhiteSpace(
-                                        pago.SimboloMoneda)
-                                    ? "C$"
-                                    : pago.SimboloMoneda;
+                                <div class="d-flex justify-content-between align-items-center mb-2">
 
-                                var metodo =
-                                    string.IsNullOrWhiteSpace(
-                                        pago.MetodoPago)
-                                    ? "Sin método"
-                                    : pago.MetodoPago;
+                                    <span>
+                                        @pago.MetodoPago
+                                    </span>
 
-                                <div class="border rounded p-3 mb-2">
-
-                                    <div class="d-flex justify-content-between align-items-center">
-
-                                        <div>
-
-                                            <div class="fw-semibold">
-                                                <i class="bi bi-wallet2 me-1"></i>
-                                                @metodo
-                                            </div>
-
-                                            <small class="text-muted">
-
-                                                @pago.Cantidad pago(s)
-
-                                                @if (!string.IsNullOrWhiteSpace(
-                                                    pago.Moneda))
-                                                {
-                                                    <span>
-                                                        · @pago.Moneda
-                                                    </span>
-                                                }
-
-                                            </small>
-
-                                        </div>
-
-
-                                        <div class="text-end">
-
-                                            <strong class="d-block">
-                                                @simbolo
-                                                @pago.Total.ToString("N2")
-                                            </strong>
-
-                                            @if (!string.IsNullOrWhiteSpace(
-                                                pago.CodigoMoneda))
-                                            {
-                                                <small class="text-muted">
-                                                    @pago.CodigoMoneda
-                                                </small>
-                                            }
-
-                                        </div>
-
-                                    </div>
+                                    <strong>
+                                        C$ @pago.Total.ToString("N2")
+                                    </strong>
 
                                 </div>
                             }
@@ -548,8 +603,9 @@
                             <i class="bi bi-credit-card fs-1"></i>
 
                             <p class="mt-3 mb-0">
-                                No hay pagos registrados
-                                en este período.
+
+                                No hay pagos registrados.
+
                             </p>
 
                         </div>
@@ -564,17 +620,20 @@
     </div>
 
 
-    <!-- =========================================================
-         RESUMEN FINANCIERO
-    ========================================================== -->
+    <!-- ========================================================= -->
+    <!-- RESUMEN FINANCIERO -->
+    <!-- ========================================================= -->
 
     <div class="card border-0 shadow-sm mt-4">
 
         <div class="card-header bg-white border-0 py-3">
 
             <h5 class="fw-bold mb-0">
+
                 <i class="bi bi-calculator me-2"></i>
+
                 Resumen financiero
+
             </h5>
 
         </div>
@@ -585,16 +644,19 @@
             <div class="row g-4">
 
                 <!-- FACTURACIÓN -->
+
                 <div class="col-md-4">
 
-                    <div class="border rounded p-3">
+                    <div class="border rounded p-3 h-100">
 
                         <small class="text-muted d-block">
                             Facturación
                         </small>
 
                         <h4 class="fw-bold text-primary mb-0">
+
                             C$ @Model.TotalFacturado.ToString("N2")
+
                         </h4>
 
                     </div>
@@ -603,16 +665,19 @@
 
 
                 <!-- DESCUENTOS -->
+
                 <div class="col-md-4">
 
-                    <div class="border rounded p-3">
+                    <div class="border rounded p-3 h-100">
 
                         <small class="text-muted d-block">
                             Descuentos
                         </small>
 
                         <h4 class="fw-bold text-warning mb-0">
+
                             C$ @Model.TotalDescuentos.ToString("N2")
+
                         </h4>
 
                     </div>
@@ -621,16 +686,19 @@
 
 
                 <!-- IMPUESTOS -->
+
                 <div class="col-md-4">
 
-                    <div class="border rounded p-3">
+                    <div class="border rounded p-3 h-100">
 
                         <small class="text-muted d-block">
                             Impuestos
                         </small>
 
                         <h4 class="fw-bold text-success mb-0">
+
                             C$ @Model.TotalImpuestos.ToString("N2")
+
                         </h4>
 
                     </div>
@@ -646,15 +714,16 @@
 </div>
 
 
-<!-- =============================================================
-     CHART.JS
-============================================================== -->
+<!-- ============================================================= -->
+<!-- CHART.JS -->
+<!-- ============================================================= -->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+
 <script>
 
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
 
         // =========================================================
         // GRÁFICA DE VENTAS
@@ -675,30 +744,40 @@
                         @Html.Raw(ventasLabels)
                     ],
 
-                    datasets: [{
+                    datasets: [
 
-                        label: "Ventas",
+                        {
 
-                        data: [
-                            @Html.Raw(ventasData)
-                        ],
+                            label: "Ventas",
 
-                        borderColor: "#0d6efd",
+                            data: [
+                                @Html.Raw(ventasData)
+                            ],
 
-                        backgroundColor:
-                            "rgba(13, 110, 253, 0.10)",
+                            borderColor: "#0d6efd",
 
-                        borderWidth: 3,
+                            backgroundColor:
+                                "rgba(13, 110, 253, 0.10)",
 
-                        fill: true,
+                            borderWidth: 3,
 
-                        tension: 0.35,
+                            fill: true,
 
-                        pointRadius: 4,
+                            tension: 0.35,
 
-                        pointBackgroundColor: "#0d6efd"
+                            pointRadius: 4,
 
-                    }]
+                            pointHoverRadius: 6,
+
+                            pointBackgroundColor: "#0d6efd",
+
+                            pointBorderColor: "#ffffff",
+
+                            pointBorderWidth: 2
+
+                        }
+
+                    ]
 
                 },
 
@@ -708,27 +787,39 @@
 
                     maintainAspectRatio: false,
 
+                    interaction: {
+
+                        intersect: false,
+
+                        mode: "index"
+
+                    },
+
                     plugins: {
 
                         legend: {
+
                             display: false
+
                         },
 
                         tooltip: {
 
                             callbacks: {
 
-                                label: function(context) {
+                                label: function (context) {
 
-                                    return "C$ " +
-                                        Number(context.raw)
-                                            .toLocaleString(
-                                                "es-NI",
-                                                {
-                                                    minimumFractionDigits: 2,
-                                                    maximumFractionDigits: 2
-                                                }
-                                            );
+                                    const value =
+                                        Number(context.raw);
+
+                                    return "Ventas: C$ " +
+                                        value.toLocaleString(
+                                            "es-NI",
+                                            {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }
+                                        );
 
                                 }
 
@@ -740,22 +831,32 @@
 
                     scales: {
 
+                        x: {
+
+                            grid: {
+
+                                display: false
+
+                            }
+
+                        },
+
                         y: {
 
                             beginAtZero: true,
 
                             ticks: {
 
-                                callback: function(value) {
+                                callback: function (value) {
 
                                     return "C$ " +
-                                        Number(value)
-                                            .toLocaleString(
-                                                "es-NI",
-                                                {
-                                                    minimumFractionDigits: 2
-                                                }
-                                            );
+                                        Number(value).toLocaleString(
+                                            "es-NI",
+                                            {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }
+                                        );
 
                                 }
 
@@ -773,7 +874,7 @@
 
 
         // =========================================================
-        // GRÁFICA DE MÉTODOS DE PAGO
+        // GRÁFICA DE PAGOS
         // =========================================================
 
         const pagosCanvas =
@@ -791,28 +892,37 @@
                         @Html.Raw(pagosLabels)
                     ],
 
-                    datasets: [{
+                    datasets: [
 
-                        data: [
-                            @Html.Raw(pagosData)
-                        ],
+                        {
 
-                        backgroundColor: [
-                            "#0d6efd",
-                            "#198754",
-                            "#ffc107",
-                            "#dc3545",
-                            "#6f42c1",
-                            "#20c997",
-                            "#fd7e14",
-                            "#0dcaf0"
-                        ],
+                            data: [
+                                @Html.Raw(pagosData)
+                            ],
 
-                        borderWidth: 2,
+                            backgroundColor: [
 
-                        borderColor: "#ffffff"
+                                "#0d6efd",
+                                "#198754",
+                                "#ffc107",
+                                "#dc3545",
+                                "#6f42c1",
+                                "#20c997",
+                                "#fd7e14",
+                                "#0dcaf0",
+                                "#6c757d"
 
-                    }]
+                            ],
+
+                            borderWidth: 2,
+
+                            borderColor: "#ffffff",
+
+                            hoverOffset: 8
+
+                        }
+
+                    ]
 
                 },
 
@@ -822,7 +932,7 @@
 
                     maintainAspectRatio: false,
 
-                    cutout: "60%",
+                    cutout: "65%",
 
                     plugins: {
 
@@ -832,9 +942,9 @@
 
                             labels: {
 
-                                padding: 15,
+                                usePointStyle: true,
 
-                                usePointStyle: true
+                                padding: 15
 
                             }
 
@@ -844,22 +954,19 @@
 
                             callbacks: {
 
-                                label: function(context) {
+                                label: function (context) {
 
                                     const value =
-                                        Number(context.raw)
-                                            .toLocaleString(
-                                                "es-NI",
-                                                {
-                                                    minimumFractionDigits: 2,
-                                                    maximumFractionDigits: 2
-                                                }
-                                            );
+                                        Number(context.raw);
 
-                                    return " " +
-                                        context.label +
-                                        ": C$ " +
-                                        value;
+                                    return " C$ " +
+                                        value.toLocaleString(
+                                            "es-NI",
+                                            {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }
+                                        );
 
                                 }
 

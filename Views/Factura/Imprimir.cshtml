@@ -1,0 +1,770 @@
+﻿@model IEnumerable<WebApplication1.Models.Factura>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1" />
+
+    <title>Facturas</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f3f4f6;
+            color: #111827;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+        }
+
+        .contenedor {
+            width: calc(100% - 40px);
+            max-width: 1500px;
+            margin: 30px auto;
+        }
+
+        .encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .titulo {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .subtitulo {
+            margin-top: 5px;
+            color: #6b7280;
+        }
+
+        .tabla-contenedor {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
+        }
+
+        table {
+            width: 100%;
+            min-width: 1200px;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #1f2937;
+            color: #ffffff;
+        }
+
+        th {
+            padding: 12px 10px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .factura-numero {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .tipo {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .serie {
+            margin-top: 3px;
+            color: #6b7280;
+            font-size: 11px;
+        }
+
+        .pedido {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .pedido:hover {
+            text-decoration: underline;
+        }
+
+        .cliente-nombre {
+            font-weight: 600;
+        }
+
+        .cliente-cedula {
+            margin-top: 3px;
+            color: #6b7280;
+            font-size: 11px;
+        }
+
+        .moneda {
+            font-weight: 600;
+        }
+
+        .saldo {
+            font-weight: 700;
+        }
+
+        .estado {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .estado-pagada {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .estado-pendiente {
+            background: #fff3cd;
+            color: #664d03;
+        }
+
+        .estado-parcial {
+            background: #cff4fc;
+            color: #055160;
+        }
+
+        .estado-anulada {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .estado-default {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .acciones {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 7px 10px;
+            border-radius: 4px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #111827;
+            text-decoration: none;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #f3f4f6;
+        }
+
+        .btn-ver {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #ffffff;
+        }
+
+        .btn-ver:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-imprimir {
+            background: #111827;
+            border-color: #111827;
+            color: #ffffff;
+        }
+
+        .btn-imprimir:hover {
+            background: #000000;
+        }
+
+        .sin-registros {
+            padding: 40px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+
+        /* ============================================================
+           PANTALLAS PEQUEÑAS
+           ============================================================ */
+
+        body.pantalla-pequena .contenedor {
+            width: calc(100% - 20px);
+            margin: 15px auto;
+        }
+
+        body.pantalla-pequena .encabezado {
+            display: block;
+        }
+
+        body.pantalla-pequena .titulo {
+            font-size: 22px;
+        }
+
+        body.pantalla-pequena .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <main class="contenedor">
+
+
+        <!-- ========================================================
+             ENCABEZADO
+             ======================================================== -->
+
+        <header class="encabezado">
+
+            <div>
+
+                <h1 class="titulo">
+                    Facturas
+                </h1>
+
+                <div class="subtitulo">
+                    Listado de facturas registradas
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- ========================================================
+             TABLA
+             ======================================================== -->
+
+        <div class="tabla-contenedor">
+
+
+            @if (Model != null && Model.Any())
+            {
+
+                <table>
+
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                #
+                            </th>
+
+                            <th>
+                                Factura
+                            </th>
+
+                            <th>
+                                Pedido
+                            </th>
+
+                            <th>
+                                Fecha
+                            </th>
+
+                            <th>
+                                Cliente
+                            </th>
+
+                            <th>
+                                Moneda
+                            </th>
+
+                            <th class="text-right">
+                                Subtotal
+                            </th>
+
+                            <th class="text-right">
+                                Descuento
+                            </th>
+
+                            <th class="text-right">
+                                Impuesto
+                            </th>
+
+                            <th class="text-right">
+                                Total
+                            </th>
+
+                            <th class="text-right">
+                                Saldo
+                            </th>
+
+                            <th class="text-center">
+                                Estado
+                            </th>
+
+                            <th class="text-center">
+                                Acciones
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+
+                        @foreach (var factura in Model)
+                        {
+
+                            var cliente =
+                                factura.IdPedidoNavigation?.IdClienteNavigation;
+
+                            var nombreCliente =
+                                cliente != null
+                                    ? $"{cliente.Nombres} {cliente.Apellidos}".Trim()
+                                    : "Consumidor final";
+
+                            var numeroPedido =
+                                factura.IdPedidoNavigation?.NumeroPedido
+                                ?? $"#{factura.IdPedido}";
+
+                            var tipoComprobante =
+                                factura.IdTipoComprobanteNavigation?.Nombre
+                                ?? "Factura";
+
+                            var serie =
+                                factura.IdSerieFacturaNavigation?.Nombre
+                                ?? "";
+
+                            var codigoMoneda =
+                                factura.IdMonedaNavigation?.CodigoIso
+                                ?? "";
+
+                            var simboloMoneda =
+                                factura.IdMonedaNavigation?.Simbolo
+                                ?? "";
+
+                            var nombreMoneda =
+                                factura.IdMonedaNavigation?.Nombre
+                                ?? "";
+
+                            var estado =
+                                factura.IdEstadoFacturaNavigation?.Nombre
+                                ?? "Pendiente";
+
+                            var claseEstado =
+                                factura.IdEstadoFactura == 2
+                                    ? "estado-pagada"
+                                    : factura.IdEstadoFactura == 3
+                                        ? "estado-anulada"
+                                        : factura.IdEstadoFactura == 4
+                                            ? "estado-parcial"
+                                            : "estado-pendiente";
+
+                            var saldo =
+                                Math.Max(factura.SaldoPendiente, 0m);
+
+
+                            <tr>
+
+
+                                <!-- =================================================
+                                     ID
+                                     ================================================= -->
+
+                                <td>
+                                    @factura.IdFactura
+                                </td>
+
+
+                                <!-- =================================================
+                                     FACTURA
+                                     ================================================= -->
+
+                                <td>
+
+                                    <div class="factura-numero">
+                                        @factura.NumeroFactura
+                                    </div>
+
+                                    <div class="tipo">
+                                        @tipoComprobante
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(serie))
+                                    {
+                                        <div class="serie">
+                                            Serie: @serie
+                                        </div>
+                                    }
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     PEDIDO
+                                     ================================================= -->
+
+                                <td>
+
+                                    @if (factura.IdPedidoNavigation != null)
+                                    {
+
+                                        <a class="pedido"
+                                           href="@Url.Action(
+                                               "Details",
+                                               "Pedido",
+                                               new
+                                               {
+                                                   id = factura.IdPedido
+                                               })">
+
+                                            #@numeroPedido
+
+                                        </a>
+
+                                    }
+                                    else
+                                    {
+
+                                        <span>
+                                            @numeroPedido
+                                        </span>
+
+                                    }
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     FECHA
+                                     ================================================= -->
+
+                                <td>
+
+                                    <div>
+                                        @factura.FechaFactura.ToString("dd/MM/yyyy")
+                                    </div>
+
+                                    <div style="color:#6b7280;font-size:11px;">
+                                        @factura.FechaFactura.ToString("HH:mm")
+                                    </div>
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     CLIENTE
+                                     ================================================= -->
+
+                                <td>
+
+                                    <div class="cliente-nombre">
+                                        @nombreCliente
+                                    </div>
+
+                                    @if (cliente != null &&
+                                         !string.IsNullOrWhiteSpace(cliente.Cedula))
+                                    {
+
+                                        <div class="cliente-cedula">
+                                            Cédula: @cliente.Cedula
+                                        </div>
+
+                                    }
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     MONEDA
+                                     ================================================= -->
+
+                                <td>
+
+                                    <div class="moneda">
+
+                                        @if (!string.IsNullOrWhiteSpace(simboloMoneda))
+                                        {
+                                            @simboloMoneda
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(codigoMoneda))
+                                        {
+                                            <span>
+                                                @codigoMoneda
+                                            </span>
+                                        }
+
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(nombreMoneda))
+                                    {
+                                        <div style="color:#6b7280;font-size:11px;">
+                                            @nombreMoneda
+                                        </div>
+                                    }
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     SUBTOTAL
+                                     ================================================= -->
+
+                                <td class="text-right">
+
+                                    @factura.Subtotal.ToString("N2")
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     DESCUENTO
+                                     ================================================= -->
+
+                                <td class="text-right">
+
+                                    @if (factura.Descuento > 0)
+                                    {
+                                        <span>
+                                            -@factura.Descuento.ToString("N2")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>
+                                            0.00
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     IMPUESTO
+                                     ================================================= -->
+
+                                <td class="text-right">
+
+                                    @factura.Impuesto.ToString("N2")
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     TOTAL
+                                     ================================================= -->
+
+                                <td class="text-right">
+
+                                    <strong>
+
+                                        @factura.Total.ToString("N2")
+
+                                    </strong>
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     SALDO
+                                     ================================================= -->
+
+                                <td class="text-right">
+
+                                    <span class="saldo">
+
+                                        @saldo.ToString("N2")
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     ESTADO
+                                     ================================================= -->
+
+                                <td class="text-center">
+
+                                    <span class="estado @claseEstado">
+
+                                        @estado
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- =================================================
+                                     ACCIONES
+                                     ================================================= -->
+
+                                <td>
+
+                                    <div class="acciones">
+
+
+                                        <a class="btn btn-ver"
+                                           href="@Url.Action(
+                                               "Details",
+                                               "Factura",
+                                               new
+                                               {
+                                                   id = factura.IdFactura
+                                               })">
+
+                                            Ver
+
+                                        </a>
+
+
+                                        <a class="btn btn-imprimir"
+                                           href="@Url.Action(
+                                               "Imprimir",
+                                               "Factura",
+                                               new
+                                               {
+                                                   id = factura.IdFactura
+                                               })"
+                                           target="_blank">
+
+                                            Imprimir
+
+                                        </a>
+
+
+                                    </div>
+
+                                </td>
+
+
+                            </tr>
+
+                        }
+
+
+                    </tbody>
+
+
+                </table>
+
+            }
+            else
+            {
+
+                <div class="sin-registros">
+
+                    No hay facturas registradas.
+
+                </div>
+
+            }
+
+
+        </div>
+
+
+    </main>
+
+
+    <!-- ============================================================
+         JAVASCRIPT
+         ============================================================ -->
+
+    <script>
+
+        /*
+         * Detectar pantallas pequeñas.
+         */
+
+        function ajustarPantalla() {
+
+            var ancho = window.innerWidth;
+
+            if (ancho <= 700) {
+
+                document.body.classList.add(
+                    "pantalla-pequena"
+                );
+
+            }
+            else {
+
+                document.body.classList.remove(
+                    "pantalla-pequena"
+                );
+
+            }
+
+        }
+
+
+        window.addEventListener(
+            "load",
+            ajustarPantalla
+        );
+
+
+        window.addEventListener(
+            "resize",
+            ajustarPantalla
+        );
+
+    </script>
+
+
+</body>
+
+</html>

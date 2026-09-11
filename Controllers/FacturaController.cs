@@ -53,15 +53,23 @@ namespace WebApplication1.Controllers
         {
             var facturas = await _context.Facturas
                 .AsNoTracking()
+
                 .Include(f => f.IdPedidoNavigation)
                     .ThenInclude(p => p!.IdClienteNavigation)
+
                 .Include(f => f.IdEstadoFacturaNavigation)
+
                 .Include(f => f.IdMonedaNavigation)
+
                 .Include(f => f.IdTipoComprobanteNavigation)
+
                 .Include(f => f.IdSerieFacturaNavigation)
+
                 .Include(f => f.IdImpuestoNavigation)
+
                 .OrderByDescending(f => f.FechaFactura)
                 .ThenByDescending(f => f.IdFactura)
+
                 .ToListAsync();
 
             return View(facturas);
@@ -80,38 +88,182 @@ namespace WebApplication1.Controllers
             }
 
             var factura = await _context.Facturas
+
                 .AsNoTracking()
+
+                // ----------------------------------------------------
+                // PEDIDO + CLIENTE
+                // ----------------------------------------------------
+
                 .Include(f => f.IdPedidoNavigation)
                     .ThenInclude(p => p!.IdClienteNavigation)
+
+                // ----------------------------------------------------
+                // ESTADO
+                // ----------------------------------------------------
+
                 .Include(f => f.IdEstadoFacturaNavigation)
+
+                // ----------------------------------------------------
+                // MONEDA
+                // ----------------------------------------------------
+
                 .Include(f => f.IdMonedaNavigation)
+
+                // ----------------------------------------------------
+                // TIPO COMPROBANTE
+                // ----------------------------------------------------
+
                 .Include(f => f.IdTipoComprobanteNavigation)
+
+                // ----------------------------------------------------
+                // SERIE
+                // ----------------------------------------------------
+
                 .Include(f => f.IdSerieFacturaNavigation)
+
+                // ----------------------------------------------------
+                // MOTIVO ANULACIÓN
+                // ----------------------------------------------------
+
                 .Include(f => f.IdMotivoAnulacionNavigation)
+
+                // ----------------------------------------------------
+                // USUARIO QUE ANULÓ
+                // ----------------------------------------------------
+
                 .Include(f => f.IdUsuarioAnuloNavigation)
+
+                // ----------------------------------------------------
+                // IMPUESTO
+                // ----------------------------------------------------
+
                 .Include(f => f.IdImpuestoNavigation)
+
+                // ----------------------------------------------------
+                // PAGOS + MÉTODO
+                // ----------------------------------------------------
+
                 .Include(f => f.Pagos)
                     .ThenInclude(p => p.IdMetodoPagoNavigation)
+
+                // ----------------------------------------------------
+                // PAGOS + ESTADO
+                // ----------------------------------------------------
+
                 .Include(f => f.Pagos)
                     .ThenInclude(p => p.IdEstadoPagoNavigation)
+
+                // ----------------------------------------------------
+                // PAGOS + MONEDA
+                // ----------------------------------------------------
+
                 .Include(f => f.Pagos)
                     .ThenInclude(p => p.IdMonedaNavigation)
-                .FirstOrDefaultAsync(f => f.IdFactura == id.Value);
+
+                .FirstOrDefaultAsync(f =>
+                    f.IdFactura == id.Value);
 
             if (factura == null)
             {
                 return NotFound();
             }
 
+            // ========================================================
+            // HISTORIAL
+            // ========================================================
+
             var historial = await _context.HistorialFacturas
+
                 .AsNoTracking()
-                .Include(h => h.IdEstadoFacturaNavigation)
-                .Include(h => h.IdUsuarioNavigation)
-                .Where(h => h.IdFactura == factura.IdFactura)
-                .OrderByDescending(h => h.Fecha)
+
+                .Include(h =>
+                    h.IdEstadoFacturaNavigation)
+
+                .Include(h =>
+                    h.IdUsuarioNavigation)
+
+                .Where(h =>
+                    h.IdFactura == factura.IdFactura)
+
+                .OrderByDescending(h =>
+                    h.Fecha)
+
                 .ToListAsync();
 
             ViewBag.Historial = historial;
+
+            return View(factura);
+        }
+
+        // ============================================================
+        // IMPRIMIR FACTURA
+        // ============================================================
+
+        [HttpGet]
+        public async Task<IActionResult> Imprimir(int? id)
+        {
+            if (!id.HasValue)
+            {
+                return NotFound();
+            }
+
+            var factura = await _context.Facturas
+
+                .AsNoTracking()
+
+                // ----------------------------------------------------
+                // PEDIDO + CLIENTE
+                // ----------------------------------------------------
+
+                .Include(f => f.IdPedidoNavigation)
+                    .ThenInclude(p => p!.IdClienteNavigation)
+
+                // ----------------------------------------------------
+                // PEDIDO + DETALLES + PRODUCTO
+                // ----------------------------------------------------
+
+                .Include(f => f.IdPedidoNavigation)
+                    .ThenInclude(p => p!.DetallePedidos)
+                        .ThenInclude(d => d.IdProductoNavigation)
+
+                // ----------------------------------------------------
+                // ESTADO FACTURA
+                // ----------------------------------------------------
+
+                .Include(f => f.IdEstadoFacturaNavigation)
+
+                // ----------------------------------------------------
+                // MONEDA
+                // ----------------------------------------------------
+
+                .Include(f => f.IdMonedaNavigation)
+
+                // ----------------------------------------------------
+                // TIPO COMPROBANTE
+                // ----------------------------------------------------
+
+                .Include(f => f.IdTipoComprobanteNavigation)
+
+                // ----------------------------------------------------
+                // SERIE
+                // ----------------------------------------------------
+
+                .Include(f => f.IdSerieFacturaNavigation)
+
+                // ----------------------------------------------------
+                // IMPUESTO
+                // ----------------------------------------------------
+
+                .Include(f => f.IdImpuestoNavigation)
+
+                .FirstOrDefaultAsync(f =>
+                    f.IdFactura == id.Value);
+
+            if (factura == null)
+            {
+                return NotFound();
+            }
 
             return View(factura);
         }
@@ -133,9 +285,14 @@ namespace WebApplication1.Controllers
 
             var factura = new Factura
             {
-                IdEstadoFactura = ESTADO_FACTURA_PENDIENTE,
-                FechaFactura = DateTime.Now,
-                SaldoPendiente = 0m
+                IdEstadoFactura =
+                    ESTADO_FACTURA_PENDIENTE,
+
+                FechaFactura =
+                    DateTime.Now,
+
+                SaldoPendiente =
+                    0m
             };
 
             await CargarListas(factura);
@@ -179,9 +336,15 @@ namespace WebApplication1.Controllers
             else
             {
                 pedido = await _context.Pedidos
+
                     .AsNoTracking()
-                    .Include(p => p.IdEstadoPedidoNavigation)
-                    .Include(p => p.Factura)
+
+                    .Include(p =>
+                        p.IdEstadoPedidoNavigation)
+
+                    .Include(p =>
+                        p.Factura)
+
                     .FirstOrDefaultAsync(p =>
                         p.IdPedido == factura.IdPedido);
 
@@ -195,7 +358,8 @@ namespace WebApplication1.Controllers
 
             if (pedido != null)
             {
-                if (pedido.IdEstadoPedido != ESTADO_PEDIDO_LISTO)
+                if (pedido.IdEstadoPedido !=
+                    ESTADO_PEDIDO_LISTO)
                 {
                     string estado =
                         pedido.IdEstadoPedidoNavigation?.Nombre
@@ -207,7 +371,8 @@ namespace WebApplication1.Controllers
                         $"El pedido actualmente está en estado \"{estado}\".");
                 }
 
-                var facturaPedido = pedido.Factura;
+                var facturaPedido =
+                    pedido.Factura;
 
                 if (facturaPedido != null)
                 {
@@ -237,7 +402,9 @@ namespace WebApplication1.Controllers
             else
             {
                 moneda = await _context.Moneda
+
                     .AsNoTracking()
+
                     .FirstOrDefaultAsync(m =>
                         m.IdMoneda == factura.IdMoneda &&
                         m.Estado);
@@ -264,7 +431,9 @@ namespace WebApplication1.Controllers
             {
                 tipoComprobante =
                     await _context.TipoComprobantes
+
                         .AsNoTracking()
+
                         .FirstOrDefaultAsync(t =>
                             t.IdTipoComprobante ==
                             factura.IdTipoComprobante &&
@@ -291,8 +460,10 @@ namespace WebApplication1.Controllers
             else
             {
                 serie = await _context.SerieFacturas
+
                     .FirstOrDefaultAsync(s =>
-                        s.IdSerieFactura == factura.IdSerieFactura &&
+                        s.IdSerieFactura ==
+                        factura.IdSerieFactura &&
                         s.Estado);
 
                 if (serie == null)
@@ -311,9 +482,12 @@ namespace WebApplication1.Controllers
                 factura.IdImpuesto.Value > 0)
             {
                 impuesto = await _context.Impuestos
+
                     .AsNoTracking()
+
                     .FirstOrDefaultAsync(i =>
-                        i.IdImpuesto == factura.IdImpuesto.Value &&
+                        i.IdImpuesto ==
+                        factura.IdImpuesto.Value &&
                         i.Estado);
 
                 if (impuesto == null)
@@ -328,7 +502,8 @@ namespace WebApplication1.Controllers
             // FECHA
             // ========================================================
 
-            factura.FechaFactura = DateTime.Now;
+            factura.FechaFactura =
+                DateTime.Now;
 
             // ========================================================
             // CALCULAR IMPORTES
@@ -351,7 +526,9 @@ namespace WebApplication1.Controllers
 
             bool estadoValido =
                 await _context.EstadoFacturas
+
                     .AsNoTracking()
+
                     .AnyAsync(e =>
                         e.IdEstadoFactura ==
                         ESTADO_FACTURA_PENDIENTE &&
@@ -371,6 +548,7 @@ namespace WebApplication1.Controllers
             if (!ModelState.IsValid)
             {
                 await CargarListas(factura);
+
                 return View(factura);
             }
 
@@ -384,8 +562,13 @@ namespace WebApplication1.Controllers
             try
             {
                 pedido = await _context.Pedidos
-                    .Include(p => p.IdEstadoPedidoNavigation)
-                    .Include(p => p.Factura)
+
+                    .Include(p =>
+                        p.IdEstadoPedidoNavigation)
+
+                    .Include(p =>
+                        p.Factura)
+
                     .FirstOrDefaultAsync(p =>
                         p.IdPedido == factura.IdPedido);
 
@@ -402,7 +585,8 @@ namespace WebApplication1.Controllers
                         "El pedido debe estar en estado \"Listo\" para poder facturarlo.");
                 }
 
-                var facturaPedido = pedido.Factura;
+                var facturaPedido =
+                    pedido.Factura;
 
                 if (facturaPedido != null)
                 {
@@ -420,10 +604,13 @@ namespace WebApplication1.Controllers
                 // RECARGAR MONEDA
                 // ----------------------------------------------------
 
-                moneda = await _context.Moneda
-                    .FirstOrDefaultAsync(m =>
-                        m.IdMoneda == factura.IdMoneda &&
-                        m.Estado);
+                moneda =
+                    await _context.Moneda
+
+                        .FirstOrDefaultAsync(m =>
+                            m.IdMoneda ==
+                            factura.IdMoneda &&
+                            m.Estado);
 
                 if (moneda == null)
                 {
@@ -437,6 +624,7 @@ namespace WebApplication1.Controllers
 
                 tipoComprobante =
                     await _context.TipoComprobantes
+
                         .FirstOrDefaultAsync(t =>
                             t.IdTipoComprobante ==
                             factura.IdTipoComprobante &&
@@ -452,10 +640,13 @@ namespace WebApplication1.Controllers
                 // RECARGAR SERIE
                 // ----------------------------------------------------
 
-                serie = await _context.SerieFacturas
-                    .FirstOrDefaultAsync(s =>
-                        s.IdSerieFactura == factura.IdSerieFactura &&
-                        s.Estado);
+                serie =
+                    await _context.SerieFacturas
+
+                        .FirstOrDefaultAsync(s =>
+                            s.IdSerieFactura ==
+                            factura.IdSerieFactura &&
+                            s.Estado);
 
                 if (serie == null)
                 {
@@ -472,10 +663,13 @@ namespace WebApplication1.Controllers
                 if (factura.IdImpuesto.HasValue &&
                     factura.IdImpuesto.Value > 0)
                 {
-                    impuesto = await _context.Impuestos
-                        .FirstOrDefaultAsync(i =>
-                            i.IdImpuesto == factura.IdImpuesto.Value &&
-                            i.Estado);
+                    impuesto =
+                        await _context.Impuestos
+
+                            .FirstOrDefaultAsync(i =>
+                                i.IdImpuesto ==
+                                factura.IdImpuesto.Value &&
+                                i.Estado);
 
                     if (impuesto == null)
                     {
@@ -543,6 +737,7 @@ namespace WebApplication1.Controllers
 
                 bool numeroExiste =
                     await _context.Facturas
+
                         .AnyAsync(f =>
                             f.NumeroFactura ==
                             factura.NumeroFactura);
@@ -597,9 +792,11 @@ namespace WebApplication1.Controllers
                             DateTime.Now
                     };
 
-                _context.HistorialFacturas.Add(historial);
+                _context.HistorialFacturas.Add(
+                    historial);
 
                 await _context.SaveChangesAsync();
+
                 await transaction.CommitAsync();
 
                 TempData["Success"] =
@@ -665,13 +862,27 @@ namespace WebApplication1.Controllers
 
             var factura =
                 await _context.Facturas
-                    .Include(f => f.IdPedidoNavigation)
-                        .ThenInclude(p => p!.IdClienteNavigation)
-                    .Include(f => f.IdEstadoFacturaNavigation)
-                    .Include(f => f.IdMonedaNavigation)
-                    .Include(f => f.IdTipoComprobanteNavigation)
-                    .Include(f => f.IdSerieFacturaNavigation)
-                    .Include(f => f.IdImpuestoNavigation)
+
+                    .Include(f =>
+                        f.IdPedidoNavigation)
+                        .ThenInclude(p =>
+                            p!.IdClienteNavigation)
+
+                    .Include(f =>
+                        f.IdEstadoFacturaNavigation)
+
+                    .Include(f =>
+                        f.IdMonedaNavigation)
+
+                    .Include(f =>
+                        f.IdTipoComprobanteNavigation)
+
+                    .Include(f =>
+                        f.IdSerieFacturaNavigation)
+
+                    .Include(f =>
+                        f.IdImpuestoNavigation)
+
                     .FirstOrDefaultAsync(f =>
                         f.IdFactura == id.Value);
 
@@ -721,7 +932,9 @@ namespace WebApplication1.Controllers
 
             var facturaOriginal =
                 await _context.Facturas
+
                     .AsNoTracking()
+
                     .FirstOrDefaultAsync(f =>
                         f.IdFactura == id);
 
@@ -771,7 +984,9 @@ namespace WebApplication1.Controllers
 
             bool tienePagos =
                 await _context.Pagos
+
                     .AsNoTracking()
+
                     .AnyAsync(p =>
                         p.IdFactura == id &&
                         p.IdEstadoPago ==
@@ -783,6 +998,7 @@ namespace WebApplication1.Controllers
 
             var moneda =
                 await _context.Moneda
+
                     .FirstOrDefaultAsync(m =>
                         m.IdMoneda ==
                         factura.IdMoneda &&
@@ -810,6 +1026,7 @@ namespace WebApplication1.Controllers
 
             var tipoComprobante =
                 await _context.TipoComprobantes
+
                     .FirstOrDefaultAsync(t =>
                         t.IdTipoComprobante ==
                         factura.IdTipoComprobante &&
@@ -833,6 +1050,7 @@ namespace WebApplication1.Controllers
             {
                 impuesto =
                     await _context.Impuestos
+
                         .FirstOrDefaultAsync(i =>
                             i.IdImpuesto ==
                             factura.IdImpuesto.Value &&
@@ -887,6 +1105,7 @@ namespace WebApplication1.Controllers
             if (!ModelState.IsValid)
             {
                 await CargarListas(factura);
+
                 return View(factura);
             }
 
@@ -901,6 +1120,7 @@ namespace WebApplication1.Controllers
             {
                 var facturaDb =
                     await _context.Facturas
+
                         .FirstOrDefaultAsync(f =>
                             f.IdFactura == id);
 
@@ -923,7 +1143,9 @@ namespace WebApplication1.Controllers
 
                 tienePagos =
                     await _context.Pagos
+
                         .AsNoTracking()
+
                         .AnyAsync(p =>
                             p.IdFactura == id &&
                             p.IdEstadoPago ==
@@ -951,6 +1173,7 @@ namespace WebApplication1.Controllers
 
                 moneda =
                     await _context.Moneda
+
                         .FirstOrDefaultAsync(m =>
                             m.IdMoneda ==
                             factura.IdMoneda &&
@@ -968,6 +1191,7 @@ namespace WebApplication1.Controllers
 
                 tipoComprobante =
                     await _context.TipoComprobantes
+
                         .FirstOrDefaultAsync(t =>
                             t.IdTipoComprobante ==
                             factura.IdTipoComprobante &&
@@ -990,6 +1214,7 @@ namespace WebApplication1.Controllers
                 {
                     impuesto =
                         await _context.Impuestos
+
                             .FirstOrDefaultAsync(i =>
                                 i.IdImpuesto ==
                                 factura.IdImpuesto.Value &&
@@ -1003,7 +1228,7 @@ namespace WebApplication1.Controllers
                 }
 
                 // ----------------------------------------------------
-                // ACTUALIZAR SOLO CAMPOS PERMITIDOS
+                // ACTUALIZAR CAMPOS PERMITIDOS
                 // ----------------------------------------------------
 
                 facturaDb.IdMoneda =
@@ -1043,9 +1268,11 @@ namespace WebApplication1.Controllers
                             DateTime.Now
                     };
 
-                _context.HistorialFacturas.Add(historial);
+                _context.HistorialFacturas.Add(
+                    historial);
 
                 await _context.SaveChangesAsync();
+
                 await transaction.CommitAsync();
 
                 TempData["Success"] =
@@ -1110,14 +1337,29 @@ namespace WebApplication1.Controllers
 
             var factura =
                 await _context.Facturas
+
                     .AsNoTracking()
-                    .Include(f => f.IdPedidoNavigation)
-                        .ThenInclude(p => p!.IdClienteNavigation)
-                    .Include(f => f.IdEstadoFacturaNavigation)
-                    .Include(f => f.IdMonedaNavigation)
-                    .Include(f => f.IdTipoComprobanteNavigation)
-                    .Include(f => f.IdSerieFacturaNavigation)
-                    .Include(f => f.IdMotivoAnulacionNavigation)
+
+                    .Include(f =>
+                        f.IdPedidoNavigation)
+                        .ThenInclude(p =>
+                            p!.IdClienteNavigation)
+
+                    .Include(f =>
+                        f.IdEstadoFacturaNavigation)
+
+                    .Include(f =>
+                        f.IdMonedaNavigation)
+
+                    .Include(f =>
+                        f.IdTipoComprobanteNavigation)
+
+                    .Include(f =>
+                        f.IdSerieFacturaNavigation)
+
+                    .Include(f =>
+                        f.IdMotivoAnulacionNavigation)
+
                     .FirstOrDefaultAsync(f =>
                         f.IdFactura == id.Value);
 
@@ -1165,6 +1407,7 @@ namespace WebApplication1.Controllers
 
             var factura =
                 await _context.Facturas
+
                     .FirstOrDefaultAsync(f =>
                         f.IdFactura == id);
 
@@ -1188,7 +1431,9 @@ namespace WebApplication1.Controllers
 
             var motivo =
                 await _context.MotivoAnulacions
+
                     .AsNoTracking()
+
                     .FirstOrDefaultAsync(m =>
                         m.IdMotivoAnulacion ==
                         idMotivoAnulacion &&
@@ -1201,7 +1446,10 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Delete),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
 
             // ========================================================
@@ -1210,9 +1458,12 @@ namespace WebApplication1.Controllers
 
             bool tienePagos =
                 await _context.Pagos
+
                     .AsNoTracking()
+
                     .AnyAsync(p =>
-                        p.IdFactura == factura.IdFactura &&
+                        p.IdFactura ==
+                        factura.IdFactura &&
                         p.IdEstadoPago ==
                         ESTADO_PAGO_CONFIRMADO);
 
@@ -1223,7 +1474,10 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
 
             // ========================================================
@@ -1237,6 +1491,7 @@ namespace WebApplication1.Controllers
             {
                 factura =
                     await _context.Facturas
+
                         .FirstOrDefaultAsync(f =>
                             f.IdFactura == id);
 
@@ -1259,7 +1514,9 @@ namespace WebApplication1.Controllers
 
                 tienePagos =
                     await _context.Pagos
+
                         .AsNoTracking()
+
                         .AnyAsync(p =>
                             p.IdFactura ==
                             factura.IdFactura &&
@@ -1328,15 +1585,18 @@ namespace WebApplication1.Controllers
                             DateTime.Now
                     };
 
-                _context.HistorialFacturas.Add(historial);
+                _context.HistorialFacturas.Add(
+                    historial);
 
                 await _context.SaveChangesAsync();
+
                 await transaction.CommitAsync();
 
                 TempData["Success"] =
                     $"Factura #{factura.NumeroFactura} anulada correctamente.";
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(
+                    nameof(Index));
             }
             catch (InvalidOperationException ex)
             {
@@ -1347,7 +1607,10 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Delete),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
             catch (DbUpdateException)
             {
@@ -1358,7 +1621,10 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Delete),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
             catch (Exception)
             {
@@ -1369,7 +1635,10 @@ namespace WebApplication1.Controllers
 
                 return RedirectToAction(
                     nameof(Delete),
-                    new { id });
+                    new
+                    {
+                        id
+                    });
             }
         }
 
@@ -1386,14 +1655,29 @@ namespace WebApplication1.Controllers
         {
             var query =
                 _context.Facturas
+
                     .AsNoTracking()
-                    .Include(f => f.IdPedidoNavigation)
-                        .ThenInclude(p => p!.IdClienteNavigation)
-                    .Include(f => f.IdEstadoFacturaNavigation)
-                    .Include(f => f.IdMonedaNavigation)
-                    .Include(f => f.IdTipoComprobanteNavigation)
-                    .Include(f => f.IdSerieFacturaNavigation)
-                    .Include(f => f.IdImpuestoNavigation)
+
+                    .Include(f =>
+                        f.IdPedidoNavigation)
+                        .ThenInclude(p =>
+                            p!.IdClienteNavigation)
+
+                    .Include(f =>
+                        f.IdEstadoFacturaNavigation)
+
+                    .Include(f =>
+                        f.IdMonedaNavigation)
+
+                    .Include(f =>
+                        f.IdTipoComprobanteNavigation)
+
+                    .Include(f =>
+                        f.IdSerieFacturaNavigation)
+
+                    .Include(f =>
+                        f.IdImpuestoNavigation)
+
                     .AsQueryable();
 
             // ========================================================
@@ -1402,7 +1686,8 @@ namespace WebApplication1.Controllers
 
             if (!string.IsNullOrWhiteSpace(buscar))
             {
-                buscar = buscar.Trim();
+                buscar =
+                    buscar.Trim();
 
                 if (int.TryParse(
                     buscar,
@@ -1416,13 +1701,15 @@ namespace WebApplication1.Controllers
                 else
                 {
                     query =
-                          query.Where(f =>
-                             (f.NumeroFactura != null &&
-                              f.NumeroFactura.Contains(buscar)) ||
-                                 (f.IdPedidoNavigation != null &&
-                                   f.IdPedidoNavigation.NumeroPedido != null &&
-                                     f.IdPedidoNavigation.NumeroPedido.Contains(buscar)));
+                        query.Where(f =>
+                            (f.NumeroFactura != null &&
+                             f.NumeroFactura.Contains(buscar))
 
+                            ||
+
+                            (f.IdPedidoNavigation != null &&
+                             f.IdPedidoNavigation.NumeroPedido != null &&
+                             f.IdPedidoNavigation.NumeroPedido.Contains(buscar)));
                 }
             }
 
@@ -1473,26 +1760,42 @@ namespace WebApplication1.Controllers
 
             var facturas =
                 await query
+
                     .OrderByDescending(f =>
                         f.FechaFactura)
+
                     .ThenByDescending(f =>
                         f.IdFactura)
+
                     .ToListAsync();
 
             // ========================================================
             // DATOS PARA LA VISTA
             // ========================================================
 
-            ViewBag.Buscar = buscar;
-            ViewBag.FechaInicio = fechaInicio;
-            ViewBag.FechaFin = fechaFin;
-            ViewBag.IdEstadoFactura = idEstadoFactura;
+            ViewBag.Buscar =
+                buscar;
+
+            ViewBag.FechaInicio =
+                fechaInicio;
+
+            ViewBag.FechaFin =
+                fechaFin;
+
+            ViewBag.IdEstadoFactura =
+                idEstadoFactura;
 
             ViewBag.EstadosFactura =
                 await _context.EstadoFacturas
+
                     .AsNoTracking()
-                    .Where(e => e.Estado)
-                    .OrderBy(e => e.IdEstadoFactura)
+
+                    .Where(e =>
+                        e.Estado)
+
+                    .OrderBy(e =>
+                        e.IdEstadoFactura)
+
                     .ToListAsync();
 
             return View(facturas);
@@ -1507,9 +1810,12 @@ namespace WebApplication1.Controllers
         {
             var factura =
                 await _context.Facturas
+
                     .AsNoTracking()
+
                     .Include(f =>
                         f.IdEstadoFacturaNavigation)
+
                     .FirstOrDefaultAsync(f =>
                         f.IdFactura == id);
 
@@ -1520,18 +1826,25 @@ namespace WebApplication1.Controllers
 
             var historial =
                 await _context.HistorialFacturas
+
                     .AsNoTracking()
+
                     .Include(h =>
                         h.IdEstadoFacturaNavigation)
+
                     .Include(h =>
                         h.IdUsuarioNavigation)
+
                     .Where(h =>
                         h.IdFactura == id)
+
                     .OrderByDescending(h =>
                         h.Fecha)
+
                     .ToListAsync();
 
-            ViewBag.Factura = factura;
+            ViewBag.Factura =
+                factura;
 
             return View(historial);
         }
@@ -1556,12 +1869,18 @@ namespace WebApplication1.Controllers
 
             var pedido =
                 await _context.Pedidos
+
                     .AsNoTracking()
-                    .Include(p => p.Factura)
+
+                    .Include(p =>
+                        p.Factura)
+
                     .Include(p =>
                         p.IdEstadoPedidoNavigation)
+
                     .Include(p =>
                         p.IdClienteNavigation)
+
                     .FirstOrDefaultAsync(p =>
                         p.IdPedido == id);
 
@@ -1611,7 +1930,8 @@ namespace WebApplication1.Controllers
                     nameof(Details),
                     new
                     {
-                        id = facturaExistente.IdFactura
+                        id =
+                            facturaExistente.IdFactura
                     });
             }
 
@@ -1629,7 +1949,8 @@ namespace WebApplication1.Controllers
                     "Pedido",
                     new
                     {
-                        id = pedido.IdPedido
+                        id =
+                            pedido.IdPedido
                     });
             }
 
@@ -1677,7 +1998,8 @@ namespace WebApplication1.Controllers
 
             await CargarListas(factura);
 
-            ViewBag.Pedido = pedido;
+            ViewBag.Pedido =
+                pedido;
 
             return View(
                 "Create",
@@ -1835,16 +2157,26 @@ namespace WebApplication1.Controllers
         {
             var pedidos =
                 await _context.Pedidos
+
                     .AsNoTracking()
-                    .Include(p => p.Factura)
-                    .Include(p => p.IdEstadoPedidoNavigation)
-                    .Include(p => p.IdClienteNavigation)
+
+                    .Include(p =>
+                        p.Factura)
+
+                    .Include(p =>
+                        p.IdEstadoPedidoNavigation)
+
+                    .Include(p =>
+                        p.IdClienteNavigation)
+
                     .Where(p =>
                         p.Factura == null &&
                         p.IdEstadoPedido ==
                         ESTADO_PEDIDO_LISTO)
+
                     .OrderByDescending(p =>
                         p.FechaPedido)
+
                     .ToListAsync();
 
             // ========================================================
@@ -1856,10 +2188,18 @@ namespace WebApplication1.Controllers
             {
                 var pedidoActual =
                     await _context.Pedidos
+
                         .AsNoTracking()
-                        .Include(p => p.Factura)
-                        .Include(p => p.IdEstadoPedidoNavigation)
-                        .Include(p => p.IdClienteNavigation)
+
+                        .Include(p =>
+                            p.Factura)
+
+                        .Include(p =>
+                            p.IdEstadoPedidoNavigation)
+
+                        .Include(p =>
+                            p.IdClienteNavigation)
+
                         .FirstOrDefaultAsync(p =>
                             p.IdPedido ==
                             factura.IdPedido);
@@ -1872,11 +2212,13 @@ namespace WebApplication1.Controllers
                         p.IdPedido ==
                         pedidoActual.IdPedido))
                 {
-                    pedidos.Add(pedidoActual);
+                    pedidos.Add(
+                        pedidoActual);
                 }
             }
 
-            ViewBag.Pedidos = pedidos;
+            ViewBag.Pedidos =
+                pedidos;
 
             // ========================================================
             // MONEDAS
@@ -1884,9 +2226,15 @@ namespace WebApplication1.Controllers
 
             ViewBag.Monedas =
                 await _context.Moneda
+
                     .AsNoTracking()
-                    .Where(m => m.Estado)
-                    .OrderBy(m => m.Nombre)
+
+                    .Where(m =>
+                        m.Estado)
+
+                    .OrderBy(m =>
+                        m.Nombre)
+
                     .ToListAsync();
 
             // ========================================================
@@ -1895,9 +2243,15 @@ namespace WebApplication1.Controllers
 
             ViewBag.TiposComprobante =
                 await _context.TipoComprobantes
+
                     .AsNoTracking()
-                    .Where(t => t.Estado)
-                    .OrderBy(t => t.Nombre)
+
+                    .Where(t =>
+                        t.Estado)
+
+                    .OrderBy(t =>
+                        t.Nombre)
+
                     .ToListAsync();
 
             // ========================================================
@@ -1906,9 +2260,15 @@ namespace WebApplication1.Controllers
 
             ViewBag.SeriesFactura =
                 await _context.SerieFacturas
+
                     .AsNoTracking()
-                    .Where(s => s.Estado)
-                    .OrderBy(s => s.Nombre)
+
+                    .Where(s =>
+                        s.Estado)
+
+                    .OrderBy(s =>
+                        s.Nombre)
+
                     .ToListAsync();
 
             // ========================================================
@@ -1917,9 +2277,15 @@ namespace WebApplication1.Controllers
 
             ViewBag.Impuestos =
                 await _context.Impuestos
+
                     .AsNoTracking()
-                    .Where(i => i.Estado)
-                    .OrderBy(i => i.Nombre)
+
+                    .Where(i =>
+                        i.Estado)
+
+                    .OrderBy(i =>
+                        i.Nombre)
+
                     .ToListAsync();
 
             // ========================================================
@@ -1928,9 +2294,15 @@ namespace WebApplication1.Controllers
 
             ViewBag.EstadosFactura =
                 await _context.EstadoFacturas
+
                     .AsNoTracking()
-                    .Where(e => e.Estado)
-                    .OrderBy(e => e.IdEstadoFactura)
+
+                    .Where(e =>
+                        e.Estado)
+
+                    .OrderBy(e =>
+                        e.IdEstadoFactura)
+
                     .ToListAsync();
         }
 
@@ -1942,9 +2314,15 @@ namespace WebApplication1.Controllers
         {
             ViewBag.MotivosAnulacion =
                 await _context.MotivoAnulacions
+
                     .AsNoTracking()
-                    .Where(m => m.Estado)
-                    .OrderBy(m => m.Nombre)
+
+                    .Where(m =>
+                        m.Estado)
+
+                    .OrderBy(m =>
+                        m.Nombre)
+
                     .ToListAsync();
         }
 
@@ -1956,7 +2334,8 @@ namespace WebApplication1.Controllers
         {
             var claim =
                 User.FindFirst("IdUsuario")
-                ?? User.FindFirst(
+                ??
+                User.FindFirst(
                     ClaimTypes.NameIdentifier);
 
             if (claim != null &&
@@ -1978,7 +2357,9 @@ namespace WebApplication1.Controllers
             int id)
         {
             return await _context.Facturas
+
                 .AsNoTracking()
+
                 .AnyAsync(f =>
                     f.IdFactura == id);
         }

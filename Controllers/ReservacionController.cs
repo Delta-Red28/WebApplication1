@@ -779,6 +779,127 @@ namespace WebApplication1.Controllers
 
 
         // ============================================================
+        // OBTENER MESAS DISPONIBLES
+        // ============================================================
+
+        [HttpGet]
+        public async Task<IActionResult> ObtenerMesasDisponibles(
+            DateOnly fecha,
+            TimeOnly horaInicio,
+            TimeOnly horaFin,
+            int cantidadPersonas)
+        {
+            // ========================================================
+            // VALIDACIONES BÁSICAS
+            // ========================================================
+
+            if (cantidadPersonas <= 0)
+            {
+                return Json(new
+                {
+                    exito = false,
+                    mensaje = "La cantidad de personas debe ser mayor que cero."
+                });
+            }
+
+            if (horaFin <= horaInicio)
+            {
+                return Json(new
+                {
+                    exito = false,
+                    mensaje = "La hora de finalización debe ser mayor que la hora de inicio."
+                });
+            }
+
+            // ========================================================
+            // OBTENER MESAS ACTIVAS CON CAPACIDAD SUFICIENTE
+            // ========================================================
+
+            var mesas = await _context.Mesas
+                .AsNoTracking()
+                .Where(m =>
+                    m.Estado &&
+                    m.Capacidad >= cantidadPersonas)
+                .OrderBy(m => m.Capacidad)
+                .ThenBy(m => m.NumeroMesa)
+                .ToListAsync();
+
+            // ========================================================
+            // BUSCAR RESERVACIONES QUE OCUPAN LAS MESAS
+            // ========================================================
+
+            var mesasOcupadas = await _context.Reservacions
+                .AsNoTracking()
+                .Where(r =>
+                    r.FechaReserva == fecha &&
+
+                    // Estados activos:
+                    // 1 = Pendiente
+                    // 2 = Confirmada
+                    // 3 = Cliente llegó
+                    // 4 = Finalizada
+                    //
+                    // 5 = Cancelada
+                    // 6 = No asistió
+                    //
+                    r.IdEstadoReservacion >= 1 &&
+                    r.IdEstadoReservacion <= 4 &&
+
+                    // Detectar cruce de horario
+                    r.HoraInicio < horaFin &&
+                    r.HoraFin > horaInicio
+                )
+                .Select(r => r.IdMesa)
+                .Distinct()
+                .ToListAsync();
+
+            // ========================================================
+            // FILTRAR MESAS DISPONIBLES
+            // ========================================================
+
+            var disponibles = mesas
+                .Where(m => !mesasOcupadas.Contains(m.IdMesa))
+                .Select(m => new
+                {
+                    idMesa = m.IdMesa,
+                    numeroMesa = m.NumeroMesa,
+                    capacidad = m.Capacidad,
+
+                    // La primera será la recomendada porque estamos
+                    // ordenando por capacidad ascendente.
+                    recomendada = false
+                })
+                .ToList();
+
+            // ========================================================
+            // MARCAR MESA RECOMENDADA
+            // ========================================================
+
+            if (disponibles.Any())
+            {
+                disponibles[0] = new
+                {
+                    disponibles[0].idMesa,
+                    disponibles[0].numeroMesa,
+                    disponibles[0].capacidad,
+                    recomendada = true
+                };
+            }
+
+            // ========================================================
+            // RESPUESTA
+            // ========================================================
+
+            return Json(new
+            {
+                exito = true,
+                cantidad = disponibles.Count,
+                mesas = disponibles
+            });
+        }
+
+
+        // ============================================================
         // CARGAR DATOS PARA LOS FORMULARIOS
         // ============================================================
 

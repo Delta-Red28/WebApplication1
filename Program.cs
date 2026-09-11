@@ -24,7 +24,11 @@ builder.Services.AddDbContext<RestauranteContext>(options =>
 // SERVICIOS
 // ============================================================
 
+// Servicio de inventario
 builder.Services.AddScoped<InventarioService>();
+
+// Servicio de reportes
+builder.Services.AddScoped<ReportesService>();
 
 
 // ============================================================
@@ -80,7 +84,7 @@ var app = builder.Build();
 
 
 // ============================================================
-// PRUEBA SEEDDATA
+// SEEDDATA
 // ============================================================
 
 Console.WriteLine("");
@@ -134,7 +138,6 @@ app.UseRouting();
 // SESSION
 // ============================================================
 //
-// IMPORTANTE:
 // UseSession() debe ejecutarse antes de cualquier código
 // que utilice HttpContext.Session.
 //

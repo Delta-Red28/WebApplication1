@@ -3,14 +3,13 @@
 @{
 ViewData["Title"] = "Nueva reservación";
 
-var clientes = ViewBag.Clientes as IEnumerable<WebApplication1.Models.Cliente>
-               ?? Enumerable.Empty<WebApplication1.Models.Cliente>();
+var clientes = ViewBag.Clientes
+    as IEnumerable<WebApplication1.Models.Cliente>
+    ?? Enumerable.Empty<WebApplication1.Models.Cliente>();
 
-var mesas = ViewBag.Mesas as IEnumerable<WebApplication1.Models.Mesa>
-            ?? Enumerable.Empty<WebApplication1.Models.Mesa>();
-
-var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReservacion>
-              ?? Enumerable.Empty<WebApplication1.Models.EstadoReservacion>();
+var mesas = ViewBag.Mesas
+    as IEnumerable<WebApplication1.Models.Mesa>
+    ?? Enumerable.Empty<WebApplication1.Models.Mesa>();
 
 }
 
@@ -36,7 +35,7 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
 
         <p class="text-muted mb-0">
 
-            Registra una nueva reservación para un cliente.
+            Registra una nueva reservación para el restaurante.
 
         </p>
 
@@ -61,40 +60,10 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
 <!-- ERRORES GENERALES -->
 <!-- ========================================================= -->
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <div class="alert alert-danger alert-dismissible fade show"
-         role="alert">
-
-        <div class="d-flex">
-
-            <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
-
-            <div>
-
-                <strong>
-                    Revise los datos ingresados antes de continuar.
-                </strong>
-
-                <div class="mt-2">
-
-                    <div asp-validation-summary="All"
-                         class="mb-0">
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="alert">
-        </button>
-
-    </div>
-}
+<div asp-validation-summary="ModelOnly"
+     class="alert alert-danger"
+     role="alert">
+</div>
 
 <!-- ========================================================= -->
 <!-- FORMULARIO -->
@@ -102,48 +71,29 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
 
 <form asp-action="Create"
       method="post"
-      id="formReservacion"
-      novalidate>
+      id="formReservacion">
 
     @Html.AntiForgeryToken()
 
     <div class="row g-4">
 
         <!-- ================================================= -->
-        <!-- DATOS DE LA RESERVACIÓN -->
+        <!-- INFORMACIÓN DE LA RESERVACIÓN -->
         <!-- ================================================= -->
 
-        <div class="col-lg-8">
+        <div class="col-12 col-xl-8">
 
             <div class="card border-0">
 
                 <div class="card-header py-3">
 
-                    <div class="d-flex align-items-center">
+                    <h5 class="mb-0">
 
-                        <div class="bg-primary bg-opacity-10
-                                    text-primary
-                                    rounded-3
-                                    p-2
-                                    me-3">
+                        <i class="bi bi-calendar-check me-2 text-primary"></i>
 
-                            <i class="bi bi-calendar-check fs-5"></i>
+                        Información de la reservación
 
-                        </div>
-
-                        <div>
-
-                            <h5 class="mb-0">
-                                Datos de la reservación
-                            </h5>
-
-                            <small class="text-muted">
-                                Completa la información de la reserva.
-                            </small>
-
-                        </div>
-
-                    </div>
+                    </h5>
 
                 </div>
 
@@ -155,7 +105,7 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
                         <!-- CLIENTE -->
                         <!-- ================================= -->
 
-                        <div class="col-md-6">
+                        <div class="col-12">
 
                             <label asp-for="IdCliente"
                                    class="form-label fw-semibold">
@@ -166,8 +116,7 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
 
                             <select asp-for="IdCliente"
                                     class="form-select"
-                                    id="IdCliente"
-                                    required>
+                                    id="IdCliente">
 
                                 <option value="">
                                     Seleccione un cliente
@@ -177,12 +126,12 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
                                 {
                                     <option value="@cliente.IdCliente">
 
-                                        @cliente.Nombres
-                                        @cliente.Apellidos
+                                        #@cliente.IdCliente -
+                                        @cliente.Nombres @cliente.Apellidos
 
                                         @if (!string.IsNullOrWhiteSpace(cliente.Telefono))
                                         {
-                                            @: - @cliente.Telefono
+                                            @: — @cliente.Telefono
                                         }
 
                                     </option>
@@ -190,63 +139,13 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
 
                             </select>
 
-                            <div class="invalid-feedback">
-                                Seleccione un cliente.
+                            <div class="form-text">
+                                Selecciona el cliente que realizará la reservación.
                             </div>
 
                             <span asp-validation-for="IdCliente"
-                                  class="text-danger small">
+                                  class="text-danger">
                             </span>
-
-                        </div>
-
-                        <!-- ================================= -->
-                        <!-- MESA -->
-                        <!-- ================================= -->
-
-                        <div class="col-md-6">
-
-                            <label asp-for="IdMesa"
-                                   class="form-label fw-semibold">
-
-                                Mesa
-
-                            </label>
-
-                            <select asp-for="IdMesa"
-                                    class="form-select"
-                                    id="IdMesa"
-                                    required>
-
-                                <option value="">
-                                    Seleccione una mesa
-                                </option>
-
-                                @foreach (var mesa in mesas)
-                                {
-                                    <option value="@mesa.IdMesa"
-                                            data-capacidad="@mesa.Capacidad">
-
-                                        Mesa @mesa.NumeroMesa
-                                        -
-                                        Capacidad @mesa.Capacidad
-
-                                    </option>
-                                }
-
-                            </select>
-
-                            <div class="invalid-feedback">
-                                Seleccione una mesa.
-                            </div>
-
-                            <span asp-validation-for="IdMesa"
-                                  class="text-danger small">
-                            </span>
-
-                            <div id="informacionMesa"
-                                 class="form-text">
-                            </div>
 
                         </div>
 
@@ -254,7 +153,7 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
                         <!-- FECHA -->
                         <!-- ================================= -->
 
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
 
                             <label asp-for="FechaReserva"
                                    class="form-label fw-semibold">
@@ -267,14 +166,10 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
                                    type="date"
                                    class="form-control"
                                    id="FechaReserva"
-                                   required />
-
-                            <div class="invalid-feedback">
-                                Seleccione una fecha válida.
-                            </div>
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" />
 
                             <span asp-validation-for="FechaReserva"
-                                  class="text-danger small">
+                                  class="text-danger">
                             </span>
 
                         </div>
@@ -283,7 +178,7 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
                         <!-- HORA INICIO -->
                         <!-- ================================= -->
 
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
 
                             <label asp-for="HoraInicio"
                                    class="form-label fw-semibold">
@@ -295,15 +190,10 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
                             <input asp-for="HoraInicio"
                                    type="time"
                                    class="form-control"
-                                   id="HoraInicio"
-                                   required />
-
-                            <div class="invalid-feedback">
-                                Seleccione la hora de inicio.
-                            </div>
+                                   id="HoraInicio" />
 
                             <span asp-validation-for="HoraInicio"
-                                  class="text-danger small">
+                                  class="text-danger">
                             </span>
 
                         </div>
@@ -312,7 +202,7 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
                         <!-- HORA FIN -->
                         <!-- ================================= -->
 
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
 
                             <label asp-for="HoraFin"
                                    class="form-label fw-semibold">
@@ -324,16 +214,10 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
                             <input asp-for="HoraFin"
                                    type="time"
                                    class="form-control"
-                                   id="HoraFin"
-                                   required />
-
-                            <div class="invalid-feedback">
-                                La hora de finalización debe ser mayor
-                                que la hora de inicio.
-                            </div>
+                                   id="HoraFin" />
 
                             <span asp-validation-for="HoraFin"
-                                  class="text-danger small">
+                                  class="text-danger">
                             </span>
 
                         </div>
@@ -342,7 +226,7 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
                         <!-- PERSONAS -->
                         <!-- ================================= -->
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-4">
 
                             <label asp-for="CantidadPersonas"
                                    class="form-label fw-semibold">
@@ -351,77 +235,51 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
 
                             </label>
 
-                            <div class="input-group">
-
-                                <span class="input-group-text">
-
-                                    <i class="bi bi-people"></i>
-
-                                </span>
-
-                                <input asp-for="CantidadPersonas"
-                                       type="number"
-                                       min="1"
-                                       class="form-control"
-                                       id="CantidadPersonas"
-                                       required />
-
-                            </div>
-
-                            <div id="mensajeCapacidad"
-                                 class="form-text">
-
-                                Seleccione una mesa para conocer
-                                su capacidad.
-
-                            </div>
-
-                            <div class="invalid-feedback">
-                                Ingrese una cantidad válida de personas.
-                            </div>
+                            <input asp-for="CantidadPersonas"
+                                   type="number"
+                                   min="1"
+                                   class="form-control"
+                                   id="CantidadPersonas" />
 
                             <span asp-validation-for="CantidadPersonas"
-                                  class="text-danger small">
+                                  class="text-danger">
                             </span>
 
                         </div>
 
                         <!-- ================================= -->
-                        <!-- ESTADO -->
+                        <!-- MESA -->
                         <!-- ================================= -->
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-8">
 
-                            <label asp-for="IdEstadoReservacion"
+                            <label asp-for="IdMesa"
                                    class="form-label fw-semibold">
 
-                                Estado
+                                Mesa
 
                             </label>
 
-                            <select asp-for="IdEstadoReservacion"
-        class="form-select"
-        id="IdEstadoReservacion">
+                            <select asp-for="IdMesa"
+                                    class="form-select"
+                                    id="IdMesa">
 
-    @foreach (var estado in estados)
-    {
-        <option value="@estado.IdEstadoReservacion">
-            @estado.Nombre
-        </option>
-    }
+                                <option value="">
+                                    Seleccione fecha, horario y personas
+                                </option>
 
-</select>
- 
+                            </select>
 
-                            <div class="form-text">
+                            <div id="mensajeMesas"
+                                 class="form-text">
 
-                                Las nuevas reservaciones normalmente
-                                comienzan como <strong>Pendiente</strong>.
+                                Seleccione los datos de la reservación
+                                para consultar las mesas disponibles.
 
                             </div>
 
-                            <span asp-validation-for="IdEstadoReservacion"
-                                  class="text-danger small">
+                            <span asp-validation-for="IdMesa"
+                                  class="text-danger">
                             </span>
 
                         </div>
@@ -444,30 +302,29 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
                                       id="Observacion"
                                       rows="4"
                                       maxlength="300"
-                                      placeholder="Ejemplo: Cliente solicita mesa cerca de la ventana...">
-                            </textarea>
+                                      placeholder="Ejemplo: cumpleaños, mesa cerca de la ventana, etc."></textarea>
 
                             <div class="d-flex justify-content-between">
 
-                                <div class="form-text">
+                                <small class="text-muted">
 
                                     Información adicional de la reservación.
 
-                                </div>
+                                </small>
 
-                                <div class="form-text">
+                                <small class="text-muted">
 
                                     <span id="contadorObservacion">
                                         0
                                     </span>
                                     / 300
 
-                                </div>
+                                </small>
 
                             </div>
 
                             <span asp-validation-for="Observacion"
-                                  class="text-danger small">
+                                  class="text-danger">
                             </span>
 
                         </div>
@@ -481,10 +338,10 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
         </div>
 
         <!-- ================================================= -->
-        <!-- RESUMEN -->
+        <!-- PANEL DE DISPONIBILIDAD -->
         <!-- ================================================= -->
 
-        <div class="col-lg-4">
+        <div class="col-12 col-xl-4">
 
             <div class="card border-0">
 
@@ -492,9 +349,9 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
 
                     <h5 class="mb-0">
 
-                        <i class="bi bi-info-circle me-2 text-primary"></i>
+                        <i class="bi bi-stars me-2 text-warning"></i>
 
-                        Resumen
+                        Disponibilidad
 
                     </h5>
 
@@ -502,93 +359,22 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
 
                 <div class="card-body">
 
-                    <div class="mb-3">
+                    <div id="panelDisponibilidad">
 
-                        <small class="text-muted d-block">
-                            Cliente
-                        </small>
+                        <div class="text-center py-4">
 
-                        <div id="resumenCliente"
-                             class="fw-semibold">
+                            <i class="bi bi-calendar2-check text-muted"
+                               style="font-size: 3rem;">
+                            </i>
 
-                            No seleccionado
+                            <p class="text-muted mt-3 mb-0">
 
-                        </div>
+                                Completa la fecha, horario y cantidad
+                                de personas para consultar disponibilidad.
 
-                    </div>
-
-                    <div class="mb-3">
-
-                        <small class="text-muted d-block">
-                            Mesa
-                        </small>
-
-                        <div id="resumenMesa"
-                             class="fw-semibold">
-
-                            No seleccionada
+                            </p>
 
                         </div>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <small class="text-muted d-block">
-                            Fecha
-                        </small>
-
-                        <div id="resumenFecha"
-                             class="fw-semibold">
-
-                            No seleccionada
-
-                        </div>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <small class="text-muted d-block">
-                            Horario
-                        </small>
-
-                        <div id="resumenHorario"
-                             class="fw-semibold">
-
-                            No definido
-
-                        </div>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <small class="text-muted d-block">
-                            Personas
-                        </small>
-
-                        <div id="resumenPersonas"
-                             class="fw-semibold">
-
-                            0
-
-                        </div>
-
-                    </div>
-
-                    <hr />
-
-                    <!-- ===================================== -->
-                    <!-- INDICADOR -->
-                    <!-- ===================================== -->
-
-                    <div id="estadoFormulario"
-                         class="alert alert-secondary mb-0">
-
-                        <i class="bi bi-info-circle me-2"></i>
-
-                        Complete los datos para continuar.
 
                     </div>
 
@@ -596,32 +382,46 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
 
             </div>
 
-            <!-- ============================================= -->
-            <!-- BOTONES -->
-            <!-- ============================================= -->
+            <!-- ================================================= -->
+            <!-- ESTADO -->
+            <!-- ================================================= -->
 
             <div class="card border-0 mt-4">
 
                 <div class="card-body">
 
-                    <button type="submit"
-                            class="btn btn-primary w-100 mb-2"
-                            id="btnGuardar">
+                    <div class="d-flex align-items-center gap-3">
 
-                        <i class="bi bi-check-lg me-1"></i>
+                        <div class="rounded-circle bg-warning-subtle
+                                    text-warning
+                                    d-flex align-items-center
+                                    justify-content-center"
+                             style="width:45px;height:45px;">
 
-                        Guardar reservación
+                            <i class="bi bi-clock-history"></i>
 
-                    </button>
+                        </div>
 
-                    <a asp-action="Index"
-                       class="btn btn-light w-100">
+                        <div>
 
-                        <i class="bi bi-x-lg me-1"></i>
+                            <div class="fw-semibold">
+                                Estado inicial
+                            </div>
 
-                        Cancelar
+                            <div class="text-muted">
+                                Pendiente
+                            </div>
 
-                    </a>
+                        </div>
+
+                    </div>
+
+                    <div class="small text-muted mt-3">
+
+                        La reservación se registrará automáticamente
+                        como <strong>Pendiente</strong>.
+
+                    </div>
 
                 </div>
 
@@ -631,543 +431,595 @@ var estados = ViewBag.Estados as IEnumerable<WebApplication1.Models.EstadoReserv
 
     </div>
 
+    <!-- ========================================================= -->
+    <!-- BOTONES -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+
+        <a asp-action="Index"
+           class="btn btn-light">
+
+            Cancelar
+
+        </a>
+
+        <button type="submit"
+                class="btn btn-primary"
+                id="btnGuardar">
+
+            <i class="bi bi-check-lg me-1"></i>
+
+            Guardar reservación
+
+        </button>
+
+    </div>
+
 </form>
 
-</div> <!-- ============================================================= --> <!-- JAVASCRIPT --> <!-- ============================================================= -->
+</div>
 @section Scripts {
 
+<!-- ========================================================= -->
+<!-- JQUERY -->
+<!-- ========================================================= -->
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- ========================================================= -->
+<!-- VALIDACIÓN -->
+<!-- ========================================================= -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
 <script>
-document.addEventListener("DOMContentLoaded", function () {
 
-const formulario =
-    document.getElementById("formReservacion");
+    document.addEventListener("DOMContentLoaded", function () {
 
-const cliente =
-    document.getElementById("IdCliente");
+        const fecha =
+            document.getElementById("FechaReserva");
 
-const mesa =
-    document.getElementById("IdMesa");
+        const horaInicio =
+            document.getElementById("HoraInicio");
 
-const fecha =
-    document.getElementById("FechaReserva");
+        const horaFin =
+            document.getElementById("HoraFin");
 
-const horaInicio =
-    document.getElementById("HoraInicio");
+        const cantidad =
+            document.getElementById("CantidadPersonas");
 
-const horaFin =
-    document.getElementById("HoraFin");
+        const mesa =
+            document.getElementById("IdMesa");
 
-const personas =
-    document.getElementById("CantidadPersonas");
+        const mensaje =
+            document.getElementById("mensajeMesas");
 
-const observacion =
-    document.getElementById("Observacion");
+        const panel =
+            document.getElementById("panelDisponibilidad");
 
-const informacionMesa =
-    document.getElementById("informacionMesa");
+        const observacion =
+            document.getElementById("Observacion");
 
-const mensajeCapacidad =
-    document.getElementById("mensajeCapacidad");
+        const contador =
+            document.getElementById("contadorObservacion");
 
-const contadorObservacion =
-    document.getElementById("contadorObservacion");
+        const formulario =
+            document.getElementById("formReservacion");
 
-const resumenCliente =
-    document.getElementById("resumenCliente");
+        const botonGuardar =
+            document.getElementById("btnGuardar");
 
-const resumenMesa =
-    document.getElementById("resumenMesa");
+        // =====================================================
+        // CONTADOR DE OBSERVACIÓN
+        // =====================================================
 
-const resumenFecha =
-    document.getElementById("resumenFecha");
+        function actualizarContador() {
 
-const resumenHorario =
-    document.getElementById("resumenHorario");
+            if (!observacion || !contador) {
+                return;
+            }
 
-const resumenPersonas =
-    document.getElementById("resumenPersonas");
-
-const estadoFormulario =
-    document.getElementById("estadoFormulario");
-
-const btnGuardar =
-    document.getElementById("btnGuardar");
-
-// =========================================================
-// FECHA MÍNIMA
-// =========================================================
-
-const hoy =
-    new Date();
-
-const año =
-    hoy.getFullYear();
-
-const mes =
-    String(hoy.getMonth() + 1).padStart(2, "0");
-
-const dia =
-    String(hoy.getDate()).padStart(2, "0");
-
-const fechaMinima =
-    `${año}-${mes}-${dia}`;
-
-fecha.min = fechaMinima;
-
-// =========================================================
-// ACTUALIZAR MESA
-// =========================================================
-
-function actualizarMesa() {
-
-    const opcion =
-        mesa.options[mesa.selectedIndex];
-
-    if (!opcion || !opcion.dataset.capacidad) {
-
-        informacionMesa.textContent =
-            "";
-
-        mensajeCapacidad.textContent =
-            "Seleccione una mesa para conocer su capacidad.";
-
-        return;
-
-    }
-
-    const capacidad =
-        parseInt(opcion.dataset.capacidad);
-
-    informacionMesa.innerHTML =
-        `<i class="bi bi-people me-1"></i>
-         Capacidad máxima: <strong>${capacidad}</strong> personas`;
-
-    mensajeCapacidad.innerHTML =
-        `La mesa seleccionada permite hasta
-         <strong>${capacidad}</strong> personas.`;
-
-    validarPersonas();
-
-}
-
-// =========================================================
-// VALIDAR PERSONAS
-// =========================================================
-
-function validarPersonas() {
-
-    const opcion =
-        mesa.options[mesa.selectedIndex];
-
-    const cantidad =
-        parseInt(personas.value);
-
-    if (!opcion || !opcion.dataset.capacidad) {
-
-        return true;
-
-    }
-
-    const capacidad =
-        parseInt(opcion.dataset.capacidad);
-
-    if (cantidad > capacidad) {
-
-        personas.setCustomValidity(
-            `La mesa solamente tiene capacidad para ${capacidad} personas.`
-        );
-
-        mensajeCapacidad.classList.remove(
-            "text-muted",
-            "text-success"
-        );
-
-        mensajeCapacidad.classList.add(
-            "text-danger"
-        );
-
-        mensajeCapacidad.innerHTML =
-            `<i class="bi bi-exclamation-triangle me-1"></i>
-             La mesa solamente tiene capacidad para
-             <strong>${capacidad}</strong> personas.`;
-
-        return false;
-
-    }
-
-    personas.setCustomValidity("");
-
-    mensajeCapacidad.classList.remove(
-        "text-danger"
-    );
-
-    mensajeCapacidad.classList.add(
-        "text-success"
-    );
-
-    mensajeCapacidad.innerHTML =
-        `<i class="bi bi-check-circle me-1"></i>
-         Capacidad disponible.`;
-
-    return true;
-
-}
-
-// =========================================================
-// VALIDAR HORARIO
-// =========================================================
-
-function validarHorario() {
-
-    if (!horaInicio.value ||
-        !horaFin.value) {
-
-        horaFin.setCustomValidity("");
-
-        return true;
-
-    }
-
-    if (horaFin.value <= horaInicio.value) {
-
-        horaFin.setCustomValidity(
-            "La hora de finalización debe ser mayor que la hora de inicio."
-        );
-
-        return false;
-
-    }
-
-    horaFin.setCustomValidity("");
-
-    return true;
-
-}
-
-// =========================================================
-// VALIDAR FECHA
-// =========================================================
-
-function validarFecha() {
-
-    if (!fecha.value) {
-
-        return false;
-
-    }
-
-    if (fecha.value < fechaMinima) {
-
-        fecha.setCustomValidity(
-            "No se pueden realizar reservaciones para fechas pasadas."
-        );
-
-        return false;
-
-    }
-
-    fecha.setCustomValidity("");
-
-    return true;
-
-}
-
-// =========================================================
-// RESUMEN CLIENTE
-// =========================================================
-
-function actualizarResumenCliente() {
-
-    if (cliente.selectedIndex <= 0) {
-
-        resumenCliente.textContent =
-            "No seleccionado";
-
-        return;
-
-    }
-
-    resumenCliente.textContent =
-        cliente.options[
-            cliente.selectedIndex
-        ].text.trim();
-
-}
-
-// =========================================================
-// RESUMEN MESA
-// =========================================================
-
-function actualizarResumenMesa() {
-
-    if (mesa.selectedIndex <= 0) {
-
-        resumenMesa.textContent =
-            "No seleccionada";
-
-        return;
-
-    }
-
-    resumenMesa.textContent =
-        mesa.options[
-            mesa.selectedIndex
-        ].text.trim();
-
-}
-
-// =========================================================
-// RESUMEN FECHA
-// =========================================================
-
-function actualizarResumenFecha() {
-
-    if (!fecha.value) {
-
-        resumenFecha.textContent =
-            "No seleccionada";
-
-        return;
-
-    }
-
-    const partes =
-        fecha.value.split("-");
-
-    resumenFecha.textContent =
-        `${partes[2]}/${partes[1]}/${partes[0]}`;
-
-}
-
-// =========================================================
-// RESUMEN HORARIO
-// =========================================================
-
-function actualizarResumenHorario() {
-
-    if (!horaInicio.value ||
-        !horaFin.value) {
-
-        resumenHorario.textContent =
-            "No definido";
-
-        return;
-
-    }
-
-    resumenHorario.textContent =
-        `${horaInicio.value} - ${horaFin.value}`;
-
-}
-
-// =========================================================
-// RESUMEN PERSONAS
-// =========================================================
-
-function actualizarResumenPersonas() {
-
-    resumenPersonas.textContent =
-        personas.value || "0";
-
-}
-
-// =========================================================
-// ESTADO DEL FORMULARIO
-// =========================================================
-
-function actualizarEstado() {
-
-    const datosBasicos =
-        cliente.value &&
-        mesa.value &&
-        fecha.value &&
-        horaInicio.value &&
-        horaFin.value &&
-        personas.value;
-
-    const horarioCorrecto =
-        validarHorario();
-
-    const fechaCorrecta =
-        validarFecha();
-
-    const personasCorrectas =
-        validarPersonas();
-
-    if (datosBasicos &&
-        horarioCorrecto &&
-        fechaCorrecta &&
-        personasCorrectas) {
-
-        estadoFormulario.className =
-            "alert alert-success mb-0";
-
-        estadoFormulario.innerHTML =
-            `<i class="bi bi-check-circle me-2"></i>
-             La reservación está lista para guardar.`;
-
-        return;
-
-    }
-
-    estadoFormulario.className =
-        "alert alert-secondary mb-0";
-
-    estadoFormulario.innerHTML =
-        `<i class="bi bi-info-circle me-2"></i>
-         Complete correctamente los datos para continuar.`;
-
-}
-
-// =========================================================
-// EVENTOS
-// =========================================================
-
-cliente.addEventListener(
-    "change",
-    function () {
-
-        actualizarResumenCliente();
-        actualizarEstado();
-
-    }
-);
-
-mesa.addEventListener(
-    "change",
-    function () {
-
-        actualizarMesa();
-        actualizarResumenMesa();
-        actualizarEstado();
-
-    }
-);
-
-fecha.addEventListener(
-    "change",
-    function () {
-
-        validarFecha();
-        actualizarResumenFecha();
-        actualizarEstado();
-
-    }
-);
-
-horaInicio.addEventListener(
-    "change",
-    function () {
-
-        validarHorario();
-        actualizarResumenHorario();
-        actualizarEstado();
-
-    }
-);
-
-horaFin.addEventListener(
-    "change",
-    function () {
-
-        validarHorario();
-        actualizarResumenHorario();
-        actualizarEstado();
-
-    }
-);
-
-personas.addEventListener(
-    "input",
-    function () {
-
-        validarPersonas();
-        actualizarResumenPersonas();
-        actualizarEstado();
-
-    }
-);
-
-observacion.addEventListener(
-    "input",
-    function () {
-
-        contadorObservacion.textContent =
-            observacion.value.length;
-
-    }
-);
-
-// =========================================================
-// ENVÍO
-// =========================================================
-
-formulario.addEventListener(
-    "submit",
-    function (event) {
-
-        validarFecha();
-
-        validarHorario();
-
-        validarPersonas();
-
-        if (!formulario.checkValidity()) {
-
-            event.preventDefault();
-
-            event.stopPropagation();
-
-            formulario.classList.add(
-                "was-validated"
-            );
-
-            actualizarEstado();
-
-            return;
+            contador.textContent =
+                observacion.value.length;
 
         }
 
-        // ================================================
-        // EVITAR DOBLE ENVÍO
-        // ================================================
+        observacion.addEventListener(
+            "input",
+            actualizarContador
+        );
 
-        btnGuardar.disabled = true;
+        actualizarContador();
 
-        btnGuardar.innerHTML =
-            `<span class="spinner-border spinner-border-sm me-2"
-                   role="status"></span>
-             Guardando...`;
+        // =====================================================
+        // OBTENER MESAS
+        // =====================================================
 
-    }
-);
+        let temporizador = null;
 
-// =========================================================
-// INICIALIZACIÓN
-// =========================================================
+        function consultarMesas() {
 
-actualizarResumenCliente();
+            clearTimeout(temporizador);
 
-actualizarResumenMesa();
+            temporizador = setTimeout(
+                cargarMesas,
+                250
+            );
 
-actualizarResumenFecha();
+        }
 
-actualizarResumenHorario();
+        async function cargarMesas() {
 
-actualizarResumenPersonas();
+            const fechaValor =
+                fecha.value;
 
-actualizarMesa();
+            const horaInicioValor =
+                horaInicio.value;
 
-if (observacion) {
+            const horaFinValor =
+                horaFin.value;
 
-    contadorObservacion.textContent =
-        observacion.value.length;
+            const cantidadValor =
+                parseInt(cantidad.value);
 
-}
+            // =================================================
+            // VALIDACIONES CLIENTE
+            // =================================================
 
-actualizarEstado();
+            if (!fechaValor ||
+                !horaInicioValor ||
+                !horaFinValor ||
+                !cantidadValor ||
+                cantidadValor <= 0) {
 
-});
+                mesa.innerHTML = `
+                    <option value="">
+                        Seleccione fecha, horario y personas
+                    </option>
+                `;
+
+                mensaje.textContent =
+                    "Seleccione los datos de la reservación para consultar las mesas disponibles.";
+
+                panel.innerHTML = `
+                    <div class="text-center py-4">
+
+                        <i class="bi bi-calendar2-check text-muted"
+                           style="font-size: 3rem;">
+                        </i>
+
+                        <p class="text-muted mt-3 mb-0">
+                            Completa los datos para consultar disponibilidad.
+                        </p>
+
+                    </div>
+                `;
+
+                return;
+            }
+
+            // =================================================
+            // VALIDAR HORARIO
+            // =================================================
+
+            if (horaFinValor <= horaInicioValor) {
+
+                mesa.innerHTML = `
+                    <option value="">
+                        Horario inválido
+                    </option>
+                `;
+
+                mensaje.innerHTML =
+                    `<span class="text-danger">
+                        La hora de finalización debe ser mayor que la hora de inicio.
+                    </span>`;
+
+                panel.innerHTML = `
+                    <div class="alert alert-danger mb-0">
+
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+
+                        El horario seleccionado no es válido.
+
+                    </div>
+                `;
+
+                return;
+            }
+
+            // =================================================
+            // MOSTRAR CARGANDO
+            // =================================================
+
+            mesa.disabled = true;
+
+            mesa.innerHTML = `
+                <option value="">
+                    Consultando disponibilidad...
+                </option>
+            `;
+
+            mensaje.innerHTML = `
+                <span class="text-primary">
+
+                    <span class="spinner-border spinner-border-sm me-1"
+                          role="status">
+                    </span>
+
+                    Consultando mesas...
+
+                </span>
+            `;
+
+            panel.innerHTML = `
+                <div class="text-center py-4">
+
+                    <div class="spinner-border text-primary"
+                         role="status">
+                    </div>
+
+                    <p class="text-muted mt-3 mb-0">
+                        Buscando mesas disponibles...
+                    </p>
+
+                </div>
+            `;
+
+            try {
+
+                const url =
+                    '@Url.Action("ObtenerMesasDisponibles", "Reservacion")'
+                    +
+                    '?fecha=' + encodeURIComponent(fechaValor)
+                    +
+                    '&horaInicio=' + encodeURIComponent(horaInicioValor)
+                    +
+                    '&horaFin=' + encodeURIComponent(horaFinValor)
+                    +
+                    '&cantidadPersonas=' + encodeURIComponent(cantidadValor);
+
+                const respuesta =
+                    await fetch(url, {
+                        method: "GET",
+                        headers: {
+                            "Accept": "application/json"
+                        }
+                    });
+
+                if (!respuesta.ok) {
+
+                    throw new Error(
+                        "No fue posible consultar las mesas."
+                    );
+
+                }
+
+                const datos =
+                    await respuesta.json();
+
+                if (!datos.exito) {
+
+                    throw new Error(
+                        datos.mensaje ||
+                        "No fue posible consultar la disponibilidad."
+                    );
+
+                }
+
+                // =================================================
+                // LIMPIAR SELECT
+                // =================================================
+
+                mesa.innerHTML = "";
+
+                // =================================================
+                // SIN MESAS
+                // =================================================
+
+                if (!datos.mesas ||
+                    datos.mesas.length === 0) {
+
+                    mesa.innerHTML = `
+                        <option value="">
+                            No hay mesas disponibles
+                        </option>
+                    `;
+
+                    mensaje.innerHTML = `
+                        <span class="text-danger">
+
+                            <i class="bi bi-x-circle me-1"></i>
+
+                            No hay mesas disponibles para este horario.
+
+                        </span>
+                    `;
+
+                    panel.innerHTML = `
+                        <div class="alert alert-warning mb-0">
+
+                            <div class="d-flex gap-3">
+
+                                <i class="bi bi-exclamation-circle fs-4"></i>
+
+                                <div>
+
+                                    <div class="fw-semibold">
+                                        No hay mesas disponibles
+                                    </div>
+
+                                    <div class="small mt-1">
+                                        Prueba con otro horario,
+                                        otra fecha o una cantidad
+                                        diferente de personas.
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    `;
+
+                    mesa.disabled = true;
+
+                    return;
+                }
+
+                // =================================================
+                // AGREGAR OPCIONES
+                // =================================================
+
+                const opcionInicial =
+                    document.createElement("option");
+
+                opcionInicial.value = "";
+
+                opcionInicial.textContent =
+                    "Seleccione una mesa";
+
+                mesa.appendChild(opcionInicial);
+
+                datos.mesas.forEach(function (item) {
+
+                    const opcion =
+                        document.createElement("option");
+
+                    opcion.value =
+                        item.idMesa;
+
+                    opcion.textContent =
+                        `Mesa ${item.numeroMesa} - Capacidad ${item.capacidad}`;
+
+                    if (item.recomendada) {
+
+                        opcion.textContent +=
+                            " ⭐ Recomendada";
+
+                        opcion.selected = true;
+
+                    }
+
+                    mesa.appendChild(opcion);
+
+                });
+
+                mesa.disabled = false;
+
+                // =================================================
+                // MENSAJE
+                // =================================================
+
+                mensaje.innerHTML = `
+                    <span class="text-success">
+
+                        <i class="bi bi-check-circle me-1"></i>
+
+                        ${datos.cantidad}
+                        mesa(s) disponible(s).
+
+                    </span>
+                `;
+
+                // =================================================
+                // PANEL
+                // =================================================
+
+                const recomendada =
+                    datos.mesas.find(
+                        x => x.recomendada
+                    );
+
+                panel.innerHTML = `
+
+                    <div class="alert alert-success mb-3">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-check-circle-fill fs-3"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    ${datos.cantidad}
+                                    mesa(s) disponible(s)
+                                </div>
+
+                                <div class="small">
+                                    La mesa recomendada está seleccionada automáticamente.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    ${
+                        recomendada
+                        ?
+                        `
+                        <div class="border rounded-3 p-3">
+
+                            <div class="small text-muted mb-1">
+
+                                ⭐ Mesa recomendada
+
+                            </div>
+
+                            <div class="fs-5 fw-bold">
+
+                                Mesa ${recomendada.numeroMesa}
+
+                            </div>
+
+                            <div class="text-muted">
+
+                                Capacidad:
+                                ${recomendada.capacidad}
+                                personas
+
+                            </div>
+
+                        </div>
+                        `
+                        :
+                        ""
+                    }
+
+                `;
+
+            }
+            catch (error) {
+
+                console.error(error);
+
+                mesa.innerHTML = `
+                    <option value="">
+                        No fue posible consultar
+                    </option>
+                `;
+
+                mesa.disabled = true;
+
+                mensaje.innerHTML = `
+                    <span class="text-danger">
+
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+
+                        ${error.message}
+
+                    </span>
+                `;
+
+                panel.innerHTML = `
+                    <div class="alert alert-danger mb-0">
+
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+
+                        No fue posible consultar la disponibilidad.
+                        Inténtelo nuevamente.
+
+                    </div>
+                `;
+
+            }
+
+        }
+
+        // =====================================================
+        // EVENTOS
+        // =====================================================
+
+        fecha.addEventListener(
+            "change",
+            consultarMesas
+        );
+
+        horaInicio.addEventListener(
+            "change",
+            consultarMesas
+        );
+
+        horaFin.addEventListener(
+            "change",
+            consultarMesas
+        );
+
+        cantidad.addEventListener(
+            "input",
+            consultarMesas
+        );
+
+        // =====================================================
+        // VALIDACIÓN ANTES DE ENVIAR
+        // =====================================================
+
+        formulario.addEventListener(
+            "submit",
+            function (event) {
+
+                const idMesa =
+                    parseInt(mesa.value);
+
+                if (!idMesa || idMesa <= 0) {
+
+                    event.preventDefault();
+
+                    mensaje.innerHTML = `
+                        <span class="text-danger">
+
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+
+                            Debe seleccionar una mesa disponible.
+
+                        </span>
+                    `;
+
+                    mesa.focus();
+
+                    return;
+
+                }
+
+                // =================================================
+                // EVITAR DOBLE ENVÍO
+                // =================================================
+
+                botonGuardar.disabled = true;
+
+                botonGuardar.innerHTML = `
+
+                    <span class="spinner-border spinner-border-sm me-1"
+                          role="status">
+                    </span>
+
+                    Guardando...
+
+                `;
+
+            }
+        );
+
+        // =====================================================
+        // CARGAR DISPONIBILIDAD INICIAL
+        // =====================================================
+
+        if (fecha.value &&
+            horaInicio.value &&
+            horaFin.value &&
+            cantidad.value) {
+
+            cargarMesas();
+
+        }
+
+    });
 
 </script>
+
 }
