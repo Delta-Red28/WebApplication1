@@ -31,9 +31,7 @@
                 <table class="table table-hover align-middle">
 
                     <thead>
-
                         <tr>
-
                             <th>Fecha</th>
                             <th>Código</th>
                             <th>Insumo</th>
@@ -43,9 +41,7 @@
                             <th>Cantidad</th>
                             <th>Costo</th>
                             <th>Referencia</th>
-
                         </tr>
-
                     </thead>
 
                     <tbody>
@@ -53,15 +49,17 @@
                         @foreach (var item in Model)
                         {
                             var esEntrada =
-                                item.TipoMovimiento
-                                    .ToLower()
-                                    .Contains("entrada");
+                                item.TipoMovimiento?
+                                    .Contains(
+                                        "entrada",
+                                        StringComparison.OrdinalIgnoreCase)
+                                == true;
 
                             <tr>
 
                                 <td>
-                                    @item.FechaMovimiento
-                                    .ToString("dd/MM/yyyy HH:mm")
+                                    @item.FechaMovimiento.ToString(
+                                        "dd/MM/yyyy HH:mm")
                                 </td>
 
                                 <td>
@@ -69,11 +67,10 @@
                                 </td>
 
                                 <td>
-                                    @item.NombreInsumo
+                                    @item.Insumo
                                 </td>
 
                                 <td>
-
                                     @if (esEntrada)
                                     {
                                         <span class="badge bg-success">
@@ -86,7 +83,6 @@
                                             @item.TipoMovimiento
                                         </span>
                                     }
-
                                 </td>
 
                                 <td>
@@ -99,12 +95,10 @@
 
                                 <td>
                                     @item.Cantidad.ToString("N2")
-                                    @item.Cantidad
                                 </td>
 
                                 <td>
-                                    @(item.CostoUnitario
-                                        ?.ToString("C2") ?? "-")
+                                    @(item.CostoUnitario?.ToString("C2") ?? "-")
                                 </td>
 
                                 <td>

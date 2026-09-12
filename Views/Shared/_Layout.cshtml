@@ -1,1299 +1,1302 @@
 ﻿@using System.Security.Claims
 
 @{
-    var nombres = User.FindFirstValue(ClaimTypes.GivenName) ?? "";
-    var apellidos = User.FindFirstValue(ClaimTypes.Surname) ?? "";
-    var usuarioActual = User.FindFirstValue(ClaimTypes.Name) ?? "";
-    var rolActual = User.FindFirstValue(ClaimTypes.Role) ?? "Usuario";
+var nombres = User.FindFirstValue(ClaimTypes.GivenName) ?? "";
+var apellidos = User.FindFirstValue(ClaimTypes.Surname) ?? "";
+var usuarioActual = User.FindFirstValue(ClaimTypes.Name) ?? "";
+var rolActual = User.FindFirstValue(ClaimTypes.Role) ?? "Usuario";
 
-    var nombreCompleto = $"{nombres} {apellidos}".Trim();
+var nombreCompleto = $"{nombres} {apellidos}".Trim();
 
-    if (string.IsNullOrWhiteSpace(nombreCompleto))
-    {
-        nombreCompleto = usuarioActual;
-    }
-
-    if (string.IsNullOrWhiteSpace(nombreCompleto))
-    {
-        nombreCompleto = "Usuario";
-    }
-
-    var iniciales = "";
-
-    var partesNombre = nombreCompleto
-        .Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-    if (partesNombre.Length >= 2)
-    {
-        iniciales =
-            partesNombre[0].Substring(0, 1).ToUpper() +
-            partesNombre[1].Substring(0, 1).ToUpper();
-    }
-    else if (partesNombre.Length == 1)
-    {
-        iniciales =
-            partesNombre[0].Substring(0, 1).ToUpper();
-    }
-
-    var controladorActual =
-        ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
-
-    var accionActual =
-        ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
+if (string.IsNullOrWhiteSpace(nombreCompleto))
+{
+    nombreCompleto = usuarioActual;
 }
 
-<!DOCTYPE html>
-<html lang="es">
+if (string.IsNullOrWhiteSpace(nombreCompleto))
+{
+    nombreCompleto = "Usuario";
+}
 
-<head>
+var iniciales = "";
 
-    <meta charset="utf-8" />
+var partesNombre = nombreCompleto
+    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
+if (partesNombre.Length >= 2)
+{
+    iniciales =
+        partesNombre[0].Substring(0, 1).ToUpper() +
+        partesNombre[1].Substring(0, 1).ToUpper();
+}
+else if (partesNombre.Length == 1)
+{
+    iniciales =
+        partesNombre[0].Substring(0, 1).ToUpper();
+}
 
-    <title>
-        @ViewData["Title"] - Restaurante
-    </title>
+var controladorActual =
+    ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
 
+var accionActual =
+    ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
 
-    <!-- ========================================================= -->
-    <!-- BOOTSTRAP -->
-    <!-- ========================================================= -->
+}
 
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+<!DOCTYPE html> <html lang="es"> <head>
+<meta charset="utf-8" />
 
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
 
-    <!-- ========================================================= -->
-    <!-- BOOTSTRAP ICONS -->
-    <!-- ========================================================= -->
+<title>
+    @ViewData["Title"] - Restaurante
+</title>
 
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+<!-- ========================================================= -->
+<!-- BOOTSTRAP -->
+<!-- ========================================================= -->
 
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
 
-    <!-- ========================================================= -->
-    <!-- CSS DEL SISTEMA -->
-    <!-- ========================================================= -->
+<!-- ========================================================= -->
+<!-- BOOTSTRAP ICONS -->
+<!-- ========================================================= -->
 
-    <link rel="stylesheet"
-          href="~/css/site.css"
-          asp-append-version="true" />
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
+<!-- ========================================================= -->
+<!-- CSS DEL SISTEMA -->
+<!-- ========================================================= -->
 
-    <!-- ========================================================= -->
-    <!-- EVITAR PARPADEO DEL MODO OSCURO -->
-    <!-- ========================================================= -->
+<link rel="stylesheet"
+      href="~/css/site.css"
+      asp-append-version="true" />
 
-    <script>
+<!-- ========================================================= -->
+<!-- EVITAR PARPADEO DEL MODO OSCURO -->
+<!-- ========================================================= -->
 
-        (function () {
+<script>
 
-            const temaGuardado =
-                localStorage.getItem("temaRestaurante");
+    (function () {
 
-            if (temaGuardado === "dark") {
+        const temaGuardado =
+            localStorage.getItem("temaRestaurante");
 
-                document.documentElement.classList.add("dark-mode");
+        if (temaGuardado === "dark") {
 
-            }
+            document.documentElement.classList.add("dark-mode");
 
-        })();
+        }
 
-    </script>
+    })();
 
+</script>
 
-    <!-- ========================================================= -->
-    <!-- ESTILOS DEL LAYOUT -->
-    <!-- ========================================================= -->
+<!-- ========================================================= -->
+<!-- ESTILOS DEL LAYOUT -->
+<!-- ========================================================= -->
 
-    <style>
+<style>
 
-        /* =========================================================
-           VARIABLES - MODO CLARO
-        ========================================================= */
+    :root {
+        --sidebar-width: 270px;
+        --topbar-height: 74px;
+
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+
+        --sidebar-bg: #111827;
+        --sidebar-hover: #1f2937;
+        --sidebar-active: #2563eb;
+
+        --text-dark: #1f2937;
+        --text-muted: #6b7280;
+
+        --border-color: #e5e7eb;
+        --background: #f5f7fb;
+        --card-background: #ffffff;
+        --topbar-background: #ffffff;
+
+        --white: #ffffff;
+        --soft-blue: #eff6ff;
+
+        --shadow-color: rgba(15, 23, 42, 0.08);
+    }
+
+    html.dark-mode {
+
+        --background: #0f172a;
+        --card-background: #172033;
+        --topbar-background: #172033;
+
+        --text-dark: #f1f5f9;
+        --text-muted: #aeb8c7;
+
+        --border-color: #334155;
+
+        --sidebar-bg: #0b1120;
+        --sidebar-hover: #1e293b;
+        --sidebar-active: #2563eb;
+
+        --soft-blue: #172554;
+
+        --shadow-color: rgba(0, 0, 0, 0.35);
+    }
+
+    html,
+    body {
+        min-height: 100%;
+    }
+
+    body {
+
+        margin: 0;
+
+        background: var(--background);
+
+        color: var(--text-dark);
+
+        font-family:
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Roboto,
+            Helvetica,
+            Arial,
+            sans-serif;
+
+        font-size: 16px;
+
+        transition:
+            background-color 0.3s ease,
+            color 0.3s ease;
+    }
+
+    /* =========================================================
+       SIDEBAR
+    ========================================================= */
+
+    .sidebar {
+
+        position: fixed;
+
+        top: 0;
+        left: 0;
+        bottom: 0;
+
+        width: var(--sidebar-width);
+
+        background: var(--sidebar-bg);
+
+        color: white;
+
+        z-index: 1050;
+
+        display: flex;
+        flex-direction: column;
+
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        border-right:
+            1px solid rgba(255, 255, 255, 0.08);
+
+        box-shadow:
+            5px 0 22px rgba(0, 0, 0, 0.10);
+
+        scrollbar-width: thin;
+
+        scrollbar-color:
+            #374151 transparent;
+    }
+
+    /* =========================================================
+       LOGO
+    ========================================================= */
+
+    .sidebar-brand {
+
+        min-height: 74px;
+
+        padding: 0 24px;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 13px;
+
+        font-size: 21px;
+
+        font-weight: 700;
+
+        letter-spacing: -0.3px;
+
+        border-bottom:
+            1px solid rgba(255, 255, 255, 0.08);
+
+        flex-shrink: 0;
+    }
+
+    .sidebar-brand i {
+
+        width: 40px;
+        height: 40px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        background:
+            linear-gradient(
+                135deg,
+                #3b82f6,
+                #1d4ed8
+            );
+
+        border-radius: 11px;
+
+        font-size: 20px;
+
+        box-shadow:
+            0 5px 15px
+            rgba(37, 99, 235, 0.35);
+    }
+
+    /* =========================================================
+       USUARIO SIDEBAR
+    ========================================================= */
+
+    .sidebar-user {
+
+        padding: 22px 24px;
+
+        border-bottom:
+            1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sidebar-user-name {
+
+        font-size: 16px;
+
+        font-weight: 600;
+
+        color: #ffffff;
+
+        white-space: nowrap;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+    }
+
+    .sidebar-user-role {
+
+        margin-top: 5px;
+
+        font-size: 14px;
+
+        color: #9ca3af;
+    }
+
+    /* =========================================================
+       SECCIONES
+    ========================================================= */
+
+    .sidebar-section {
+
+        padding: 22px 24px 9px;
+
+        color: #6b7280;
+
+        font-size: 12px;
+
+        font-weight: 700;
+
+        text-transform: uppercase;
+
+        letter-spacing: 0.8px;
+    }
+
+    /* =========================================================
+       MENU
+    ========================================================= */
+
+    .sidebar-menu {
+
+        list-style: none;
+
+        padding: 0 12px;
+
+        margin: 0;
+    }
+
+    .sidebar-menu li {
+
+        margin-bottom: 4px;
+    }
+
+    .sidebar-menu a {
+
+        min-height: 46px;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 13px;
+
+        padding: 11px 14px;
+
+        border-radius: 9px;
+
+        color: #d1d5db;
+
+        text-decoration: none;
+
+        font-size: 15px;
+
+        font-weight: 500;
+
+        transition:
+            background 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .sidebar-menu a i {
+
+        width: 22px;
+
+        min-width: 22px;
+
+        text-align: center;
+
+        font-size: 19px;
+    }
+
+    .sidebar-menu a:hover {
+
+        background: var(--sidebar-hover);
+
+        color: #ffffff;
+
+        transform: translateX(2px);
+    }
+
+    .sidebar-menu a.active {
+
+        background:
+            linear-gradient(
+                135deg,
+                #2563eb,
+                #1d4ed8
+            );
+
+        color: #ffffff;
+
+        box-shadow:
+            0 5px 14px
+            rgba(37, 99, 235, 0.28);
+    }
+
+    .sidebar-menu a.active i {
+
+        color: #ffffff;
+    }
+
+    /* =========================================================
+       CONTENEDOR PRINCIPAL
+    ========================================================= */
+
+    .main-wrapper {
+
+        margin-left: var(--sidebar-width);
+
+        min-height: 100vh;
+
+        display: flex;
+
+        flex-direction: column;
+
+        transition:
+            background-color 0.3s ease;
+    }
+
+    /* =========================================================
+       TOPBAR
+    ========================================================= */
+
+    .topbar {
+
+        height: var(--topbar-height);
+
+        min-height: var(--topbar-height);
+
+        background:
+            var(--topbar-background);
+
+        border-bottom:
+            1px solid var(--border-color);
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        padding: 0 30px;
+
+        position: sticky;
+
+        top: 0;
+
+        z-index: 1000;
+
+        box-shadow:
+            0 2px 12px var(--shadow-color);
+
+        transition:
+            background-color 0.3s ease,
+            border-color 0.3s ease;
+    }
+
+    .topbar-left {
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 18px;
+
+        min-width: 0;
+    }
+
+    .topbar-title {
+
+        font-size: 22px;
+
+        font-weight: 700;
+
+        color: var(--text-dark);
+
+        white-space: nowrap;
+
+        transition:
+            color 0.3s ease;
+    }
+
+    /* =========================================================
+       BOTÓN MENÚ MÓVIL
+    ========================================================= */
+
+    .mobile-menu-button {
+
+        width: 44px;
+        height: 44px;
+
+        border:
+            1px solid var(--border-color);
+
+        background:
+            var(--card-background);
+
+        border-radius: 9px;
+
+        display: none;
+
+        align-items: center;
+        justify-content: center;
+
+        color: var(--text-dark);
+
+        font-size: 22px;
+
+        cursor: pointer;
+
+        transition:
+            background-color 0.25s ease,
+            border-color 0.25s ease;
+    }
+
+    .mobile-menu-button:hover {
+
+        background: var(--sidebar-hover);
+
+        color: #ffffff;
+    }
+
+    /* =========================================================
+       ACCIONES TOPBAR
+    ========================================================= */
+
+    .topbar-actions {
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 8px;
+    }
+
+    /* =========================================================
+       MODO OSCURO
+    ========================================================= */
+
+    .theme-toggle {
+
+        width: 43px;
+        height: 43px;
+
+        border:
+            1px solid var(--border-color);
+
+        border-radius: 50%;
+
+        background:
+            var(--card-background);
+
+        color: var(--text-dark);
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        cursor: pointer;
+
+        transition:
+            background-color 0.25s ease,
+            border-color 0.25s ease,
+            transform 0.2s ease,
+            color 0.25s ease;
+    }
+
+    .theme-toggle:hover {
+
+        transform: translateY(-2px);
+
+        border-color: var(--primary);
+
+        color: var(--primary);
+
+        box-shadow:
+            0 4px 12px
+            var(--shadow-color);
+    }
+
+    html.dark-mode .theme-toggle {
+
+        background: #242d3d;
+
+        border-color: #475569;
+    }
+
+    html.dark-mode .theme-toggle i {
+
+        color: #facc15;
+
+        text-shadow:
+            0 0 8px
+            rgba(250, 204, 21, 0.35);
+    }
+
+    /* =========================================================
+       USUARIO TOPBAR
+    ========================================================= */
+
+    .user-button {
+
+        border: 0;
+
+        background: transparent;
+
+        padding: 6px 8px;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 11px;
+
+        border-radius: 10px;
+
+        color: var(--text-dark);
+    }
+
+    .user-button:hover {
+
+        background: var(--background);
+    }
+
+    .user-avatar {
+
+        width: 42px;
+        height: 42px;
+
+        min-width: 42px;
+
+        border-radius: 50%;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        background:
+            linear-gradient(
+                135deg,
+                #2563eb,
+                #1d4ed8
+            );
+
+        color: #ffffff;
+
+        font-size: 14px;
+
+        font-weight: 700;
+
+        box-shadow:
+            0 4px 10px
+            rgba(37, 99, 235, 0.25);
+    }
+
+    .user-info {
+
+        text-align: left;
+
+        max-width: 180px;
+    }
+
+    .user-name {
+
+        font-size: 15px;
+
+        font-weight: 600;
+
+        color: var(--text-dark);
+
+        white-space: nowrap;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+    }
+
+    .user-role {
+
+        margin-top: 2px;
+
+        font-size: 13px;
+
+        color: var(--text-muted);
+    }
+
+    /* =========================================================
+       DROPDOWN
+    ========================================================= */
+
+    .dropdown-menu {
+
+        min-width: 245px;
+
+        padding: 8px;
+
+        background:
+            var(--card-background);
+
+        border:
+            1px solid var(--border-color);
+
+        border-radius: 12px;
+
+        box-shadow:
+            0 12px 30px
+            var(--shadow-color);
+    }
+
+    .dropdown-header {
+
+        padding: 10px 12px;
+
+        font-size: 15px;
+
+        color: var(--text-dark);
+    }
+
+    .dropdown-item {
+
+        min-height: 43px;
+
+        display: flex;
+
+        align-items: center;
+
+        border-radius: 8px;
+
+        padding: 9px 12px;
+
+        font-size: 15px;
+
+        color: var(--text-dark);
+    }
+
+    .dropdown-item:hover {
+
+        background:
+            var(--background);
+
+        color: var(--text-dark);
+    }
+
+    .dropdown-item.text-danger:hover {
+
+        background: #fef2f2;
+
+        color: #dc2626;
+    }
+
+    html.dark-mode .dropdown-item.text-danger:hover {
+
+        background: #3b1f24;
+    }
+
+    .dropdown-divider {
+
+        border-color: var(--border-color);
+    }
+
+    /* =========================================================
+       CONTENIDO
+    ========================================================= */
+
+    .content {
+
+        flex: 1;
+
+        width: 100%;
+
+        padding: 30px;
+
+        transition:
+            background-color 0.3s ease;
+    }
+
+    /* =========================================================
+       TARJETAS
+    ========================================================= */
+
+    .card {
+
+        background-color:
+            var(--card-background);
+
+        color:
+            var(--text-dark);
+
+        border-color:
+            var(--border-color);
+
+        box-shadow:
+            0 5px 18px
+            var(--shadow-color);
+
+        transition:
+            background-color 0.3s ease,
+            color 0.3s ease,
+            border-color 0.3s ease;
+    }
+
+    .card-header {
+
+        background-color:
+            var(--card-background);
+
+        color:
+            var(--text-dark);
+
+        border-color:
+            var(--border-color);
+    }
+
+    .text-muted {
+
+        color:
+            var(--text-muted) !important;
+    }
+
+    /* =========================================================
+       FORMULARIOS
+    ========================================================= */
+
+    .form-control,
+    .form-select {
+
+        background-color:
+            var(--card-background);
+
+        color:
+            var(--text-dark);
+
+        border-color:
+            var(--border-color);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+
+        background-color:
+            var(--card-background);
+
+        color:
+            var(--text-dark);
+
+        border-color:
+            var(--primary);
+    }
+
+    .form-control::placeholder {
+
+        color:
+            var(--text-muted);
+    }
+
+    /* =========================================================
+       TABLAS
+    ========================================================= */
+
+    .table {
+
+        color:
+            var(--text-dark);
+    }
+
+    .table > :not(caption) > * > * {
+
+        background-color:
+            transparent;
+
+        color:
+            var(--text-dark);
+
+        border-color:
+            var(--border-color);
+    }
+
+    /* =========================================================
+       BOTONES LIGHT
+    ========================================================= */
+
+    .btn-light {
+
+        background-color:
+            var(--card-background);
+
+        border-color:
+            var(--border-color);
+
+        color:
+            var(--text-dark);
+    }
+
+    .btn-light:hover {
+
+        background-color:
+            var(--background);
+
+        border-color:
+            var(--border-color);
+
+        color:
+            var(--text-dark);
+    }
+
+    /* =========================================================
+       BOOTSTRAP EN MODO OSCURO
+    ========================================================= */
+
+    html.dark-mode .bg-white {
+
+        background-color:
+            var(--card-background) !important;
+    }
+
+    html.dark-mode .bg-light {
+
+        background-color:
+            #202a3b !important;
+
+        color:
+            #e5e7eb !important;
+    }
+
+    html.dark-mode .border {
+
+        border-color:
+            var(--border-color) !important;
+    }
+
+    /* =========================================================
+       OVERLAY
+    ========================================================= */
+
+    .sidebar-overlay {
+
+        display: none;
+
+        position: fixed;
+
+        inset: 0;
+
+        background:
+            rgba(0, 0, 0, 0.55);
+
+        z-index: 1040;
+
+        backdrop-filter:
+            blur(2px);
+    }
+
+    .sidebar-overlay.show {
+
+        display: block;
+    }
+
+    /* =========================================================
+       TABLET
+    ========================================================= */
+
+    @@media (max-width: 1100px) {
 
         :root {
-            --sidebar-width: 270px;
-            --topbar-height: 74px;
 
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-
-            --sidebar-bg: #111827;
-            --sidebar-hover: #1f2937;
-            --sidebar-active: #2563eb;
-
-            --text-dark: #1f2937;
-            --text-muted: #6b7280;
-
-            --border-color: #e5e7eb;
-            --background: #f5f7fb;
-            --card-background: #ffffff;
-            --topbar-background: #ffffff;
-
-            --white: #ffffff;
-            --soft-blue: #eff6ff;
-
-            --shadow-color: rgba(15, 23, 42, 0.08);
+            --sidebar-width: 250px;
         }
 
+        .content {
 
-        /* =========================================================
-           MODO OSCURO
-        ========================================================= */
-
-        html.dark-mode {
-
-            --background: #0f172a;
-            --card-background: #172033;
-            --topbar-background: #172033;
-
-            --text-dark: #f1f5f9;
-            --text-muted: #aeb8c7;
-
-            --border-color: #334155;
-
-            --sidebar-bg: #0b1120;
-            --sidebar-hover: #1e293b;
-            --sidebar-active: #2563eb;
-
-            --soft-blue: #172554;
-
-            --shadow-color: rgba(0, 0, 0, 0.35);
+            padding: 25px;
         }
-
-
-        /* =========================================================
-           GENERAL
-        ========================================================= */
-
-        html,
-        body {
-            min-height: 100%;
-        }
-
-
-        body {
-
-            margin: 0;
-
-            background: var(--background);
-
-            color: var(--text-dark);
-
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                Roboto,
-                Helvetica,
-                Arial,
-                sans-serif;
-
-            font-size: 16px;
-
-            transition:
-                background-color 0.3s ease,
-                color 0.3s ease;
-        }
-
-
-        /* =========================================================
-           SIDEBAR
-        ========================================================= */
-
-        .sidebar {
-
-            position: fixed;
-
-            top: 0;
-            left: 0;
-            bottom: 0;
-
-            width: var(--sidebar-width);
-
-            background: var(--sidebar-bg);
-
-            color: white;
-
-            z-index: 1050;
-
-            display: flex;
-            flex-direction: column;
-
-            overflow-y: auto;
-            overflow-x: hidden;
-
-            border-right:
-                1px solid rgba(255, 255, 255, 0.08);
-
-            box-shadow:
-                5px 0 22px rgba(0, 0, 0, 0.10);
-
-            scrollbar-width: thin;
-
-            scrollbar-color:
-                #374151 transparent;
-        }
-
-
-        /* =========================================================
-           LOGO
-        ========================================================= */
-
-        .sidebar-brand {
-
-            min-height: 74px;
-
-            padding: 0 24px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 13px;
-
-            font-size: 21px;
-
-            font-weight: 700;
-
-            letter-spacing: -0.3px;
-
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.08);
-
-            flex-shrink: 0;
-        }
-
-
-        .sidebar-brand i {
-
-            width: 40px;
-            height: 40px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #3b82f6,
-                    #1d4ed8
-                );
-
-            border-radius: 11px;
-
-            font-size: 20px;
-
-            box-shadow:
-                0 5px 15px
-                rgba(37, 99, 235, 0.35);
-        }
-
-
-        /* =========================================================
-           USUARIO SIDEBAR
-        ========================================================= */
-
-        .sidebar-user {
-
-            padding: 22px 24px;
-
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.08);
-        }
-
-
-        .sidebar-user-name {
-
-            font-size: 16px;
-
-            font-weight: 600;
-
-            color: #ffffff;
-
-            white-space: nowrap;
-
-            overflow: hidden;
-
-            text-overflow: ellipsis;
-        }
-
-
-        .sidebar-user-role {
-
-            margin-top: 5px;
-
-            font-size: 14px;
-
-            color: #9ca3af;
-        }
-
-
-        /* =========================================================
-           SECCIONES
-        ========================================================= */
-
-        .sidebar-section {
-
-            padding: 22px 24px 9px;
-
-            color: #6b7280;
-
-            font-size: 12px;
-
-            font-weight: 700;
-
-            text-transform: uppercase;
-
-            letter-spacing: 0.8px;
-        }
-
-
-        /* =========================================================
-           MENU
-        ========================================================= */
-
-        .sidebar-menu {
-
-            list-style: none;
-
-            padding: 0 12px;
-
-            margin: 0;
-        }
-
-
-        .sidebar-menu li {
-
-            margin-bottom: 4px;
-        }
-
-
-        .sidebar-menu a {
-
-            min-height: 46px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 13px;
-
-            padding: 11px 14px;
-
-            border-radius: 9px;
-
-            color: #d1d5db;
-
-            text-decoration: none;
-
-            font-size: 15px;
-
-            font-weight: 500;
-
-            transition:
-                background 0.18s ease,
-                color 0.18s ease,
-                transform 0.18s ease;
-        }
-
-
-        .sidebar-menu a i {
-
-            width: 22px;
-
-            min-width: 22px;
-
-            text-align: center;
-
-            font-size: 19px;
-        }
-
-
-        .sidebar-menu a:hover {
-
-            background: var(--sidebar-hover);
-
-            color: #ffffff;
-
-            transform: translateX(2px);
-        }
-
-
-        .sidebar-menu a.active {
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #2563eb,
-                    #1d4ed8
-                );
-
-            color: #ffffff;
-
-            box-shadow:
-                0 5px 14px
-                rgba(37, 99, 235, 0.28);
-        }
-
-
-        .sidebar-menu a.active i {
-
-            color: #ffffff;
-        }
-
-
-        /* =========================================================
-           CONTENEDOR PRINCIPAL
-        ========================================================= */
-
-        .main-wrapper {
-
-            margin-left: var(--sidebar-width);
-
-            min-height: 100vh;
-
-            display: flex;
-
-            flex-direction: column;
-
-            transition:
-                background-color 0.3s ease;
-        }
-
-
-        /* =========================================================
-           TOPBAR
-        ========================================================= */
 
         .topbar {
 
-            height: var(--topbar-height);
+            padding: 0 24px;
+        }
 
-            min-height: var(--topbar-height);
+    }
 
-            background:
-                var(--topbar-background);
+    /* =========================================================
+       TABLET PEQUEÑA
+    ========================================================= */
 
-            border-bottom:
-                1px solid var(--border-color);
+    @@media (max-width: 900px) {
 
-            display: flex;
+        .sidebar {
 
-            align-items: center;
-
-            justify-content: space-between;
-
-            padding: 0 30px;
-
-            position: sticky;
-
-            top: 0;
-
-            z-index: 1000;
-
-            box-shadow:
-                0 2px 12px var(--shadow-color);
+            transform:
+                translateX(-100%);
 
             transition:
-                background-color 0.3s ease,
-                border-color 0.3s ease;
+                transform 0.25s ease;
+
+            width: 280px;
         }
 
+        .sidebar.show {
 
-        .topbar-left {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 18px;
-
-            min-width: 0;
+            transform:
+                translateX(0);
         }
 
+        .main-wrapper {
 
-        .topbar-title {
-
-            font-size: 22px;
-
-            font-weight: 700;
-
-            color: var(--text-dark);
-
-            white-space: nowrap;
-
-            transition:
-                color 0.3s ease;
+            margin-left: 0;
         }
-
-
-        /* =========================================================
-           BOTÓN MENÚ MÓVIL
-        ========================================================= */
 
         .mobile-menu-button {
 
-            width: 44px;
-            height: 44px;
+            display: flex;
+        }
 
-            border:
-                1px solid var(--border-color);
+        .topbar {
 
-            background:
-                var(--card-background);
+            padding: 0 20px;
+        }
 
-            border-radius: 9px;
+        .content {
+
+            padding: 24px;
+        }
+
+    }
+
+    /* =========================================================
+       MÓVIL
+    ========================================================= */
+
+    @@media (max-width: 600px) {
+
+        :root {
+
+            --topbar-height: 68px;
+        }
+
+        .topbar {
+
+            padding: 0 14px;
+        }
+
+        .topbar-title {
+
+            font-size: 20px;
+        }
+
+        .user-info {
 
             display: none;
-
-            align-items: center;
-            justify-content: center;
-
-            color: var(--text-dark);
-
-            font-size: 22px;
-
-            cursor: pointer;
-
-            transition:
-                background-color 0.25s ease,
-                border-color 0.25s ease;
         }
-
-
-        .mobile-menu-button:hover {
-
-            background: var(--sidebar-hover);
-
-            color: #ffffff;
-        }
-
-
-        /* =========================================================
-           ACCIONES TOPBAR
-        ========================================================= */
-
-        .topbar-actions {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-        }
-
-
-        /* =========================================================
-           MODO OSCURO
-        ========================================================= */
-
-        .theme-toggle {
-
-            width: 43px;
-            height: 43px;
-
-            border:
-                1px solid var(--border-color);
-
-            border-radius: 50%;
-
-            background:
-                var(--card-background);
-
-            color: var(--text-dark);
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            cursor: pointer;
-
-            transition:
-                background-color 0.25s ease,
-                border-color 0.25s ease,
-                transform 0.2s ease,
-                color 0.25s ease;
-        }
-
-
-        .theme-toggle:hover {
-
-            transform: translateY(-2px);
-
-            border-color: var(--primary);
-
-            color: var(--primary);
-
-            box-shadow:
-                0 4px 12px
-                var(--shadow-color);
-        }
-
-
-        html.dark-mode .theme-toggle {
-
-            background: #242d3d;
-
-            border-color: #475569;
-        }
-
-
-        html.dark-mode .theme-toggle i {
-
-            color: #facc15;
-
-            text-shadow:
-                0 0 8px
-                rgba(250, 204, 21, 0.35);
-        }
-
-
-        /* =========================================================
-           USUARIO TOPBAR
-        ========================================================= */
 
         .user-button {
 
-            border: 0;
-
-            background: transparent;
-
-            padding: 6px 8px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 11px;
-
-            border-radius: 10px;
-
-            color: var(--text-dark);
+            padding: 4px;
         }
 
+        .user-button::after {
 
-        .user-button:hover {
-
-            background: var(--background);
+            display: none;
         }
-
 
         .user-avatar {
 
             width: 42px;
             height: 42px;
-
-            min-width: 42px;
-
-            border-radius: 50%;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #2563eb,
-                    #1d4ed8
-                );
-
-            color: #ffffff;
-
-            font-size: 14px;
-
-            font-weight: 700;
-
-            box-shadow:
-                0 4px 10px
-                rgba(37, 99, 235, 0.25);
         }
 
+        .theme-toggle {
 
-        .user-info {
-
-            text-align: left;
-
-            max-width: 180px;
+            width: 40px;
+            height: 40px;
         }
-
-
-        .user-name {
-
-            font-size: 15px;
-
-            font-weight: 600;
-
-            color: var(--text-dark);
-
-            white-space: nowrap;
-
-            overflow: hidden;
-
-            text-overflow: ellipsis;
-        }
-
-
-        .user-role {
-
-            margin-top: 2px;
-
-            font-size: 13px;
-
-            color: var(--text-muted);
-        }
-
-
-        /* =========================================================
-           DROPDOWN
-        ========================================================= */
-
-        .dropdown-menu {
-
-            min-width: 245px;
-
-            padding: 8px;
-
-            background:
-                var(--card-background);
-
-            border:
-                1px solid var(--border-color);
-
-            border-radius: 12px;
-
-            box-shadow:
-                0 12px 30px
-                var(--shadow-color);
-        }
-
-
-        .dropdown-header {
-
-            padding: 10px 12px;
-
-            font-size: 15px;
-
-            color: var(--text-dark);
-        }
-
-
-        .dropdown-item {
-
-            min-height: 43px;
-
-            display: flex;
-
-            align-items: center;
-
-            border-radius: 8px;
-
-            padding: 9px 12px;
-
-            font-size: 15px;
-
-            color: var(--text-dark);
-        }
-
-
-        .dropdown-item:hover {
-
-            background:
-                var(--background);
-
-            color: var(--text-dark);
-        }
-
-
-        .dropdown-item.text-danger:hover {
-
-            background: #fef2f2;
-
-            color: #dc2626;
-        }
-
-
-        html.dark-mode .dropdown-item.text-danger:hover {
-
-            background: #3b1f24;
-        }
-
-
-        .dropdown-divider {
-
-            border-color: var(--border-color);
-        }
-
-
-        /* =========================================================
-           CONTENIDO
-        ========================================================= */
 
         .content {
 
-            flex: 1;
-
-            width: 100%;
-
-            padding: 30px;
-
-            transition:
-                background-color 0.3s ease;
+            padding: 18px 14px;
         }
 
+        .dropdown-menu {
 
-        /* =========================================================
-           TARJETAS
-        ========================================================= */
-
-        .card {
-
-            background-color:
-                var(--card-background);
-
-            color:
-                var(--text-dark);
-
-            border-color:
-                var(--border-color);
-
-            box-shadow:
-                0 5px 18px
-                var(--shadow-color);
-
-            transition:
-                background-color 0.3s ease,
-                color 0.3s ease,
-                border-color 0.3s ease;
+            min-width: 230px;
         }
 
+    }
 
-        .card-header {
+    /* =========================================================
+       MÓVIL MUY PEQUEÑO
+    ========================================================= */
 
-            background-color:
-                var(--card-background);
+    @@media (max-width: 380px) {
 
-            color:
-                var(--text-dark);
+        .topbar-title {
 
-            border-color:
-                var(--border-color);
+            font-size: 18px;
         }
 
+        .content {
 
-        .text-muted {
-
-            color:
-                var(--text-muted) !important;
+            padding: 16px 12px;
         }
 
+    }
 
-        /* =========================================================
-           FORMULARIOS
-        ========================================================= */
+</style>
 
-        .form-control,
-        .form-select {
+</head> <body>
+<!-- ========================================================= -->
+<!-- OVERLAY -->
+<!-- ========================================================= -->
 
-            background-color:
-                var(--card-background);
+<div class="sidebar-overlay"
+     id="sidebarOverlay"
+     onclick="closeSidebar()">
+</div>
 
-            color:
-                var(--text-dark);
+<!-- ========================================================= -->
+<!-- SIDEBAR -->
+<!-- ========================================================= -->
 
-            border-color:
-                var(--border-color);
-        }
+<aside class="sidebar"
+       id="sidebar">
 
+    <!-- LOGO -->
 
-        .form-control:focus,
-        .form-select:focus {
+    <div class="sidebar-brand">
 
-            background-color:
-                var(--card-background);
+        <i class="bi bi-shop"></i>
 
-            color:
-                var(--text-dark);
+        <span>Restaurante</span>
 
-            border-color:
-                var(--primary);
-        }
-
-
-        .form-control::placeholder {
-
-            color:
-                var(--text-muted);
-        }
-
-
-        /* =========================================================
-           TABLAS
-        ========================================================= */
-
-        .table {
-
-            color:
-                var(--text-dark);
-        }
-
-
-        .table > :not(caption) > * > * {
-
-            background-color:
-                transparent;
-
-            color:
-                var(--text-dark);
-
-            border-color:
-                var(--border-color);
-        }
-
-
-        /* =========================================================
-           BOTONES LIGHT
-        ========================================================= */
-
-        .btn-light {
-
-            background-color:
-                var(--card-background);
-
-            border-color:
-                var(--border-color);
-
-            color:
-                var(--text-dark);
-        }
-
-
-        .btn-light:hover {
-
-            background-color:
-                var(--background);
-
-            border-color:
-                var(--border-color);
-
-            color:
-                var(--text-dark);
-        }
-
-
-        /* =========================================================
-           BOOTSTRAP EN MODO OSCURO
-        ========================================================= */
-
-        html.dark-mode .bg-white {
-
-            background-color:
-                var(--card-background) !important;
-        }
-
-
-        html.dark-mode .bg-light {
-
-            background-color:
-                #202a3b !important;
-
-            color:
-                #e5e7eb !important;
-        }
-
-
-        html.dark-mode .border {
-
-            border-color:
-                var(--border-color) !important;
-        }
-
-
-        /* =========================================================
-           OVERLAY
-        ========================================================= */
-
-        .sidebar-overlay {
-
-            display: none;
-
-            position: fixed;
-
-            inset: 0;
-
-            background:
-                rgba(0, 0, 0, 0.55);
-
-            z-index: 1040;
-
-            backdrop-filter:
-                blur(2px);
-        }
-
-
-        .sidebar-overlay.show {
-
-            display: block;
-        }
-
-
-        /* =========================================================
-           TABLET
-        ========================================================= */
-
-        @@media (max-width: 1100px) {
-
-            :root {
-
-                --sidebar-width: 250px;
-            }
-
-
-            .content {
-
-                padding: 25px;
-            }
-
-
-            .topbar {
-
-                padding: 0 24px;
-            }
-
-        }
-
-
-        /* =========================================================
-           TABLET PEQUEÑA
-        ========================================================= */
-
-        @@media (max-width: 900px) {
-
-            .sidebar {
-
-                transform:
-                    translateX(-100%);
-
-                transition:
-                    transform 0.25s ease;
-
-                width: 280px;
-            }
-
-
-            .sidebar.show {
-
-                transform:
-                    translateX(0);
-            }
-
-
-            .main-wrapper {
-
-                margin-left: 0;
-            }
-
-
-            .mobile-menu-button {
-
-                display: flex;
-            }
-
-
-            .topbar {
-
-                padding: 0 20px;
-            }
-
-
-            .content {
-
-                padding: 24px;
-            }
-
-        }
-
-
-        /* =========================================================
-           MÓVIL
-        ========================================================= */
-
-        @@media (max-width: 600px) {
-
-            :root {
-
-                --topbar-height: 68px;
-            }
-
-
-            .topbar {
-
-                padding: 0 14px;
-            }
-
-
-            .topbar-title {
-
-                font-size: 20px;
-            }
-
-
-            .user-info {
-
-                display: none;
-            }
-
-
-            .user-button {
-
-                padding: 4px;
-            }
-
-
-            .user-button::after {
-
-                display: none;
-            }
-
-
-            .user-avatar {
-
-                width: 42px;
-                height: 42px;
-            }
-
-
-            .theme-toggle {
-
-                width: 40px;
-                height: 40px;
-            }
-
-
-            .content {
-
-                padding: 18px 14px;
-            }
-
-
-            .dropdown-menu {
-
-                min-width: 230px;
-            }
-
-        }
-
-
-        /* =========================================================
-           MÓVIL MUY PEQUEÑO
-        ========================================================= */
-
-        @@media (max-width: 380px) {
-
-            .topbar-title {
-
-                font-size: 18px;
-            }
-
-
-            .content {
-
-                padding: 16px 12px;
-            }
-
-        }
-
-    </style>
-
-</head>
-
-
-<body>
-
-
-    <!-- ========================================================= -->
-    <!-- OVERLAY -->
-    <!-- ========================================================= -->
-
-    <div class="sidebar-overlay"
-         id="sidebarOverlay"
-         onclick="closeSidebar()">
     </div>
 
+    <!-- USUARIO -->
 
-    <!-- ========================================================= -->
-    <!-- SIDEBAR -->
-    <!-- ========================================================= -->
+    <div class="sidebar-user">
 
-    <aside class="sidebar"
-           id="sidebar">
-
-
-        <!-- ===================================================== -->
-        <!-- LOGO -->
-        <!-- ===================================================== -->
-
-        <div class="sidebar-brand">
-
-            <i class="bi bi-shop"></i>
-
-            <span>Restaurante</span>
-
+        <div class="sidebar-user-name">
+            @nombreCompleto
         </div>
 
-
-        <!-- ===================================================== -->
-        <!-- USUARIO -->
-        <!-- ===================================================== -->
-
-        <div class="sidebar-user">
-
-            <div class="sidebar-user-name">
-
-                @nombreCompleto
-
-            </div>
-
-
-            <div class="sidebar-user-role">
-
-                @rolActual
-
-            </div>
-
+        <div class="sidebar-user-role">
+            @rolActual
         </div>
 
+    </div>
 
-        <!-- ===================================================== -->
-        <!-- DASHBOARD -->
-        <!-- ===================================================== -->
+    <!-- ===================================================== -->
+    <!-- DASHBOARD -->
+    <!-- ===================================================== -->
+
+    <div class="sidebar-section">
+        Menú principal
+    </div>
+
+    <ul class="sidebar-menu">
+
+        <li>
+
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="@(controladorActual == "Home" && accionActual == "Index" ? "active" : "")">
+
+                <i class="bi bi-speedometer2"></i>
+
+                <span>Dashboard</span>
+
+            </a>
+
+        </li>
+
+    </ul>
+
+    <!-- ===================================================== -->
+    <!-- OPERACIÓN -->
+    <!-- ===================================================== -->
+
+    <div class="sidebar-section">
+        Operación
+    </div>
+
+    <ul class="sidebar-menu">
+
+        <!-- RESERVACIONES -->
+
+        @if (
+            User.IsInRole("Administrador") ||
+            User.IsInRole("Gerente") ||
+            User.IsInRole("Mesero")
+        )
+        {
+
+            <li>
+
+                <a asp-controller="Reservacion"
+                   asp-action="Index"
+                   class="@(controladorActual == "Reservacion" && accionActual == "Index" ? "active" : "")">
+
+                    <i class="bi bi-calendar-check"></i>
+
+                    <span>Reservaciones</span>
+
+                </a>
+
+            </li>
+
+        }
+
+        <!-- PEDIDOS -->
+
+        @if (
+            User.IsInRole("Administrador") ||
+            User.IsInRole("Gerente") ||
+            User.IsInRole("Cajero") ||
+            User.IsInRole("Mesero") ||
+            User.IsInRole("Cocina")
+        )
+        {
+
+            <li>
+
+                <a asp-controller="Pedido"
+                   asp-action="Index"
+                   class="@(controladorActual == "Pedido" && accionActual == "Index" ? "active" : "")">
+
+                    <i class="bi bi-receipt"></i>
+
+                    <span>Pedidos</span>
+
+                </a>
+
+            </li>
+
+        }
+
+        <!-- COCINA -->
+
+        @if (
+            User.IsInRole("Administrador") ||
+            User.IsInRole("Cocina")
+        )
+        {
+
+            <li>
+
+                <a asp-controller="Cocina"
+                   asp-action="Index"
+                   class="@(controladorActual == "Cocina" && accionActual == "Index" ? "active" : "")">
+
+                    <i class="bi bi-fire"></i>
+
+                    <span>Cocina</span>
+
+                </a>
+
+            </li>
+
+        }
+
+    </ul>
+
+    <!-- ===================================================== -->
+    <!-- CLIENTES -->
+    <!-- ===================================================== -->
+
+    @if (
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente") ||
+        User.IsInRole("Cajero") ||
+        User.IsInRole("Mesero")
+    )
+    {
 
         <div class="sidebar-section">
-
-            Menú principal
-
+            Clientes
         </div>
-
 
         <ul class="sidebar-menu">
 
             <li>
 
-                <a asp-controller="Home"
+                <a asp-controller="Clientes"
                    asp-action="Index"
-                   class="@(controladorActual == "Home" && accionActual == "Index" ? "active" : "")">
+                   class="@(controladorActual == "Clientes" && accionActual == "Index" ? "active" : "")">
 
-                    <i class="bi bi-speedometer2"></i>
+                    <i class="bi bi-person-vcard"></i>
 
-                    <span>Dashboard</span>
+                    <span>Clientes</span>
 
                 </a>
 
@@ -1301,739 +1304,565 @@
 
         </ul>
 
+    }
 
-        <!-- ===================================================== -->
-        <!-- OPERACIÓN -->
-        <!-- ===================================================== -->
+    <!-- ===================================================== -->
+    <!-- CATÁLOGO -->
+    <!-- ===================================================== -->
+
+    @if (
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente")
+    )
+    {
 
         <div class="sidebar-section">
-
-            Operación
-
+            Catálogo
         </div>
-
 
         <ul class="sidebar-menu">
 
+            <!-- PRODUCTOS -->
 
-            <!-- ================================================= -->
-            <!-- RESERVACIONES -->
-            <!-- ================================================= -->
+            <li>
 
-            @if (
-                User.IsInRole("Administrador") ||
-                User.IsInRole("Gerente") ||
-                User.IsInRole("Mesero")
-            )
-            {
+                <a asp-controller="Productos"
+                   asp-action="Index"
+                   class="@(controladorActual == "Productos" && accionActual == "Index" ? "active" : "")">
 
-                <li>
+                    <i class="bi bi-box-seam"></i>
 
-                    <a asp-controller="Reservacion"
-                       asp-action="Index"
-                       class="@(controladorActual == "Reservacion" && accionActual == "Index" ? "active" : "")">
+                    <span>Productos</span>
 
-                        <i class="bi bi-calendar-check"></i>
+                </a>
 
-                        <span>Reservaciones</span>
+            </li>
 
-                    </a>
+            <!-- CATEGORÍAS -->
 
-                </li>
+            <li>
 
-            }
+                <a asp-controller="Categorias"
+                   asp-action="Index"
+                   class="@(controladorActual == "Categorias" && accionActual == "Index" ? "active" : "")">
 
+                    <i class="bi bi-tags"></i>
 
-            <!-- ================================================= -->
-            <!-- PEDIDOS -->
-            <!-- ================================================= -->
+                    <span>Categorías</span>
 
-            @if (
-                User.IsInRole("Administrador") ||
-                User.IsInRole("Gerente") ||
-                User.IsInRole("Cajero") ||
-                User.IsInRole("Mesero") ||
-                User.IsInRole("Cocina")
-            )
-            {
+                </a>
 
-                <li>
-
-                    <a asp-controller="Pedido"
-                       asp-action="Index"
-                       class="@(controladorActual == "Pedido" && accionActual == "Index" ? "active" : "")">
-
-                        <i class="bi bi-receipt"></i>
-
-                        <span>Pedidos</span>
-
-                    </a>
-
-                </li>
-
-            }
-
-
-            <!-- ================================================= -->
-            <!-- COCINA -->
-            <!-- ================================================= -->
-
-            @if (
-                User.IsInRole("Administrador") ||
-                User.IsInRole("Cocina")
-            )
-            {
-
-                <li>
-
-                    <a asp-controller="Cocina"
-                       asp-action="Index"
-                       class="@(controladorActual == "Cocina" && accionActual == "Index" ? "active" : "")">
-
-                        <i class="bi bi-fire"></i>
-
-                        <span>Cocina</span>
-
-                    </a>
-
-                </li>
-
-            }
+            </li>
 
         </ul>
 
+    }
 
-        <!-- ===================================================== -->
-        <!-- CLIENTES -->
-        <!-- ===================================================== -->
+    <!-- ===================================================== -->
+    <!-- INVENTARIO -->
+    <!-- ===================================================== -->
 
-        @if (
-            User.IsInRole("Administrador") ||
-            User.IsInRole("Gerente") ||
-            User.IsInRole("Cajero") ||
-            User.IsInRole("Mesero")
-        )
-        {
+    @if (
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente")
+    )
+    {
 
-            <div class="sidebar-section">
+        <div class="sidebar-section">
+            Inventario
+        </div>
 
-                Clientes
+        <ul class="sidebar-menu">
 
-            </div>
+            <!-- INVENTARIO -->
 
+            <li>
 
-            <ul class="sidebar-menu">
+                <a asp-controller="Inventario"
+                   asp-action="Index"
+                   class="@(controladorActual == "Inventario" && accionActual == "Index" ? "active" : "")">
 
-                <li>
+                    <i class="bi bi-box-seam-fill"></i>
 
-                    <a asp-controller="Clientes"
-                       asp-action="Index"
-                       class="@(controladorActual == "Clientes" && accionActual == "Index" ? "active" : "")">
+                    <span>Inventario</span>
 
-                        <i class="bi bi-person-vcard"></i>
+                </a>
 
-                        <span>Clientes</span>
-
-                    </a>
-
-                </li>
-
-            </ul>
-
-        }
-
-
-        <!-- ===================================================== -->
-        <!-- CATÁLOGO -->
-        <!-- ===================================================== -->
-
-        @if (
-            User.IsInRole("Administrador") ||
-            User.IsInRole("Gerente")
-        )
-        {
-
-            <div class="sidebar-section">
-
-                Catálogo
-
-            </div>
-
-
-            <ul class="sidebar-menu">
-
-
-                <!-- PRODUCTOS -->
-
-                <li>
-
-                    <a asp-controller="Productos"
-                       asp-action="Index"
-                       class="@(controladorActual == "Productos" && accionActual == "Index" ? "active" : "")">
-
-                        <i class="bi bi-box-seam"></i>
-
-                        <span>Productos</span>
-
-                    </a>
-
-                </li>
-
-
-                <!-- CATEGORÍAS -->
-
-                <li>
-
-                    <a asp-controller="Categorias"
-                       asp-action="Index"
-                       class="@(controladorActual == "Categorias" && accionActual == "Index" ? "active" : "")">
-
-                        <i class="bi bi-tags"></i>
-
-                        <span>Categorías</span>
-
-                    </a>
-
-                </li>
-
-            </ul>
-
-        }
-
-
-        <!-- ===================================================== -->
-        <!-- INVENTARIO -->
-        <!-- ===================================================== -->
-
-        @if (
-            User.IsInRole("Administrador") ||
-            User.IsInRole("Gerente")
-        )
-        {
-
-            <div class="sidebar-section">
-
-                Inventario
-
-            </div>
-
-
-            <ul class="sidebar-menu">
-
-
-                <!-- INVENTARIO -->
-
-                <li>
-
-                    <a asp-controller="Inventario"
-                       asp-action="Index"
-                       class="@(controladorActual == "Inventario" && accionActual == "Index" ? "active" : "")">
-
-                        <i class="bi bi-box-seam-fill"></i>
-
-                        <span>Inventario</span>
-
-                    </a>
-
-                </li>
-
-
-                <!-- MOVIMIENTOS -->
-
-                <li>
-
-                    <a asp-controller="Inventario"
-                       asp-action="Movimientos"
-                       class="@(controladorActual == "Inventario" && accionActual == "Movimientos" ? "active" : "")">
-
-                        <i class="bi bi-arrow-left-right"></i>
-
-                        <span>Movimientos</span>
-
-                    </a>
-
-                </li>
-
-
-                <!-- COMPRAS -->
-
-                <li>
-
-                    <a asp-controller="Compras"
-                       asp-action="Index"
-                       class="@(controladorActual == "Compras" && accionActual == "Index" ? "active" : "")">
-
-                        <i class="bi bi-cart"></i>
-
-                        <span>Compras</span>
-
-                    </a>
-
-                </li>
-
-
-                <!-- CATEGORÍAS DE INSUMOS -->
-
-                <li>
-
-                    <a asp-controller="CategoriaInsumos"
-                       asp-action="Index"
-                       class="@(controladorActual == "CategoriaInsumos" && accionActual == "Index" ? "active" : "")">
-
-                        <i class="bi bi-boxes"></i>
-
-                        <span>Categorías de insumos</span>
-
-                    </a>
-
-                </li>
-
-            </ul>
-
-        }
-
-
-        <!-- ===================================================== -->
-        <!-- VENTAS Y CAJA -->
-        <!-- ===================================================== -->
-
-        @if (
-            User.IsInRole("Administrador") ||
-            User.IsInRole("Gerente") ||
-            User.IsInRole("Cajero")
-        )
-        {
-
-            <div class="sidebar-section">
-
-                Ventas y caja
-
-            </div>
-
-
-            <ul class="sidebar-menu">
-
-
-                <!-- CAJA -->
-
-                <li>
-
-                    <a asp-controller="Caja"
-                       asp-action="Index"
-                       class="@(controladorActual == "Caja" && accionActual == "Index" ? "active" : "")">
-
-                        <i class="bi bi-cash-stack"></i>
-
-                        <span>Caja</span>
-
-                    </a>
-
-                </li>
-
-
-                <!-- FACTURACIÓN -->
-
-                <li>
-
-                    <a asp-controller="Factura"
-                       asp-action="Index"
-                       class="@(controladorActual == "Factura" && accionActual == "Index" ? "active" : "")">
-
-                        <i class="bi bi-file-earmark-text"></i>
-
-                        <span>Facturación</span>
-
-                    </a>
-
-                </li>
-
-            </ul>
-
-        }
-
-
-        <!-- ===================================================== -->
-        <!-- ANÁLISIS -->
-        <!-- ===================================================== -->
-
-        @if (
-            User.IsInRole("Administrador") ||
-            User.IsInRole("Gerente")
-        )
-        {
-
-            <div class="sidebar-section">
-
-                Análisis
-
-            </div>
-
-
-            <ul class="sidebar-menu">
-
-
-                <!-- ================================================= -->
-                <!-- REPORTES -->
-                <!-- ================================================= -->
-
-                <li>
-
-                    <a asp-controller="Reportes"
-                       asp-action="Index"
-                       class="@(controladorActual == "Reportes" && accionActual == "Index" ? "active" : "")">
-
-                        <i class="bi bi-bar-chart-line"></i>
-
-                        <span>Reportes</span>
-
-                    </a>
-
-                </li>
-
-            </ul>
-
-        }
-
-
-        <!-- ===================================================== -->
-        <!-- ADMINISTRACIÓN -->
-        <!-- ===================================================== -->
-
-        @if (User.IsInRole("Administrador"))
-        {
-
-            <div class="sidebar-section">
-
-                Administración
-
-            </div>
-
-
-            <ul class="sidebar-menu">
-
-                <li>
-
-                    <a asp-controller="Usuarios"
-                       asp-action="Index"
-                       class="@(controladorActual == "Usuarios" && accionActual == "Index" ? "active" : "")">
-
-                        <i class="bi bi-people"></i>
-
-                        <span>Usuarios</span>
-
-                    </a>
-
-                </li>
-
-            </ul>
-
-        }
-
-    </aside>
-
-
-    <!-- ========================================================= -->
-    <!-- CONTENIDO PRINCIPAL -->
-    <!-- ========================================================= -->
-
-    <div class="main-wrapper">
-
-
-        <!-- ===================================================== -->
-        <!-- TOPBAR -->
-        <!-- ===================================================== -->
-
-        <header class="topbar">
-
-
-            <div class="topbar-left">
-
-
-                <!-- BOTÓN MENÚ MÓVIL -->
-
-                <button type="button"
-                        class="mobile-menu-button"
-                        onclick="toggleSidebar()"
-                        aria-label="Abrir menú">
-
-                    <i class="bi bi-list"></i>
-
-                </button>
-
-
-                <!-- TÍTULO -->
-
-                <div class="topbar-title">
-
-                    @ViewData["Title"]
-
-                </div>
-
-            </div>
-
+            </li>
 
             <!-- ================================================= -->
-            <!-- ACCIONES -->
+            <!-- MOVIMIENTOS CORREGIDO -->
             <!-- ================================================= -->
 
-            <div class="topbar-actions">
+            <li>
 
+                <a asp-controller="MovimientosInventario"
+                   asp-action="Index"
+                   class="@(controladorActual == "MovimientosInventario" && accionActual == "Index" ? "active" : "")">
 
-                <!-- ================================================= -->
-                <!-- MODO OSCURO -->
-                <!-- ================================================= -->
+                    <i class="bi bi-arrow-left-right"></i>
 
-                <button type="button"
-                        class="theme-toggle"
-                        id="themeToggle"
-                        onclick="toggleTheme()"
-                        aria-label="Cambiar tema"
-                        title="Cambiar tema">
+                    <span>Movimientos</span>
 
-                    <i class="bi bi-moon-stars-fill"
-                       id="themeIcon"></i>
+                </a>
 
-                </button>
+            </li>
 
+            <!-- COMPRAS -->
 
-                <!-- ================================================= -->
-                <!-- USUARIO -->
-                <!-- ================================================= -->
+            <li>
 
-                <div class="dropdown">
+                <a asp-controller="Compras"
+                   asp-action="Index"
+                   class="@(controladorActual == "Compras" && accionActual == "Index" ? "active" : "")">
 
+                    <i class="bi bi-cart"></i>
 
-                    <button class="user-button dropdown-toggle"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false">
+                    <span>Compras</span>
 
+                </a>
 
-                        <!-- AVATAR -->
+            </li>
 
-                        <div class="user-avatar">
+            <!-- CATEGORÍAS DE INSUMOS -->
 
-                            @iniciales
+            <li>
 
+                <a asp-controller="CategoriaInsumos"
+                   asp-action="Index"
+                   class="@(controladorActual == "CategoriaInsumos" && accionActual == "Index" ? "active" : "")">
+
+                    <i class="bi bi-boxes"></i>
+
+                    <span>Categorías de insumos</span>
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    }
+
+    <!-- ===================================================== -->
+    <!-- VENTAS Y CAJA -->
+    <!-- ===================================================== -->
+
+    @if (
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente") ||
+        User.IsInRole("Cajero")
+    )
+    {
+
+        <div class="sidebar-section">
+            Ventas y caja
+        </div>
+
+        <ul class="sidebar-menu">
+
+            <!-- CAJA -->
+
+            <li>
+
+                <a asp-controller="Caja"
+                   asp-action="Index"
+                   class="@(controladorActual == "Caja" && accionActual == "Index" ? "active" : "")">
+
+                    <i class="bi bi-cash-stack"></i>
+
+                    <span>Caja</span>
+
+                </a>
+
+            </li>
+
+            <!-- FACTURACIÓN -->
+
+            <li>
+
+                <a asp-controller="Factura"
+                   asp-action="Index"
+                   class="@(controladorActual == "Factura" && accionActual == "Index" ? "active" : "")">
+
+                    <i class="bi bi-file-earmark-text"></i>
+
+                    <span>Facturación</span>
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    }
+
+    <!-- ===================================================== -->
+    <!-- ANÁLISIS -->
+    <!-- ===================================================== -->
+
+    @if (
+        User.IsInRole("Administrador") ||
+        User.IsInRole("Gerente")
+    )
+    {
+
+        <div class="sidebar-section">
+            Análisis
+        </div>
+
+        <ul class="sidebar-menu">
+
+            <li>
+
+                <a asp-controller="Reportes"
+                   asp-action="Index"
+                   class="@(controladorActual == "Reportes" && accionActual == "Index" ? "active" : "")">
+
+                    <i class="bi bi-bar-chart-line"></i>
+
+                    <span>Reportes</span>
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    }
+
+    <!-- ===================================================== -->
+    <!-- ADMINISTRACIÓN -->
+    <!-- ===================================================== -->
+
+    @if (User.IsInRole("Administrador"))
+    {
+
+        <div class="sidebar-section">
+            Administración
+        </div>
+
+        <ul class="sidebar-menu">
+
+            <li>
+
+                <a asp-controller="Usuarios"
+                   asp-action="Index"
+                   class="@(controladorActual == "Usuarios" && accionActual == "Index" ? "active" : "")">
+
+                    <i class="bi bi-people"></i>
+
+                    <span>Usuarios</span>
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    }
+
+</aside>
+
+<!-- ========================================================= -->
+<!-- CONTENIDO PRINCIPAL -->
+<!-- ========================================================= -->
+
+<div class="main-wrapper">
+
+    <!-- ===================================================== -->
+    <!-- TOPBAR -->
+    <!-- ===================================================== -->
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <button type="button"
+                    class="mobile-menu-button"
+                    onclick="toggleSidebar()"
+                    aria-label="Abrir menú">
+
+                <i class="bi bi-list"></i>
+
+            </button>
+
+            <div class="topbar-title">
+                @ViewData["Title"]
+            </div>
+
+        </div>
+
+        <!-- ================================================= -->
+        <!-- ACCIONES -->
+        <!-- ================================================= -->
+
+        <div class="topbar-actions">
+
+            <!-- MODO OSCURO -->
+
+            <button type="button"
+                    class="theme-toggle"
+                    id="themeToggle"
+                    onclick="toggleTheme()"
+                    aria-label="Cambiar tema"
+                    title="Cambiar tema">
+
+                <i class="bi bi-moon-stars-fill"
+                   id="themeIcon"></i>
+
+            </button>
+
+            <!-- USUARIO -->
+
+            <div class="dropdown">
+
+                <button class="user-button dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+
+                    <div class="user-avatar">
+                        @iniciales
+                    </div>
+
+                    <div class="user-info">
+
+                        <div class="user-name">
+                            @nombreCompleto
                         </div>
 
+                        <div class="user-role">
+                            @rolActual
+                        </div>
 
-                        <!-- INFORMACIÓN -->
+                    </div>
 
-                        <div class="user-info">
+                </button>
 
-                            <div class="user-name">
+                <!-- DROPDOWN -->
 
-                                @nombreCompleto
+                <ul class="dropdown-menu dropdown-menu-end shadow">
 
-                            </div>
+                    <li>
 
+                        <h6 class="dropdown-header">
 
-                            <div class="user-role">
+                            @nombreCompleto
 
+                            <br />
+
+                            <small class="text-muted">
                                 @rolActual
+                            </small>
 
-                            </div>
+                        </h6>
 
-                        </div>
+                    </li>
 
+                    <li>
 
-                    </button>
+                        <hr class="dropdown-divider" />
 
+                    </li>
 
-                    <!-- ================================================= -->
-                    <!-- DROPDOWN USUARIO -->
-                    <!-- ================================================= -->
+                    <!-- MI PERFIL -->
 
-                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                    <li>
 
+                        <a class="dropdown-item"
+                           asp-controller="Perfil"
+                           asp-action="Index">
 
-                        <!-- INFORMACIÓN -->
+                            <i class="bi bi-person me-2"></i>
 
-                        <li>
+                            Mi perfil
 
-                            <h6 class="dropdown-header">
+                        </a>
 
-                                @nombreCompleto
+                    </li>
 
-                                <br />
+                    <!-- EDITAR INFORMACIÓN -->
 
-                                <small class="text-muted">
+                    <li>
 
-                                    @rolActual
+                        <a class="dropdown-item"
+                           asp-controller="Perfil"
+                           asp-action="Editar">
 
-                                </small>
+                            <i class="bi bi-pencil-square me-2"></i>
 
-                            </h6>
+                            Editar mi información
 
-                        </li>
+                        </a>
 
+                    </li>
 
-                        <li>
+                    <li>
 
-                            <hr class="dropdown-divider" />
+                        <hr class="dropdown-divider" />
 
-                        </li>
+                    </li>
 
+                    <!-- CERRAR SESIÓN -->
 
-                        <!-- MI PERFIL -->
+                    <li>
 
-                        <li>
+                        <form asp-controller="Account"
+                              asp-action="Logout"
+                              method="post">
 
-                            <a class="dropdown-item"
-                               asp-controller="Perfil"
-                               asp-action="Index">
+                            @Html.AntiForgeryToken()
 
-                                <i class="bi bi-person me-2"></i>
+                            <button type="submit"
+                                    class="dropdown-item text-danger">
 
-                                Mi perfil
+                                <i class="bi bi-box-arrow-right me-2"></i>
 
-                            </a>
+                                Cerrar sesión
 
-                        </li>
+                            </button>
 
+                        </form>
 
-                        <!-- EDITAR INFORMACIÓN -->
+                    </li>
 
-                        <li>
-
-                            <a class="dropdown-item"
-                               asp-controller="Perfil"
-                               asp-action="Editar">
-
-                                <i class="bi bi-pencil-square me-2"></i>
-
-                                Editar mi información
-
-                            </a>
-
-                        </li>
-
-
-                        <li>
-
-                            <hr class="dropdown-divider" />
-
-                        </li>
-
-
-                        <!-- CERRAR SESIÓN -->
-
-                        <li>
-
-                            <form asp-controller="Account"
-                                  asp-action="Logout"
-                                  method="post">
-
-                                @Html.AntiForgeryToken()
-
-                                <button type="submit"
-                                        class="dropdown-item text-danger">
-
-                                    <i class="bi bi-box-arrow-right me-2"></i>
-
-                                    Cerrar sesión
-
-                                </button>
-
-                            </form>
-
-                        </li>
-
-
-                    </ul>
-
-                </div>
+                </ul>
 
             </div>
 
-        </header>
+        </div>
 
+    </header>
 
-        <!-- ===================================================== -->
-        <!-- CONTENIDO -->
-        <!-- ===================================================== -->
+    <!-- ===================================================== -->
+    <!-- CONTENIDO -->
+    <!-- ===================================================== -->
 
-        <main class="content">
+    <main class="content">
 
-            @RenderBody()
+        @RenderBody()
 
-        </main>
+    </main>
 
+</div>
 
-    </div>
+<!-- ========================================================= -->
+<!-- BOOTSTRAP JS -->
+<!-- ========================================================= -->
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- ========================================================= -->
-    <!-- BOOTSTRAP JS -->
-    <!-- ========================================================= -->
+<!-- ========================================================= -->
+<!-- FUNCIONES DEL LAYOUT -->
+<!-- ========================================================= -->
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
 
+    /* =========================================================
+       SIDEBAR
+    ========================================================= */
 
-    <!-- ========================================================= -->
-    <!-- FUNCIONES DEL LAYOUT -->
-    <!-- ========================================================= -->
+    function toggleSidebar() {
 
-    <script>
+        const sidebar =
+            document.getElementById("sidebar");
 
+        const overlay =
+            document.getElementById("sidebarOverlay");
 
-        /* =========================================================
-           SIDEBAR
-        ========================================================= */
+        sidebar.classList.toggle("show");
 
-        function toggleSidebar() {
+        overlay.classList.toggle("show");
 
-            const sidebar =
-                document.getElementById("sidebar");
+    }
 
-            const overlay =
-                document.getElementById("sidebarOverlay");
+    function closeSidebar() {
 
-            sidebar.classList.toggle("show");
+        const sidebar =
+            document.getElementById("sidebar");
 
-            overlay.classList.toggle("show");
+        const overlay =
+            document.getElementById("sidebarOverlay");
+
+        sidebar.classList.remove("show");
+
+        overlay.classList.remove("show");
+
+    }
+
+    /* =========================================================
+       CAMBIAR TEMA
+    ========================================================= */
+
+    function toggleTheme() {
+
+        const html =
+            document.documentElement;
+
+        const icon =
+            document.getElementById("themeIcon");
+
+        const estaOscuro =
+            html.classList.toggle("dark-mode");
+
+        if (estaOscuro) {
+
+            localStorage.setItem(
+                "temaRestaurante",
+                "dark"
+            );
+
+            icon.classList.remove(
+                "bi-moon-stars-fill"
+            );
+
+            icon.classList.add(
+                "bi-sun-fill"
+            );
+
+        }
+        else {
+
+            localStorage.setItem(
+                "temaRestaurante",
+                "light"
+            );
+
+            icon.classList.remove(
+                "bi-sun-fill"
+            );
+
+            icon.classList.add(
+                "bi-moon-stars-fill"
+            );
 
         }
 
+    }
 
-        function closeSidebar() {
+    /* =========================================================
+       CONFIGURAR ICONO AL CARGAR
+    ========================================================= */
 
-            const sidebar =
-                document.getElementById("sidebar");
-
-            const overlay =
-                document.getElementById("sidebarOverlay");
-
-            sidebar.classList.remove("show");
-
-            overlay.classList.remove("show");
-
-        }
-
-
-        /* =========================================================
-           CAMBIAR TEMA
-        ========================================================= */
-
-        function toggleTheme() {
-
-            const html =
-                document.documentElement;
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
 
             const icon =
                 document.getElementById("themeIcon");
 
-            const estaOscuro =
-                html.classList.toggle("dark-mode");
+            if (!icon) {
 
+                return;
 
-            if (estaOscuro) {
+            }
 
-                localStorage.setItem(
-                    "temaRestaurante",
-                    "dark"
-                );
+            if (
+                document.documentElement
+                    .classList
+                    .contains("dark-mode")
+            ) {
 
                 icon.classList.remove(
                     "bi-moon-stars-fill"
@@ -2046,11 +1875,6 @@
             }
             else {
 
-                localStorage.setItem(
-                    "temaRestaurante",
-                    "light"
-                );
-
                 icon.classList.remove(
                     "bi-sun-fill"
                 );
@@ -2062,113 +1886,58 @@
             }
 
         }
+    );
 
+    /* =========================================================
+       CERRAR SIDEBAR AL SELECCIONAR ENLACE
+    ========================================================= */
 
-        /* =========================================================
-           CONFIGURAR ICONO AL CARGAR
-        ========================================================= */
+    document.addEventListener(
+        "click",
+        function (event) {
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            function () {
+            const link =
+                event.target.closest(
+                    ".sidebar-menu a"
+                );
 
-                const icon =
-                    document.getElementById("themeIcon");
+            if (!link) {
 
-                if (!icon) {
-
-                    return;
-
-                }
-
-
-                if (
-                    document.documentElement
-                        .classList
-                        .contains("dark-mode")
-                ) {
-
-                    icon.classList.remove(
-                        "bi-moon-stars-fill"
-                    );
-
-                    icon.classList.add(
-                        "bi-sun-fill"
-                    );
-
-                }
-                else {
-
-                    icon.classList.remove(
-                        "bi-sun-fill"
-                    );
-
-                    icon.classList.add(
-                        "bi-moon-stars-fill"
-                    );
-
-                }
+                return;
 
             }
-        );
 
+            if (window.innerWidth <= 900) {
 
-        /* =========================================================
-           CERRAR SIDEBAR AL SELECCIONAR ENLACE
-        ========================================================= */
-
-        document.addEventListener(
-            "click",
-            function (event) {
-
-                const link =
-                    event.target.closest(
-                        ".sidebar-menu a"
-                    );
-
-
-                if (!link) {
-
-                    return;
-
-                }
-
-
-                if (window.innerWidth <= 900) {
-
-                    closeSidebar();
-
-                }
+                closeSidebar();
 
             }
-        );
 
+        }
+    );
 
-        /* =========================================================
-           CERRAR SIDEBAR AL CAMBIAR TAMAÑO
-        ========================================================= */
+    /* =========================================================
+       CERRAR SIDEBAR AL CAMBIAR TAMAÑO
+    ========================================================= */
 
-        window.addEventListener(
-            "resize",
-            function () {
+    window.addEventListener(
+        "resize",
+        function () {
 
-                if (window.innerWidth > 900) {
+            if (window.innerWidth > 900) {
 
-                    closeSidebar();
-
-                }
+                closeSidebar();
 
             }
-        );
 
-    </script>
+        }
+    );
 
+</script>
 
-    @await RenderSectionAsync(
-        "Scripts",
-        required: false
-    )
+@await RenderSectionAsync(
+    "Scripts",
+    required: false
+)
 
-</body>
-
-</html>
+</body> </html>

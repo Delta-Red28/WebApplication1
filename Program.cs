@@ -137,11 +137,6 @@ app.UseRouting();
 // ============================================================
 // SESSION
 // ============================================================
-//
-// UseSession() debe ejecutarse antes de cualquier código
-// que utilice HttpContext.Session.
-//
-// ============================================================
 
 app.UseSession();
 
@@ -305,10 +300,37 @@ app.UseAuthorization();
 
 
 // ============================================================
-// ARCHIVOS ESTÁTICOS / CONTROLADORES
+// ARCHIVOS ESTÁTICOS
 // ============================================================
 
 app.MapStaticAssets();
+
+
+// ============================================================
+// RUTA PARA MOVIMIENTOS DE INVENTARIO
+// ============================================================
+//
+// Esta ruta permite:
+// /MovimientosInventario
+// /MovimientosInventario/Index
+//
+// Debe existir:
+// Controllers/MovimientosInventarioController.cs
+//
+// Y la vista:
+// Views/MovimientosInventario/Index.cshtml
+//
+// ============================================================
+
+app.MapControllerRoute(
+    name: "movimientosInventario",
+    pattern: "MovimientosInventario/{action=Index}/{id?}",
+    defaults: new
+    {
+        controller = "MovimientosInventario"
+    }
+)
+.WithStaticAssets();
 
 
 // ============================================================

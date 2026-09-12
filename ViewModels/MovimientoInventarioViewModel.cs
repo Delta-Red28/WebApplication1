@@ -1,37 +1,38 @@
-﻿using System;
-
-namespace WebApplication1.ViewModels
+﻿namespace WebApplication1.ViewModels
 {
     public class MovimientoInventarioViewModel
     {
         public int IdMovimientoInventario { get; set; }
 
+        public DateTime FechaMovimiento { get; set; }
+
+        // INSUMO
         public int IdInsumo { get; set; }
+        public string? CodigoInsumo { get; set; }
+        public string? Insumo { get; set; }
 
-        public string NombreInsumo { get; set; } = string.Empty;
-
-        public string CodigoInsumo { get; set; } = string.Empty;
-
+        // UBICACIÓN
         public int IdUbicacion { get; set; }
+        public string? Ubicacion { get; set; }
 
-        public string Ubicacion { get; set; } = string.Empty;
-
+        // TIPO DE MOVIMIENTO
         public int IdTipoMovimientoInventario { get; set; }
+        public string? TipoMovimiento { get; set; }
 
-        public string TipoMovimiento { get; set; } = string.Empty;
-
-        public decimal Cantidad { get; set; }
-
-        public decimal? CostoUnitario { get; set; }
-
-        public string? Referencia { get; set; }
-
-        public string? Descripcion { get; set; }
-
+        // LOTE
         public int? IdLote { get; set; }
-
         public string? CodigoLote { get; set; }
 
-        public DateTime FechaMovimiento { get; set; }
+        // CANTIDAD Y COSTO
+        public decimal Cantidad { get; set; }
+        public decimal? CostoUnitario { get; set; }
+
+        // REFERENCIA
+        public string? Referencia { get; set; }
+        public string? Descripcion { get; set; }
+
+        // USUARIO
+        public int IdUsuario { get; set; }
+        public string? Usuario { get; set; }
     }
 }

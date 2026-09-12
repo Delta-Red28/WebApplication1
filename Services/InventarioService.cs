@@ -14,7 +14,7 @@ namespace WebApplication1.Services
         }
 
         // ============================================================
-        // OBTENER INVENTARIO
+        // OBTENER INVENTARIO / EXISTENCIAS
         // ============================================================
 
         public async Task<List<InventarioViewModel>> ObtenerInventarioAsync()
@@ -63,6 +63,7 @@ namespace WebApplication1.Services
                 .ToListAsync();
         }
 
+
         // ============================================================
         // OBTENER EXISTENCIA
         // ============================================================
@@ -76,6 +77,7 @@ namespace WebApplication1.Services
                     x.IdInsumo == idInsumo &&
                     x.IdUbicacion == idUbicacion);
         }
+
 
         // ============================================================
         // OBTENER O CREAR EXISTENCIA
@@ -91,7 +93,9 @@ namespace WebApplication1.Services
                     x.IdUbicacion == idUbicacion);
 
             if (existencia != null)
+            {
                 return existencia;
+            }
 
             var insumo = await _context.Insumos
                 .AsNoTracking()
@@ -99,15 +103,22 @@ namespace WebApplication1.Services
                     x.IdInsumo == idInsumo);
 
             if (insumo == null)
+            {
                 throw new Exception("El insumo no existe.");
+            }
 
             existencia = new Existencium
             {
                 IdInsumo = idInsumo,
+
                 IdUbicacion = idUbicacion,
+
                 StockActual = 0,
+
                 StockMinimo = insumo.StockMinimo,
+
                 StockMaximo = insumo.StockMaximo,
+
                 UltimaActualizacion = DateTime.Now
             };
 
@@ -115,6 +126,7 @@ namespace WebApplication1.Services
 
             return existencia;
         }
+
 
         // ============================================================
         // OBTENER TIPO DE MOVIMIENTO
@@ -130,8 +142,9 @@ namespace WebApplication1.Services
                         palabra.ToLower()));
         }
 
+
         // ============================================================
-        // ENTRADA MANUAL
+        // REGISTRAR ENTRADA
         // ============================================================
 
         public async Task<(bool Exito, string Mensaje)>
@@ -144,12 +157,21 @@ namespace WebApplication1.Services
 
             try
             {
+                // ----------------------------------------------------
+                // VALIDAR CANTIDAD
+                // ----------------------------------------------------
+
                 if (model.Cantidad <= 0)
                 {
                     return (
                         false,
                         "La cantidad debe ser mayor que cero.");
                 }
+
+
+                // ----------------------------------------------------
+                // VALIDAR INSUMO
+                // ----------------------------------------------------
 
                 var insumo = await _context.Insumos
                     .FirstOrDefaultAsync(x =>
@@ -162,6 +184,11 @@ namespace WebApplication1.Services
                         false,
                         "El insumo no existe o está inactivo.");
                 }
+
+
+                // ----------------------------------------------------
+                // VALIDAR UBICACIÓN
+                // ----------------------------------------------------
 
                 var ubicacion =
                     await _context.UbicacionInventarios
@@ -176,8 +203,9 @@ namespace WebApplication1.Services
                         "La ubicación no existe o está inactiva.");
                 }
 
+
                 // ----------------------------------------------------
-                // EXISTENCIA
+                // OBTENER / CREAR EXISTENCIA
                 // ----------------------------------------------------
 
                 var existencia =
@@ -190,8 +218,9 @@ namespace WebApplication1.Services
                 existencia.UltimaActualizacion =
                     DateTime.Now;
 
+
                 // ----------------------------------------------------
-                // TIPO DE MOVIMIENTO
+                // TIPO DE ENTRADA
                 // ----------------------------------------------------
 
                 var tipoEntrada =
@@ -209,6 +238,7 @@ namespace WebApplication1.Services
                         false,
                         "No existe un tipo de movimiento de entrada activo.");
                 }
+
 
                 // ----------------------------------------------------
                 // LOTE
@@ -244,8 +274,9 @@ namespace WebApplication1.Services
                     }
                 }
 
+
                 // ----------------------------------------------------
-                // MOVIMIENTO
+                // CREAR MOVIMIENTO
                 // ----------------------------------------------------
 
                 var movimiento =
@@ -286,6 +317,11 @@ namespace WebApplication1.Services
                 _context.MovimientoInventarios.Add(
                     movimiento);
 
+
+                // ----------------------------------------------------
+                // GUARDAR
+                // ----------------------------------------------------
+
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
@@ -304,8 +340,9 @@ namespace WebApplication1.Services
             }
         }
 
+
         // ============================================================
-        // SALIDA
+        // REGISTRAR SALIDA
         // ============================================================
 
         public async Task<(bool Exito, string Mensaje)>
@@ -322,12 +359,21 @@ namespace WebApplication1.Services
 
             try
             {
+                // ----------------------------------------------------
+                // VALIDAR CANTIDAD
+                // ----------------------------------------------------
+
                 if (cantidad <= 0)
                 {
                     return (
                         false,
                         "La cantidad debe ser mayor que cero.");
                 }
+
+
+                // ----------------------------------------------------
+                // OBTENER EXISTENCIA
+                // ----------------------------------------------------
 
                 var existencia =
                     await ObtenerExistenciaAsync(
@@ -338,15 +384,25 @@ namespace WebApplication1.Services
                 {
                     return (
                         false,
-                        "No existe existencia para este insumo.");
+                        "No existe existencia para este insumo en la ubicación seleccionada.");
                 }
+
+
+                // ----------------------------------------------------
+                // VALIDAR STOCK
+                // ----------------------------------------------------
 
                 if (existencia.StockActual < cantidad)
                 {
                     return (
                         false,
-                        $"Stock insuficiente. Disponible: {existencia.StockActual}");
+                        $"Stock insuficiente. Disponible: {existencia.StockActual:N2}");
                 }
+
+
+                // ----------------------------------------------------
+                // TIPO DE SALIDA
+                // ----------------------------------------------------
 
                 var tipoSalida =
                     await ObtenerTipoMovimientoAsync("salida");
@@ -358,8 +414,10 @@ namespace WebApplication1.Services
                         "No existe un tipo de movimiento de salida activo.");
                 }
 
+
                 // ----------------------------------------------------
-                // LOTES FEFO
+                // FEFO
+                // Primero salen los lotes con vencimiento más cercano
                 // ----------------------------------------------------
 
                 var cantidadPendiente = cantidad;
@@ -378,10 +436,13 @@ namespace WebApplication1.Services
                             x.IdLote)
                         .ToListAsync();
 
+
                 foreach (var lote in lotes)
                 {
                     if (cantidadPendiente <= 0)
+                    {
                         break;
+                    }
 
                     var cantidadLote =
                         Math.Min(
@@ -393,6 +454,11 @@ namespace WebApplication1.Services
 
                     cantidadPendiente -=
                         cantidadLote;
+
+
+                    // ------------------------------------------------
+                    // MOVIMIENTO POR LOTE
+                    // ------------------------------------------------
 
                     var movimiento =
                         new MovimientoInventario
@@ -433,8 +499,9 @@ namespace WebApplication1.Services
                         movimiento);
                 }
 
+
                 // ----------------------------------------------------
-                // SI NO HAY LOTES SUFICIENTES
+                // SI NO EXISTEN LOTES SUFICIENTES
                 // ----------------------------------------------------
 
                 if (cantidadPendiente > 0)
@@ -478,6 +545,7 @@ namespace WebApplication1.Services
                         movimientoSinLote);
                 }
 
+
                 // ----------------------------------------------------
                 // ACTUALIZAR EXISTENCIA
                 // ----------------------------------------------------
@@ -486,6 +554,11 @@ namespace WebApplication1.Services
 
                 existencia.UltimaActualizacion =
                     DateTime.Now;
+
+
+                // ----------------------------------------------------
+                // GUARDAR
+                // ----------------------------------------------------
 
                 await _context.SaveChangesAsync();
 
@@ -504,6 +577,7 @@ namespace WebApplication1.Services
                     $"No se pudo registrar la salida: {ex.Message}");
             }
         }
+
 
         // ============================================================
         // OBTENER MOVIMIENTOS
@@ -524,7 +598,14 @@ namespace WebApplication1.Services
                         x.IdTipoMovimientoInventarioNavigation)
                     .Include(x =>
                         x.IdLoteNavigation)
+                    .Include(x =>
+                        x.IdUsuarioNavigation)
                     .AsQueryable();
+
+
+            // --------------------------------------------------------
+            // FILTRO POR INSUMO
+            // --------------------------------------------------------
 
             if (idInsumo.HasValue)
             {
@@ -532,6 +613,11 @@ namespace WebApplication1.Services
                     x.IdInsumo ==
                     idInsumo.Value);
             }
+
+
+            // --------------------------------------------------------
+            // PROYECCIÓN
+            // --------------------------------------------------------
 
             return await query
                 .OrderByDescending(x =>
@@ -542,22 +628,32 @@ namespace WebApplication1.Services
                         IdMovimientoInventario =
                             x.IdMovimientoInventario,
 
+                        FechaMovimiento =
+                            x.FechaMovimiento,
+
+
+                        // INSUMO
+
                         IdInsumo =
                             x.IdInsumo,
 
-                        NombreInsumo =
+                        CodigoInsumo =
+                            x.IdInsumoNavigation.CodigoInsumo,
+
+                        Insumo =
                             x.IdInsumoNavigation.Nombre,
 
-                        CodigoInsumo =
-                            x.IdInsumoNavigation
-                                .CodigoInsumo,
+
+                        // UBICACIÓN
 
                         IdUbicacion =
                             x.IdUbicacion,
 
                         Ubicacion =
-                            x.IdUbicacionNavigation
-                                .Nombre,
+                            x.IdUbicacionNavigation.Nombre,
+
+
+                        // TIPO
 
                         IdTipoMovimientoInventario =
                             x.IdTipoMovimientoInventario,
@@ -566,17 +662,8 @@ namespace WebApplication1.Services
                             x.IdTipoMovimientoInventarioNavigation
                                 .Nombre,
 
-                        Cantidad =
-                            x.Cantidad,
 
-                        CostoUnitario =
-                            x.CostoUnitario,
-
-                        Referencia =
-                            x.Referencia,
-
-                        Descripcion =
-                            x.Descripcion,
+                        // LOTE
 
                         IdLote =
                             x.IdLote,
@@ -586,8 +673,39 @@ namespace WebApplication1.Services
                                 ? x.IdLoteNavigation.CodigoLote
                                 : null,
 
-                        FechaMovimiento =
-                            x.FechaMovimiento
+
+                        // CANTIDAD Y COSTO
+
+                        Cantidad =
+                            x.Cantidad,
+
+                        CostoUnitario =
+                            x.CostoUnitario,
+
+
+                        // REFERENCIA
+
+                        Referencia =
+                            x.Referencia,
+
+                        Descripcion =
+                            x.Descripcion,
+
+
+                        // USUARIO
+                        //
+                        // Usuario NO tiene una propiedad
+                        // llamada "Nombre".
+                        //
+                        // Tiene Nombres y Apellidos.
+
+                        IdUsuario =
+                            x.IdUsuario,
+
+                        Usuario =
+                            x.IdUsuarioNavigation.Nombres
+                            + " "
+                            + x.IdUsuarioNavigation.Apellidos
                     })
                 .ToListAsync();
         }

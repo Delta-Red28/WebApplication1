@@ -1,0 +1,316 @@
+﻿@model IEnumerable<WebApplication1.ViewModels.MovimientoInventarioViewModel>
+
+@{
+    ViewData["Title"] = "Movimientos de inventario";
+}
+
+<div class="container-fluid">
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1 class="h3 mb-1">
+                Movimientos de inventario
+            </h1>
+
+            <p class="text-muted mb-0">
+                Historial de entradas y salidas de inventario.
+            </p>
+        </div>
+
+        <div>
+
+            <a asp-controller="MovimientosInventario"
+               asp-action="Create"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-lg"></i>
+
+                Nuevo movimiento
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJE -->
+    <!-- ========================================================= -->
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show"
+             role="alert">
+
+            @TempData["Mensaje"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- TABLA -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>
+                                Fecha
+                            </th>
+
+                            <th>
+                                Código
+                            </th>
+
+                            <th>
+                                Insumo
+                            </th>
+
+                            <th>
+                                Tipo
+                            </th>
+
+                            <th>
+                                Ubicación
+                            </th>
+
+                            <th>
+                                Lote
+                            </th>
+
+                            <th class="text-end">
+                                Cantidad
+                            </th>
+
+                            <th class="text-end">
+                                Costo
+                            </th>
+
+                            <th>
+                                Referencia
+                            </th>
+
+                            <th>
+                                Usuario
+                            </th>
+
+                            <th class="text-center">
+                                Acción
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                var esEntrada =
+                                    item.TipoMovimiento.Contains(
+                                        "entrada",
+                                        StringComparison.OrdinalIgnoreCase)
+                                    ||
+                                    item.TipoMovimiento.Contains(
+                                        "ingreso",
+                                        StringComparison.OrdinalIgnoreCase)
+                                    ||
+                                    item.TipoMovimiento.Contains(
+                                        "compra",
+                                        StringComparison.OrdinalIgnoreCase);
+
+                                <tr>
+
+                                    <!-- FECHA -->
+                                    <td>
+                                        @item.FechaMovimiento.ToString(
+                                            "dd/MM/yyyy HH:mm")
+                                    </td>
+
+
+                                    <!-- CÓDIGO -->
+                                    <td>
+
+                                        <span class="fw-semibold">
+                                            @item.CodigoInsumo
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- INSUMO -->
+                                    <td>
+                                        @item.Insumo
+                                    </td>
+
+
+                                    <!-- TIPO -->
+                                    <td>
+
+                                        @if (esEntrada)
+                                        {
+                                            <span class="badge bg-success">
+                                                @item.TipoMovimiento
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">
+                                                @item.TipoMovimiento
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- UBICACIÓN -->
+                                    <td>
+                                        @item.Ubicacion
+                                    </td>
+
+
+                                    <!-- LOTE -->
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            item.CodigoLote))
+                                        {
+                                            @item.CodigoLote
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- CANTIDAD -->
+                                    <td class="text-end">
+
+                                        @item.Cantidad.ToString("N2")
+
+                                    </td>
+
+
+                                    <!-- COSTO -->
+                                    <td class="text-end">
+
+                                        @if (item.CostoUnitario.HasValue)
+                                        {
+                                            @item.CostoUnitario.Value.ToString("C2")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- REFERENCIA -->
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            item.Referencia))
+                                        {
+                                            @item.Referencia
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- USUARIO -->
+                                    <td>
+                                        @item.Usuario
+                                    </td>
+
+
+                                    <!-- ACCIÓN -->
+                                    <td class="text-center">
+
+                                        <a asp-controller="MovimientosInventario"
+                                           asp-action="Details"
+                                           asp-route-id="@item.IdMovimientoInventario"
+                                           class="btn btn-sm btn-outline-secondary"
+                                           title="Ver detalle">
+
+                                            <i class="bi bi-eye"></i>
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="11"
+                                    class="text-center py-5">
+
+                                    <div class="text-muted">
+
+                                        <i class="bi bi-box-seam fs-1 d-block mb-3"></i>
+
+                                        <h5>
+                                            No hay movimientos de inventario
+                                        </h5>
+
+                                        <p class="mb-0">
+                                            Todavía no se han registrado movimientos.
+                                        </p>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
