@@ -4,68 +4,286 @@
     ViewData["Title"] = "Editar reservación";
 }
 
-<div class="container-fluid py-4">
-    <!-- ENCABEZADO -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<style>
+
+    .reservation-page {
+        padding-bottom: 40px;
+    }
+
+    .page-title {
+        font-size: 1.55rem;
+        font-weight: 700;
+        color: #172033;
+    }
+
+    .page-subtitle {
+        font-size: .85rem;
+        color: #6c757d;
+    }
+
+    .card-reservation {
+        border: 0;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+        overflow: hidden;
+    }
+
+    .card-section-title {
+        font-size: .95rem;
+        font-weight: 700;
+        color: #172033;
+    }
+
+    .form-label {
+        font-size: .82rem;
+        margin-bottom: 6px;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: .85rem;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 .2rem rgba(13,110,253,.10);
+    }
+
+    .summary-card {
+        border: 0;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+        overflow: hidden;
+    }
+
+    .summary-header {
+        background: #0d6efd;
+        color: white;
+        padding: 12px 16px;
+    }
+
+    .summary-body {
+        padding: 18px;
+    }
+
+    .summary-item {
+        padding-bottom: 13px;
+        margin-bottom: 13px;
+        border-bottom: 1px solid #edf0f3;
+    }
+
+    .summary-item:last-child {
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .summary-label {
+        display: block;
+        color: #8a94a6;
+        font-size: .7rem;
+        margin-bottom: 3px;
+    }
+
+    .summary-value {
+        color: #172033;
+        font-size: .86rem;
+        font-weight: 600;
+    }
+
+    .availability-box {
+        border: 0;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+
+    .availability-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff5d9;
+        color: #f0ad00;
+    }
+
+    .reservation-number {
+        color: #0d6efd;
+        font-weight: 700;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: .72rem;
+        font-weight: 600;
+    }
+
+    .mesa-option-recommended {
+        font-weight: 700;
+    }
+
+    .action-footer {
+        border-top: 1px solid #edf0f3;
+        padding-top: 18px;
+    }
+
+    @@media (max-width: 768px) {
+
+        .page-title {
+            font-size: 1.3rem;
+        }
+
+        .action-footer .btn {
+            width: 100%;
+        }
+
+        .action-footer {
+            flex-direction: column-reverse;
+        }
+
+    }
+
+</style>
+
+
+<div class="container-fluid py-4 reservation-page">
+
+    <!-- ============================================================
+         ENCABEZADO
+         ============================================================ -->
+
+    <div class="d-flex flex-wrap justify-content-between
+                align-items-center mb-4">
+
         <div>
-            <h2 class="fw-bold mb-1">
-                <i class="bi bi-pencil-square me-2"></i>
+
+            <h2 class="page-title mb-1">
+
+                <i class="bi bi-pencil-square text-primary me-2"></i>
+
                 Editar reservación
+
             </h2>
-            <p class="text-muted mb-0">
-                Modifica los datos de la reservación #@Model.IdReservacion
+
+            <p class="page-subtitle mb-0">
+
+                Modifica los datos de la reservación
+                <span class="reservation-number">
+                    #@Model.IdReservacion
+                </span>
+
             </p>
+
         </div>
 
-        <a asp-action="Index" class="btn btn-outline-secondary">
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary mt-3 mt-md-0">
+
             <i class="bi bi-arrow-left me-1"></i>
+
             Volver
+
         </a>
+
     </div>
 
-    <!-- MENSAJE GENERAL DE VALIDACIÓN -->
+
+    <!-- ============================================================
+         ERRORES GENERALES
+         ============================================================ -->
+
     <div asp-validation-summary="ModelOnly"
-         class="alert alert-danger"
+         class="alert alert-danger @(ViewData.ModelState.IsValid ? "d-none" : "")"
          role="alert">
+
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+        <strong>Revise los siguientes datos:</strong>
+
     </div>
+
 
     <div class="row g-4">
 
-        <!-- FORMULARIO -->
+        <!-- ========================================================
+             FORMULARIO
+             ======================================================== -->
+
         <div class="col-lg-8">
 
-            <div class="card shadow-sm border-0">
+            <div class="card card-reservation">
 
                 <div class="card-header bg-white border-0 pt-4 px-4">
-                    <h5 class="fw-bold mb-0">
-                        <i class="bi bi-calendar-event me-2 text-primary"></i>
-                        Información de la reservación
-                    </h5>
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="availability-icon me-3">
+
+                            <i class="bi bi-calendar-event"></i>
+
+                        </div>
+
+                        <div>
+
+                            <h5 class="card-section-title mb-1">
+
+                                Información de la reservación
+
+                            </h5>
+
+                            <small class="text-muted">
+
+                                Actualiza los datos necesarios.
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
                 </div>
+
 
                 <div class="card-body p-4">
 
-                    <form asp-action="Edit" method="post">
+                    <form asp-action="Edit"
+                          method="post">
 
                         @Html.AntiForgeryToken()
 
-                        <!-- ID -->
+
+                        <!-- =================================================
+                             ID
+                             ================================================= -->
+
                         <input type="hidden"
                                asp-for="IdReservacion" />
 
-                        <!-- ================================================= -->
-                        <!-- CLIENTE -->
-                        <!-- ================================================= -->
+
+                        <!-- =================================================
+                             CLIENTE
+                             ================================================= -->
 
                         <div class="mb-4">
 
                             <label asp-for="IdCliente"
                                    class="form-label fw-semibold">
+
+                                <i class="bi bi-person me-1 text-primary"></i>
+
                                 Cliente
+
                             </label>
 
+
                             <select asp-for="IdCliente"
-                                    asp-items="ViewBag.Clientes"
                                     class="form-select"
                                     id="IdCliente">
 
@@ -73,45 +291,88 @@
                                     -- Seleccione un cliente --
                                 </option>
 
+                                @if (ViewBag.Clientes != null)
+                                {
+                                    foreach (var cliente in ViewBag.Clientes)
+                                    {
+                                        var nombre =
+                                            $"{cliente.Nombres} {cliente.Apellidos}".Trim();
+
+                                        if (string.IsNullOrWhiteSpace(nombre))
+                                        {
+                                            nombre =
+                                                $"Cliente #{cliente.IdCliente}";
+                                        }
+
+                                        <option value="@cliente.IdCliente">
+
+                                            @nombre
+
+                                            @if (!string.IsNullOrWhiteSpace(cliente.Cedula))
+                                            {
+                                                @: - @cliente.Cedula
+                                            }
+
+                                        </option>
+                                    }
+                                }
+
                             </select>
 
+
                             <span asp-validation-for="IdCliente"
-                                  class="text-danger">
+                                  class="text-danger small">
                             </span>
 
                         </div>
 
-                        <!-- ================================================= -->
-                        <!-- FECHA -->
-                        <!-- ================================================= -->
+
+                        <!-- =================================================
+                             FECHA + PERSONAS
+                             ================================================= -->
 
                         <div class="row g-3 mb-4">
+
+                            <!-- FECHA -->
 
                             <div class="col-md-6">
 
                                 <label asp-for="FechaReserva"
                                        class="form-label fw-semibold">
+
+                                    <i class="bi bi-calendar3 me-1 text-primary"></i>
+
                                     Fecha de reservación
+
                                 </label>
+
 
                                 <input asp-for="FechaReserva"
                                        type="date"
                                        class="form-control"
                                        id="FechaReserva" />
 
+
                                 <span asp-validation-for="FechaReserva"
-                                      class="text-danger">
+                                      class="text-danger small">
                                 </span>
 
                             </div>
 
-                            <!-- CANTIDAD -->
+
+                            <!-- PERSONAS -->
+
                             <div class="col-md-6">
 
                                 <label asp-for="CantidadPersonas"
                                        class="form-label fw-semibold">
+
+                                    <i class="bi bi-people me-1 text-primary"></i>
+
                                     Cantidad de personas
+
                                 </label>
+
 
                                 <input asp-for="CantidadPersonas"
                                        type="number"
@@ -119,26 +380,35 @@
                                        class="form-control"
                                        id="CantidadPersonas" />
 
+
                                 <span asp-validation-for="CantidadPersonas"
-                                      class="text-danger">
+                                      class="text-danger small">
                                 </span>
 
                             </div>
 
                         </div>
 
-                        <!-- ================================================= -->
-                        <!-- HORARIOS -->
-                        <!-- ================================================= -->
+
+                        <!-- =================================================
+                             HORARIO
+                             ================================================= -->
 
                         <div class="row g-3 mb-4">
+
+                            <!-- HORA INICIO -->
 
                             <div class="col-md-6">
 
                                 <label asp-for="HoraInicio"
                                        class="form-label fw-semibold">
+
+                                    <i class="bi bi-clock me-1 text-primary"></i>
+
                                     Hora de inicio
+
                                 </label>
+
 
                                 <input asp-for="HoraInicio"
                                        type="time"
@@ -146,18 +416,27 @@
                                        id="HoraInicio"
                                        step="60" />
 
+
                                 <span asp-validation-for="HoraInicio"
-                                      class="text-danger">
+                                      class="text-danger small">
                                 </span>
 
                             </div>
+
+
+                            <!-- HORA FIN -->
 
                             <div class="col-md-6">
 
                                 <label asp-for="HoraFin"
                                        class="form-label fw-semibold">
+
+                                    <i class="bi bi-clock-history me-1 text-primary"></i>
+
                                     Hora de finalización
+
                                 </label>
+
 
                                 <input asp-for="HoraFin"
                                        type="time"
@@ -165,27 +444,33 @@
                                        id="HoraFin"
                                        step="60" />
 
+
                                 <span asp-validation-for="HoraFin"
-                                      class="text-danger">
+                                      class="text-danger small">
                                 </span>
 
                             </div>
 
                         </div>
 
-                        <!-- ================================================= -->
-                        <!-- MESA -->
-                        <!-- ================================================= -->
+
+                        <!-- =================================================
+                             MESA
+                             ================================================= -->
 
                         <div class="mb-4">
 
                             <label asp-for="IdMesa"
                                    class="form-label fw-semibold">
+
+                                <i class="bi bi-grid-3x3-gap me-1 text-primary"></i>
+
                                 Mesa
+
                             </label>
 
+
                             <select asp-for="IdMesa"
-                                    asp-items="ViewBag.Mesas"
                                     class="form-select"
                                     id="IdMesa">
 
@@ -193,11 +478,26 @@
                                     -- Seleccione una mesa --
                                 </option>
 
+                                @if (ViewBag.Mesas != null)
+                                {
+                                    foreach (var mesa in ViewBag.Mesas)
+                                    {
+                                        <option value="@mesa.IdMesa">
+
+                                            Mesa @mesa.NumeroMesa
+                                            - Capacidad @mesa.Capacidad
+
+                                        </option>
+                                    }
+                                }
+
                             </select>
 
+
                             <span asp-validation-for="IdMesa"
-                                  class="text-danger">
+                                  class="text-danger small">
                             </span>
+
 
                             <div id="mensajeMesa"
                                  class="mt-2">
@@ -205,86 +505,76 @@
 
                         </div>
 
-                        <!-- ================================================= -->
-                        <!-- ESTADO -->
-                        <!-- ================================================= -->
+
+                        <!-- =================================================
+                             ESTADO
+                             ================================================= -->
 
                         <div class="mb-4">
 
-                            <label class="form-label fw-semibold">
-                                Estado actual
+                            <label asp-for="IdEstadoReservacion"
+                                   class="form-label fw-semibold">
+
+                                <i class="bi bi-flag me-1 text-primary"></i>
+
+                                Estado
+
                             </label>
 
-                            <div>
-                                @switch (Model.IdEstadoReservacion)
+
+                            <select asp-for="IdEstadoReservacion"
+                                    class="form-select"
+                                    id="IdEstadoReservacion">
+
+                                <option value="">
+                                    -- Seleccione un estado --
+                                </option>
+
+                                @if (ViewBag.Estados != null)
                                 {
-                                    case 1:
-                                        <span class="badge bg-warning text-dark fs-6">
-                                            <i class="bi bi-clock me-1"></i>
-                                            Pendiente
-                                        </span>
-                                        break;
+                                    foreach (var estado in ViewBag.Estados)
+                                    {
+                                        <option value="@estado.IdEstadoReservacion">
 
-                                    case 2:
-                                        <span class="badge bg-primary fs-6">
-                                            <i class="bi bi-check-circle me-1"></i>
-                                            Confirmada
-                                        </span>
-                                        break;
+                                            @estado.Nombre
 
-                                    case 3:
-                                        <span class="badge bg-info text-dark fs-6">
-                                            <i class="bi bi-person-check me-1"></i>
-                                            Cliente llegó
-                                        </span>
-                                        break;
-
-                                    case 4:
-                                        <span class="badge bg-success fs-6">
-                                            <i class="bi bi-check2-all me-1"></i>
-                                            Finalizada
-                                        </span>
-                                        break;
-
-                                    case 5:
-                                        <span class="badge bg-danger fs-6">
-                                            <i class="bi bi-x-circle me-1"></i>
-                                            Cancelada
-                                        </span>
-                                        break;
-
-                                    case 6:
-                                        <span class="badge bg-secondary fs-6">
-                                            <i class="bi bi-person-x me-1"></i>
-                                            No asistió
-                                        </span>
-                                        break;
-
-                                    default:
-                                        <span class="badge bg-secondary fs-6">
-                                            Desconocido
-                                        </span>
-                                        break;
+                                        </option>
+                                    }
                                 }
-                            </div>
+
+                            </select>
+
+
+                            <span asp-validation-for="IdEstadoReservacion"
+                                  class="text-danger small">
+                            </span>
+
 
                             <small class="text-muted d-block mt-2">
-                                El estado no se modifica desde esta pantalla.
-                                Utiliza las acciones correspondientes en la agenda.
+
+                                El controlador valida que el estado seleccionado
+                                exista en la base de datos.
+
                             </small>
 
                         </div>
 
-                        <!-- ================================================= -->
-                        <!-- OBSERVACIÓN -->
-                        <!-- ================================================= -->
+
+                        <!-- =================================================
+                             OBSERVACIÓN
+                             ================================================= -->
 
                         <div class="mb-4">
 
                             <label asp-for="Observacion"
                                    class="form-label fw-semibold">
+
+                                <i class="bi bi-chat-left-text me-1 text-primary"></i>
+
                                 Observación
+
                             </label>
+
 
                             <textarea asp-for="Observacion"
                                       class="form-control"
@@ -292,32 +582,55 @@
                                       maxlength="300"
                                       placeholder="Escriba alguna observación..."></textarea>
 
-                            <div class="form-text">
-                                Máximo 300 caracteres.
+
+                            <div class="d-flex justify-content-between">
+
+                                <div class="form-text">
+
+                                    Máximo 300 caracteres.
+
+                                </div>
+
+                                <div class="form-text">
+
+                                    <span id="contadorCaracteres">0</span>/300
+
+                                </div>
+
                             </div>
 
+
                             <span asp-validation-for="Observacion"
-                                  class="text-danger">
+                                  class="text-danger small">
                             </span>
 
                         </div>
 
-                        <!-- ================================================= -->
-                        <!-- BOTONES -->
-                        <!-- ================================================= -->
 
-                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <!-- =================================================
+                             BOTONES
+                             ================================================= -->
+
+                        <div class="d-flex justify-content-end
+                                    gap-2 action-footer">
 
                             <a asp-action="Index"
                                class="btn btn-outline-secondary">
+
                                 <i class="bi bi-x-lg me-1"></i>
+
                                 Cancelar
+
                             </a>
+
 
                             <button type="submit"
                                     class="btn btn-primary">
+
                                 <i class="bi bi-save me-1"></i>
+
                                 Guardar cambios
+
                             </button>
 
                         </div>
@@ -330,98 +643,278 @@
 
         </div>
 
-        <!-- ============================================================= -->
-        <!-- PANEL LATERAL -->
-        <!-- ============================================================= -->
+
+        <!-- ========================================================
+             PANEL LATERAL
+             ======================================================== -->
 
         <div class="col-lg-4">
 
-            <!-- RESUMEN -->
-            <div class="card shadow-sm border-0 mb-4">
 
-                <div class="card-header bg-primary text-white">
+            <!-- ========================================================
+                 RESUMEN
+                 ======================================================== -->
+
+            <div class="card summary-card mb-4">
+
+                <div class="summary-header">
+
                     <h6 class="mb-0 fw-bold">
+
                         <i class="bi bi-info-circle me-2"></i>
+
                         Resumen
+
                     </h6>
+
                 </div>
 
-                <div class="card-body">
 
-                    <div class="mb-3">
-                        <small class="text-muted d-block">
+                <div class="summary-body">
+
+
+                    <!-- RESERVACIÓN -->
+
+                    <div class="summary-item">
+
+                        <span class="summary-label">
                             Reservación
-                        </small>
+                        </span>
 
-                        <strong>
+                        <span class="summary-value reservation-number">
+
                             #@Model.IdReservacion
-                        </strong>
+
+                        </span>
+
                     </div>
 
-                    <div class="mb-3">
-                        <small class="text-muted d-block">
+
+                    <!-- FECHA REGISTRO -->
+
+                    <div class="summary-item">
+
+                        <span class="summary-label">
                             Fecha de registro
-                        </small>
+                        </span>
 
-                        <strong>
+                        <span class="summary-value">
+
                             @Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")
-                        </strong>
+
+                        </span>
+
                     </div>
 
-                    <div class="mb-3">
-                        <small class="text-muted d-block">
+
+                    <!-- FECHA -->
+
+                    <div class="summary-item">
+
+                        <span class="summary-label">
                             Fecha seleccionada
-                        </small>
+                        </span>
 
-                        <strong id="resumenFecha">
+                        <span class="summary-value"
+                              id="resumenFecha">
+
                             @Model.FechaReserva.ToString("dd/MM/yyyy")
-                        </strong>
+
+                        </span>
+
                     </div>
 
-                    <div class="mb-3">
-                        <small class="text-muted d-block">
-                            Horario
-                        </small>
 
-                        <strong id="resumenHorario">
+                    <!-- HORARIO -->
+
+                    <div class="summary-item">
+
+                        <span class="summary-label">
+                            Horario
+                        </span>
+
+                        <span class="summary-value"
+                              id="resumenHorario">
+
                             @Model.HoraInicio.ToString("HH\\:mm")
                             -
                             @Model.HoraFin.ToString("HH\\:mm")
-                        </strong>
+
+                        </span>
+
                     </div>
 
-                    <div>
-                        <small class="text-muted d-block">
-                            Personas
-                        </small>
 
-                        <strong id="resumenPersonas">
-                            @Model.CantidadPersonas
-                        </strong>
-                        <span class="text-muted">
-                            personas
+                    <!-- PERSONAS -->
+
+                    <div class="summary-item">
+
+                        <span class="summary-label">
+                            Personas
                         </span>
+
+                        <span class="summary-value">
+
+                            <span id="resumenPersonas">
+                                @Model.CantidadPersonas
+                            </span>
+
+                            personas
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- ESTADO -->
+
+                    <div class="summary-item">
+
+                        <span class="summary-label">
+                            Estado actual
+                        </span>
+
+
+                        <div id="resumenEstado">
+
+                            @switch (Model.IdEstadoReservacion)
+                            {
+                                case 1:
+
+                                    <span class="status-badge bg-warning text-dark">
+
+                                        <i class="bi bi-clock"></i>
+
+                                        Pendiente
+
+                                    </span>
+
+                                    break;
+
+
+                                case 2:
+
+                                    <span class="status-badge bg-primary text-white">
+
+                                        <i class="bi bi-check-circle"></i>
+
+                                        Confirmada
+
+                                    </span>
+
+                                    break;
+
+
+                                case 3:
+
+                                    <span class="status-badge bg-info text-dark">
+
+                                        <i class="bi bi-person-check"></i>
+
+                                        Cliente llegó
+
+                                    </span>
+
+                                    break;
+
+
+                                case 4:
+
+                                    <span class="status-badge bg-success text-white">
+
+                                        <i class="bi bi-check2-all"></i>
+
+                                        Finalizada
+
+                                    </span>
+
+                                    break;
+
+
+                                case 5:
+
+                                    <span class="status-badge bg-danger text-white">
+
+                                        <i class="bi bi-x-circle"></i>
+
+                                        Cancelada
+
+                                    </span>
+
+                                    break;
+
+
+                                case 6:
+
+                                    <span class="status-badge bg-secondary text-white">
+
+                                        <i class="bi bi-person-x"></i>
+
+                                        No asistió
+
+                                    </span>
+
+                                    break;
+
+
+                                default:
+
+                                    <span class="status-badge bg-secondary text-white">
+
+                                        <i class="bi bi-question-circle"></i>
+
+                                        Desconocido
+
+                                    </span>
+
+                                    break;
+                            }
+
+                        </div>
+
                     </div>
 
                 </div>
 
             </div>
 
-            <!-- INFORMACIÓN DE DISPONIBILIDAD -->
-            <div class="card shadow-sm border-0">
 
-                <div class="card-body">
+            <!-- ========================================================
+                 DISPONIBILIDAD
+                 ======================================================== -->
 
-                    <h6 class="fw-bold mb-3">
-                        <i class="bi bi-lightbulb text-warning me-2"></i>
-                        Disponibilidad
-                    </h6>
+            <div class="card availability-box">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-center mb-3">
+
+                        <div class="availability-icon me-3">
+
+                            <i class="bi bi-lightbulb"></i>
+
+                        </div>
+
+                        <div>
+
+                            <h6 class="fw-bold mb-0">
+
+                                Disponibilidad
+
+                            </h6>
+
+                        </div>
+
+                    </div>
+
 
                     <p class="text-muted small mb-0">
+
                         Al cambiar la fecha, horario o cantidad de personas,
-                        el sistema verificará las mesas que cumplen con la
-                        capacidad requerida y que no tengan otra reservación
-                        en ese horario.
+                        el sistema verificará automáticamente las mesas
+                        disponibles que tengan capacidad suficiente y no estén
+                        ocupadas durante ese horario.
+
                     </p>
 
                 </div>
@@ -433,23 +926,46 @@
     </div>
 
 </div>
+
+
 @section Scripts {
 
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
+
     <script>
 
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
 
-            const fecha = document.getElementById("FechaReserva");
-            const personas = document.getElementById("CantidadPersonas");
-            const horaInicio = document.getElementById("HoraInicio");
-            const horaFin = document.getElementById("HoraFin");
-            const mesa = document.getElementById("IdMesa");
+            // ============================================================
+            // ELEMENTOS
+            // ============================================================
 
-            const mensajeMesa = document.getElementById("mensajeMesa");
+            const fecha =
+                document.getElementById("FechaReserva");
+
+            const personas =
+                document.getElementById("CantidadPersonas");
+
+            const horaInicio =
+                document.getElementById("HoraInicio");
+
+            const horaFin =
+                document.getElementById("HoraFin");
+
+            const mesa =
+                document.getElementById("IdMesa");
+
+            const estado =
+                document.getElementById("IdEstadoReservacion");
+
+            const observacion =
+                document.getElementById("Observacion");
+
+            const mensajeMesa =
+                document.getElementById("mensajeMesa");
 
             const resumenFecha =
                 document.getElementById("resumenFecha");
@@ -460,35 +976,91 @@
             const resumenPersonas =
                 document.getElementById("resumenPersonas");
 
+            const contadorCaracteres =
+                document.getElementById("contadorCaracteres");
+
+
+            // ============================================================
+            // VALORES INICIALES
+            // ============================================================
+
+            const mesaOriginal =
+                "@Model.IdMesa";
+
+
             // ============================================================
             // ACTUALIZAR RESUMEN
             // ============================================================
 
             function actualizarResumen() {
 
-                if (fecha.value) {
+                // --------------------------------------------------------
+                // FECHA
+                // --------------------------------------------------------
 
-                    const partes = fecha.value.split("-");
+                if (fecha && fecha.value) {
+
+                    const partes =
+                        fecha.value.split("-");
 
                     if (partes.length === 3) {
 
                         resumenFecha.textContent =
                             `${partes[2]}/${partes[1]}/${partes[0]}`;
+
                     }
+
                 }
 
-                if (horaInicio.value && horaFin.value) {
+
+                // --------------------------------------------------------
+                // HORARIO
+                // --------------------------------------------------------
+
+                if (horaInicio &&
+                    horaFin &&
+                    horaInicio.value &&
+                    horaFin.value) {
 
                     resumenHorario.textContent =
                         `${horaInicio.value} - ${horaFin.value}`;
+
                 }
 
-                if (personas.value) {
+
+                // --------------------------------------------------------
+                // PERSONAS
+                // --------------------------------------------------------
+
+                if (personas &&
+                    personas.value) {
 
                     resumenPersonas.textContent =
                         personas.value;
+
                 }
+
             }
+
+
+            // ============================================================
+            // CONTADOR DE OBSERVACIÓN
+            // ============================================================
+
+            function actualizarContador() {
+
+                if (!observacion ||
+                    !contadorCaracteres) {
+
+                    return;
+
+                }
+
+                contadorCaracteres.textContent =
+                    observacion.value.length;
+
+            }
+
 
             // ============================================================
             // CARGAR MESAS DISPONIBLES
@@ -496,10 +1068,22 @@
 
             async function cargarMesasDisponibles() {
 
-                const fechaValor = fecha.value;
-                const personasValor = personas.value;
-                const inicioValor = horaInicio.value;
-                const finValor = horaFin.value;
+                const fechaValor =
+                    fecha.value;
+
+                const personasValor =
+                    personas.value;
+
+                const inicioValor =
+                    horaInicio.value;
+
+                const finValor =
+                    horaFin.value;
+
+
+                // --------------------------------------------------------
+                // VALIDACIONES
+                // --------------------------------------------------------
 
                 if (!fechaValor ||
                     !personasValor ||
@@ -507,211 +1091,552 @@
                     !finValor) {
 
                     return;
+
                 }
+
+
+                if (parseInt(personasValor) <= 0) {
+
+                    return;
+
+                }
+
 
                 if (finValor <= inicioValor) {
 
                     mensajeMesa.innerHTML = `
-                            <div class="alert alert-warning py-2 mb-0">
-                                <i class="bi bi-exclamation-triangle me-1"></i>
-                                La hora de finalización debe ser posterior
-                                a la hora de inicio.
-                            </div>
-                        `;
+
+                        <div class="alert alert-warning py-2 mb-0">
+
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+
+                            La hora de finalización debe ser posterior
+                            a la hora de inicio.
+
+                        </div>
+
+                    `;
 
                     return;
+
                 }
 
+
+                // --------------------------------------------------------
+                // MENSAJE CARGANDO
+                // --------------------------------------------------------
+
                 mensajeMesa.innerHTML = `
-                        <div class="text-muted small">
-                            <span class="spinner-border spinner-border-sm me-1"></span>
-                            Verificando disponibilidad...
-                        </div>
-                    `;
+
+                    <div class="text-muted small">
+
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+
+                        Verificando disponibilidad...
+
+                    </div>
+
+                `;
+
 
                 try {
 
+                    // ====================================================
+                    // IMPORTANTE
+                    // ====================================================
+                    //
+                    // El controlador se llama:
+                    //
+                    // ObtenerMesasDisponibles
+                    //
+                    // NO:
+                    //
+                    // MesasDisponibles
+                    //
+                    // Además recibe:
+                    //
+                    // fecha
+                    // horaInicio
+                    // horaFin
+                    // cantidadPersonas
+                    //
+                    // ====================================================
+
                     const url =
-                        '@Url.Action("MesasDisponibles", "Reservacions")' +
+                        '@Url.Action("ObtenerMesasDisponibles", "Reservacion")' +
                         `?fecha=${encodeURIComponent(fechaValor)}` +
-                        `&cantidadPersonas=${encodeURIComponent(personasValor)}` +
                         `&horaInicio=${encodeURIComponent(inicioValor)}` +
                         `&horaFin=${encodeURIComponent(finValor)}` +
-                        `&idReservacion=@Model.IdReservacion`;
+                        `&cantidadPersonas=${encodeURIComponent(personasValor)}`;
+
 
                     const response =
                         await fetch(url);
+
 
                     if (!response.ok) {
 
                         throw new Error(
                             "No fue posible consultar las mesas."
                         );
+
                     }
 
-                    const mesas =
+
+                    const resultado =
                         await response.json();
 
-                    const mesaSeleccionada =
+
+                    // ====================================================
+                    // VALIDAR RESPUESTA
+                    // ====================================================
+
+                    if (!resultado.exito) {
+
+                        mensajeMesa.innerHTML = `
+
+                            <div class="alert alert-warning py-2 mb-0">
+
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+
+                                ${resultado.mensaje ??
+                                "No fue posible obtener las mesas disponibles."}
+
+                            </div>
+
+                        `;
+
+                        return;
+
+                    }
+
+
+                    // ====================================================
+                    // GUARDAR MESA SELECCIONADA
+                    // ====================================================
+
+                    let mesaSeleccionada =
                         mesa.value;
 
-                    // Limpiar opciones actuales
+
+                    // Si todavía no hay selección,
+                    // conservar la mesa original.
+
+                    if (!mesaSeleccionada) {
+
+                        mesaSeleccionada =
+                            mesaOriginal;
+
+                    }
+
+
+                    // ====================================================
+                    // LIMPIAR SELECT
+                    // ====================================================
+
                     mesa.innerHTML = "";
+
 
                     const opcionInicial =
                         document.createElement("option");
+
 
                     opcionInicial.value = "";
 
                     opcionInicial.textContent =
                         "-- Seleccione una mesa --";
 
-                    mesa.appendChild(opcionInicial);
+
+                    mesa.appendChild(
+                        opcionInicial
+                    );
+
 
                     // ====================================================
                     // NO HAY MESAS
                     // ====================================================
 
-                    if (mesas.length === 0) {
+                    if (!resultado.mesas ||
+                        resultado.mesas.length === 0) {
 
                         mensajeMesa.innerHTML = `
-                                <div class="alert alert-danger py-2 mb-0">
-                                    <i class="bi bi-x-circle me-1"></i>
-                                    No existen mesas disponibles para
-                                    ${personasValor} personas en el horario
-                                    seleccionado.
-                                </div>
-                            `;
+
+                            <div class="alert alert-danger py-2 mb-0">
+
+                                <i class="bi bi-x-circle me-1"></i>
+
+                                No existen mesas disponibles para
+                                ${personasValor} personas en el horario
+                                seleccionado.
+
+                            </div>
+
+                        `;
 
                         return;
+
                     }
+
 
                     // ====================================================
                     // AGREGAR MESAS
                     // ====================================================
 
-                    mesas.forEach(function(m) {
+                    resultado.mesas.forEach(function (m) {
 
                         const option =
                             document.createElement("option");
 
-                        option.value = m.id;
 
-                        option.textContent =
-                            `Mesa ${String(m.numero).padStart(2, "0")} - ` +
+                        option.value =
+                            m.idMesa;
+
+
+                        let texto =
+                            `Mesa ${String(m.numeroMesa).padStart(2, "0")} - ` +
                             `Capacidad ${m.capacidad}`;
 
-                        if (m.ubicacion) {
 
-                            option.textContent +=
-                                ` - ${m.ubicacion}`;
+                        if (m.recomendada) {
+
+                            texto +=
+                                " - Recomendada";
+
+                            option.classList.add(
+                                "mesa-option-recommended"
+                            );
+
                         }
 
-                        if (String(m.id) ===
+
+                        option.textContent =
+                            texto;
+
+
+                        // ------------------------------------------------
+                        // CONSERVAR MESA ACTUAL
+                        // ------------------------------------------------
+
+                        if (String(m.idMesa) ===
                             String(mesaSeleccionada)) {
 
-                            option.selected = true;
+                            option.selected =
+                                true;
+
                         }
+
 
                         mesa.appendChild(option);
 
                     });
 
+
+                    // ====================================================
+                    // MENSAJE ÉXITO
+                    // ====================================================
+
                     mensajeMesa.innerHTML = `
-                            <div class="alert alert-success py-2 mb-0">
-                                <i class="bi bi-check-circle me-1"></i>
-                                ${mesas.length}
-                                mesa(s) disponible(s) para este horario.
-                            </div>
-                        `;
+
+                        <div class="alert alert-success py-2 mb-0">
+
+                            <i class="bi bi-check-circle me-1"></i>
+
+                            ${resultado.cantidad}
+                            mesa(s) disponible(s) para este horario.
+
+                        </div>
+
+                    `;
 
                 }
                 catch (error) {
 
                     console.error(error);
 
+
                     mensajeMesa.innerHTML = `
-                            <div class="alert alert-warning py-2 mb-0">
-                                <i class="bi bi-exclamation-triangle me-1"></i>
-                                No fue posible consultar la disponibilidad
-                                de las mesas.
-                            </div>
-                        `;
+
+                        <div class="alert alert-warning py-2 mb-0">
+
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+
+                            No fue posible consultar la disponibilidad
+                            de las mesas.
+
+                        </div>
+
+                    `;
+
                 }
 
             }
+
 
             // ============================================================
             // EVENTOS
             // ============================================================
 
-            fecha.addEventListener(
-                "change",
-                function() {
+            if (fecha) {
 
-                    actualizarResumen();
-                    cargarMesasDisponibles();
+                fecha.addEventListener(
+                    "change",
+                    function () {
 
-                }
-            );
+                        actualizarResumen();
 
-            personas.addEventListener(
-                "input",
-                function() {
-
-                    actualizarResumen();
-                    cargarMesasDisponibles();
-
-                }
-            );
-
-            horaInicio.addEventListener(
-                "change",
-                function() {
-
-                    actualizarResumen();
-                    cargarMesasDisponibles();
-
-                }
-            );
-
-            horaFin.addEventListener(
-                "change",
-                function() {
-
-                    actualizarResumen();
-                    cargarMesasDisponibles();
-
-                }
-            );
-
-            // ============================================================
-            // VERIFICAR MESA SELECCIONADA
-            // ============================================================
-
-            mesa.addEventListener(
-                "change",
-                function() {
-
-                    if (mesa.value) {
-
-                        mensajeMesa.innerHTML = `
-                                <div class="alert alert-info py-2 mb-0">
-                                    <i class="bi bi-table me-1"></i>
-                                    Mesa seleccionada correctamente.
-                                </div>
-                            `;
+                        cargarMesasDisponibles();
 
                     }
+                );
 
-                }
-            );
+            }
+
+
+            if (personas) {
+
+                personas.addEventListener(
+                    "input",
+                    function () {
+
+                        actualizarResumen();
+
+                        cargarMesasDisponibles();
+
+                    }
+                );
+
+            }
+
+
+            if (horaInicio) {
+
+                horaInicio.addEventListener(
+                    "change",
+                    function () {
+
+                        actualizarResumen();
+
+                        cargarMesasDisponibles();
+
+                    }
+                );
+
+            }
+
+
+            if (horaFin) {
+
+                horaFin.addEventListener(
+                    "change",
+                    function () {
+
+                        actualizarResumen();
+
+                        cargarMesasDisponibles();
+
+                    }
+                );
+
+            }
+
+
+            // ============================================================
+            // CAMBIO DE MESA
+            // ============================================================
+
+            if (mesa) {
+
+                mesa.addEventListener(
+                    "change",
+                    function () {
+
+                        if (mesa.value) {
+
+                            mensajeMesa.innerHTML = `
+
+                                <div class="alert alert-info py-2 mb-0">
+
+                                    <i class="bi bi-grid-3x3-gap me-1"></i>
+
+                                    Mesa seleccionada correctamente.
+
+                                </div>
+
+                            `;
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            // ============================================================
+            // CAMBIO DE ESTADO
+            // ============================================================
+
+            if (estado) {
+
+                estado.addEventListener(
+                    "change",
+                    function () {
+
+                        const opcion =
+                            estado.options[
+                                estado.selectedIndex
+                            ];
+
+                        if (!opcion ||
+                            !opcion.value) {
+
+                            return;
+
+                        }
+
+                        const texto =
+                            opcion.textContent.trim();
+
+
+                        let clase =
+                            "bg-secondary";
+
+                        let icono =
+                            "bi-question-circle";
+
+
+                        switch (parseInt(opcion.value)) {
+
+                            case 1:
+
+                                clase =
+                                    "bg-warning text-dark";
+
+                                icono =
+                                    "bi-clock";
+
+                                break;
+
+
+                            case 2:
+
+                                clase =
+                                    "bg-primary text-white";
+
+                                icono =
+                                    "bi-check-circle";
+
+                                break;
+
+
+                            case 3:
+
+                                clase =
+                                    "bg-info text-dark";
+
+                                icono =
+                                    "bi-person-check";
+
+                                break;
+
+
+                            case 4:
+
+                                clase =
+                                    "bg-success text-white";
+
+                                icono =
+                                    "bi-check2-all";
+
+                                break;
+
+
+                            case 5:
+
+                                clase =
+                                    "bg-danger text-white";
+
+                                icono =
+                                    "bi-x-circle";
+
+                                break;
+
+
+                            case 6:
+
+                                clase =
+                                    "bg-secondary text-white";
+
+                                icono =
+                                    "bi-person-x";
+
+                                break;
+
+                        }
+
+
+                        document.getElementById(
+                            "resumenEstado"
+                        ).innerHTML = `
+
+                            <span class="status-badge ${clase}">
+
+                                <i class="bi ${icono}"></i>
+
+                                ${texto}
+
+                            </span>
+
+                        `;
+
+                    }
+                );
+
+            }
+
+
+            // ============================================================
+            // OBSERVACIÓN
+            // ============================================================
+
+            if (observacion) {
+
+                observacion.addEventListener(
+                    "input",
+                    actualizarContador
+                );
+
+            }
+
 
             // ============================================================
             // INICIALIZACIÓN
             // ============================================================
 
             actualizarResumen();
+
+            actualizarContador();
+
+
+            // ============================================================
+            // NO CONSULTAMOS AUTOMÁTICAMENTE AL CARGAR
+            // ============================================================
+            //
+            // Esto es intencional.
+            //
+            // Si se consulta inmediatamente, el controlador considera
+            // la reservación actual como una reservación existente.
+            //
+            // Como ObtenerMesasDisponibles NO recibe idReservacion,
+            // no puede excluirla.
+            //
+            // Por eso conservamos las mesas que ya fueron cargadas
+            // por CargarDatosFormulario().
+            //
+            // Cuando el usuario cambie fecha, hora o personas,
+            // entonces sí consultamos disponibilidad.
+            //
+            // ============================================================
 
         });
 

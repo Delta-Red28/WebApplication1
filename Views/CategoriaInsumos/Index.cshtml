@@ -1,0 +1,388 @@
+﻿@model IEnumerable<WebApplication1.ViewModels.CategoriaInsumoIndexViewModel>
+
+@{
+    ViewData["Title"] = "Categorías de insumos";
+}
+
+<div class="container-fluid">
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+                Categorías de insumos
+            </h2>
+
+            <p class="text-muted mb-0">
+                Administración de las categorías utilizadas para los insumos.
+            </p>
+
+        </div>
+
+        <a asp-action="Create"
+           class="btn btn-primary">
+
+            <i class="bi bi-plus-lg me-1"></i>
+
+            Nueva categoría
+
+        </a>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJE DE ÉXITO -->
+    <!-- ========================================================= -->
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- MENSAJE DE ERROR -->
+    <!-- ========================================================= -->
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- TARJETA PRINCIPAL -->
+    <!-- ========================================================= -->
+
+    <div class="card border-0">
+
+        <!-- ===================================================== -->
+        <!-- CABECERA -->
+        <!-- ===================================================== -->
+
+        <div class="card-header py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="mb-0 fw-semibold">
+                        Listado de categorías
+                    </h5>
+
+                    <small class="text-muted">
+                        @Model.Count()
+                        @(Model.Count() == 1
+                            ? "categoría registrada"
+                            : "categorías registradas")
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- CONTENIDO -->
+        <!-- ===================================================== -->
+
+        <div class="card-body p-0">
+
+            @if (!Model.Any())
+            {
+                <!-- ============================================= -->
+                <!-- SIN CATEGORÍAS -->
+                <!-- ============================================= -->
+
+                <div class="text-center py-5">
+
+                    <i class="bi bi-boxes fs-1 text-muted"></i>
+
+                    <h5 class="mt-3">
+                        No hay categorías de insumos
+                    </h5>
+
+                    <p class="text-muted">
+                        Todavía no se ha registrado ninguna categoría.
+                    </p>
+
+                    <a asp-action="Create"
+                       class="btn btn-primary">
+
+                        <i class="bi bi-plus-lg me-1"></i>
+
+                        Crear categoría
+
+                    </a>
+
+                </div>
+            }
+            else
+            {
+                <!-- ============================================= -->
+                <!-- TABLA -->
+                <!-- ============================================= -->
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    #
+                                </th>
+
+                                <th>
+                                    Nombre
+                                </th>
+
+                                <th>
+                                    Descripción
+                                </th>
+
+                                <th class="text-center">
+                                    Insumos
+                                </th>
+
+                                <th class="text-center">
+                                    Estado
+                                </th>
+
+                                <th>
+                                    Fecha de registro
+                                </th>
+
+                                <th class="text-end pe-4">
+                                    Acciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <!-- ================================= -->
+                                    <!-- ID -->
+                                    <!-- ================================= -->
+
+                                    <td class="ps-4">
+
+                                        <span class="fw-semibold">
+                                            @item.IdCategoriaInsumo
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- NOMBRE -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        <div class="fw-semibold">
+                                            @item.Nombre
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- DESCRIPCIÓN -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        @if (string.IsNullOrWhiteSpace(item.Descripcion))
+                                        {
+                                            <span class="text-muted">
+                                                Sin descripción
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span>
+                                                @item.Descripcion
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- INSUMOS -->
+                                    <!-- ================================= -->
+
+                                    <td class="text-center">
+
+                                        @if (item.CantidadInsumos > 0)
+                                        {
+                                            <span class="badge bg-primary">
+
+                                                <i class="bi bi-box-seam me-1"></i>
+
+                                                @item.CantidadInsumos
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+
+                                                <i class="bi bi-box-seam me-1"></i>
+
+                                                0
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- ESTADO -->
+                                    <!-- ================================= -->
+
+                                    <td class="text-center">
+
+                                        @if (item.Estado)
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="bi bi-check-circle me-1"></i>
+
+                                                Activa
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+
+                                                <i class="bi bi-x-circle me-1"></i>
+
+                                                Inactiva
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- FECHA -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        @item.FechaRegistro.ToString("dd/MM/yyyy")
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- ACCIONES -->
+                                    <!-- ================================= -->
+
+                                    <td class="text-end pe-4">
+
+                                        <div class="btn-group"
+                                             role="group">
+
+                                            <!-- VER -->
+
+                                            <a asp-action="Details"
+                                               asp-route-id="@item.IdCategoriaInsumo"
+                                               class="btn btn-sm btn-light"
+                                               title="Ver detalles">
+
+                                                <i class="bi bi-eye"></i>
+
+                                            </a>
+
+
+                                            <!-- EDITAR -->
+
+                                            <a asp-action="Edit"
+                                               asp-route-id="@item.IdCategoriaInsumo"
+                                               class="btn btn-sm btn-light"
+                                               title="Editar">
+
+                                                <i class="bi bi-pencil"></i>
+
+                                            </a>
+
+
+                                            <!-- ELIMINAR -->
+
+                                            <a asp-action="Delete"
+                                               asp-route-id="@item.IdCategoriaInsumo"
+                                               class="btn btn-sm btn-light text-danger"
+                                               title="Eliminar">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

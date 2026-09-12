@@ -1,643 +1,1314 @@
-﻿```cshtml
-@model WebApplication1.ViewModels.Reportes.ReporteDashboardViewModel
+﻿@model IEnumerable<WebApplication1.Models.Reservacion>
 
 @{
-    ViewData["Title"] = "Reportes";
+    ViewData["Title"] = "Reservaciones";
+
+    var reservaciones = Model?.ToList()
+        ?? new List<WebApplication1.Models.Reservacion>();
 
     // ============================================================
-    // DATOS PARA GRÁFICA DE VENTAS
+    // ESTADOS
     // ============================================================
 
-    var ventasLabels = string.Join(",",
-        Model.VentasPorFecha.Select(x =>
-            $"'{x.Fecha:dd/MM}'"));
-
-    var ventasData = string.Join(",",
-        Model.VentasPorFecha.Select(x =>
-            x.Total.ToString(
-                System.Globalization.CultureInfo.InvariantCulture)));
+    const int ESTADO_PENDIENTE = 1;
+    const int ESTADO_CONFIRMADA = 2;
+    const int ESTADO_LLEGO = 3;
+    const int ESTADO_FINALIZADA = 4;
+    const int ESTADO_CANCELADA = 5;
+    const int ESTADO_NO_ASISTIO = 6;
 
     // ============================================================
-    // DATOS PARA GRÁFICA DE MÉTODOS DE PAGO
+    // RESUMEN
     // ============================================================
 
-    var pagosLabels = string.Join(",",
-        Model.PagosPorMetodo.Select(x =>
-            $"'{(x.MetodoPago ?? "Sin método").Replace("'", "\\'")}'"));
+    var totalReservaciones = reservaciones.Count;
 
-    var pagosData = string.Join(",",
-        Model.PagosPorMetodo.Select(x =>
-            x.Total.ToString(
-                System.Globalization.CultureInfo.InvariantCulture)));
+    var pendientes = reservaciones.Count(x =>
+        x.IdEstadoReservacion == ESTADO_PENDIENTE);
+
+    var confirmadas = reservaciones.Count(x =>
+        x.IdEstadoReservacion == ESTADO_CONFIRMADA);
+
+    var finalizadas = reservaciones.Count(x =>
+        x.IdEstadoReservacion == ESTADO_FINALIZADA);
+
+    var canceladas = reservaciones.Count(x =>
+        x.IdEstadoReservacion == ESTADO_CANCELADA);
+
+    var noAsistieron = reservaciones.Count(x =>
+        x.IdEstadoReservacion == ESTADO_NO_ASISTIO);
+
+    var activas = reservaciones.Count(x =>
+        x.IdEstadoReservacion >= ESTADO_PENDIENTE &&
+        x.IdEstadoReservacion <= ESTADO_LLEGO);
 }
 
-<div class="container-fluid py-4">
+<style>
 
-    <!-- =========================================================
+    /* ============================================================
+       GENERAL
+       ============================================================ */
+
+    .reservaciones-page {
+        padding-bottom: 40px;
+    }
+
+    .page-title {
+        font-size: 1.65rem;
+        font-weight: 700;
+        color: #172033;
+    }
+
+    .page-subtitle {
+        font-size: .85rem;
+        color: #6c757d;
+    }
+
+
+    /* ============================================================
+       BOTONES
+       ============================================================ */
+
+    .btn-action {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 6px;
+    }
+
+
+    /* ============================================================
+       TARJETAS RESUMEN
+       ============================================================ */
+
+    .summary-card {
+        border: 0;
+        border-radius: 10px;
+        background: #fff;
+
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+
+        transition: all .2s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 18px rgba(0, 0, 0, .09);
+    }
+
+    .summary-label {
+        font-size: .75rem;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+
+    .summary-number {
+        font-size: 1.55rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .summary-icon {
+        width: 42px;
+        height: 42px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 10px;
+
+        font-size: 1.25rem;
+    }
+
+    .summary-primary .summary-icon {
+        background: #eaf2ff;
+        color: #0d6efd;
+    }
+
+    .summary-warning .summary-icon {
+        background: #fff5d9;
+        color: #f0ad00;
+    }
+
+    .summary-success .summary-icon {
+        background: #e8f7ef;
+        color: #198754;
+    }
+
+    .summary-info .summary-icon {
+        background: #e5f8fc;
+        color: #0dcaf0;
+    }
+
+
+    /* ============================================================
+       TABLA
+       ============================================================ */
+
+    .reservation-card {
+        border: 0;
+        border-radius: 10px;
+        overflow: hidden;
+
+        box-shadow: 0 2px 12px rgba(0, 0, 0, .06);
+    }
+
+    .reservation-header {
+        background: #0d6efd;
+        color: #fff;
+
+        padding: 11px 16px;
+    }
+
+    .reservation-header-title {
+        font-size: .9rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .reservation-count {
+        font-size: .7rem;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 20px;
+    }
+
+
+    /* ============================================================
+       TABLA
+       ============================================================ */
+
+    .reservation-table {
+        margin: 0;
+        font-size: .78rem;
+        white-space: nowrap;
+    }
+
+    .reservation-table thead th {
+        background: #f8f9fa;
+        color: #495057;
+
+        font-size: .68rem;
+        font-weight: 700;
+
+        text-transform: uppercase;
+        letter-spacing: .02em;
+
+        border-bottom: 1px solid #dee2e6;
+
+        padding: 10px 9px;
+    }
+
+    .reservation-table tbody td {
+        padding: 9px;
+        vertical-align: middle;
+
+        border-color: #edf0f3;
+    }
+
+    .reservation-table tbody tr {
+        transition: background-color .15s ease;
+    }
+
+    .reservation-table tbody tr:hover {
+        background: #f8fbff;
+    }
+
+
+    /* ============================================================
+       COLUMNAS
+       ============================================================ */
+
+    .col-id {
+        width: 40px;
+        color: #8a94a6;
+    }
+
+    .col-reserva {
+        min-width: 105px;
+    }
+
+    .col-fecha {
+        min-width: 105px;
+    }
+
+    .col-hora {
+        min-width: 105px;
+    }
+
+    .col-cliente {
+        min-width: 170px;
+        max-width: 210px;
+    }
+
+    .col-mesa {
+        min-width: 100px;
+    }
+
+    .col-personas {
+        min-width: 80px;
+    }
+
+    .col-observacion {
+        min-width: 180px;
+        max-width: 250px;
+    }
+
+    .col-estado {
+        min-width: 120px;
+    }
+
+    .col-acciones {
+        min-width: 140px;
+        width: 140px;
+    }
+
+
+    /* ============================================================
+       DATOS
+       ============================================================ */
+
+    .reservation-number {
+        color: #0d6efd;
+        font-weight: 700;
+    }
+
+    .reservation-label {
+        display: block;
+        margin-top: 2px;
+
+        color: #8a94a6;
+        font-size: .65rem;
+    }
+
+    .client-name {
+        max-width: 200px;
+
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        font-weight: 600;
+    }
+
+    .client-document {
+        display: block;
+
+        margin-top: 2px;
+
+        color: #8a94a6;
+        font-size: .65rem;
+    }
+
+    .date-main {
+        font-weight: 600;
+    }
+
+    .date-weekday {
+        display: block;
+
+        margin-top: 2px;
+
+        color: #8a94a6;
+        font-size: .65rem;
+
+        text-transform: capitalize;
+    }
+
+    .time-main {
+        font-weight: 700;
+        color: #172033;
+    }
+
+    .time-separator {
+        color: #8a94a6;
+        margin: 0 3px;
+    }
+
+    .table-number {
+        font-weight: 700;
+        color: #495057;
+    }
+
+    .table-capacity {
+        display: block;
+
+        margin-top: 2px;
+
+        color: #8a94a6;
+        font-size: .65rem;
+    }
+
+    .people-count {
+        font-weight: 700;
+        color: #495057;
+    }
+
+    .observation {
+        max-width: 230px;
+
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        color: #6c757d;
+    }
+
+
+    /* ============================================================
+       BADGES
+       ============================================================ */
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+
+        padding: 4px 7px;
+
+        border-radius: 20px;
+
+        font-size: .66rem;
+        font-weight: 600;
+    }
+
+
+    /* ============================================================
+       ACCIONES
+       ============================================================ */
+
+    .actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        gap: 4px;
+        flex-wrap: nowrap;
+    }
+
+    .actions .btn {
+        flex-shrink: 0;
+    }
+
+
+    /* ============================================================
+       TABLA VACÍA
+       ============================================================ */
+
+    .empty-state {
+        padding: 65px 20px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 70px;
+        height: 70px;
+
+        margin: 0 auto 15px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+
+        background: #f1f5f9;
+        color: #94a3b8;
+
+        font-size: 2rem;
+    }
+
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+
+    @@media (max-width: 768px) {
+
+        .page-title {
+            font-size: 1.35rem;
+        }
+
+        .page-actions {
+            width: 100%;
+        }
+
+        .page-actions .btn {
+            flex: 1;
+        }
+
+        .summary-number {
+            font-size: 1.35rem;
+        }
+
+        .reservation-table {
+            font-size: .75rem;
+        }
+    }
+
+</style>
+
+
+<div class="container-fluid mt-4 reservaciones-page">
+
+    <!-- ============================================================
          ENCABEZADO
-    ========================================================== -->
+         ============================================================ -->
 
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between
+                align-items-center mb-4">
+
         <div>
-            <h2 class="fw-bold mb-1">
-                <i class="bi bi-bar-chart-line me-2"></i>
-                Reportes
+
+            <h2 class="page-title mb-1">
+
+                <i class="bi bi-calendar-check text-primary me-2"></i>
+
+                Reservaciones
+
             </h2>
 
-            <p class="text-muted mb-0">
-                Resumen general del restaurante
-            </p>
+            <div class="page-subtitle">
+
+                Administración y consulta de las reservaciones
+                del restaurante.
+
+            </div>
+
         </div>
+
+
+        <div class="d-flex gap-2 mt-3 mt-md-0 page-actions">
+
+            <a asp-controller="Reservacion"
+               asp-action="Create"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-lg me-1"></i>
+
+                Nueva reservación
+
+            </a>
+
+        </div>
+
     </div>
 
 
-    <!-- =========================================================
-         FILTRO DE FECHAS
-    ========================================================== -->
+    <!-- ============================================================
+         MENSAJES
+         ============================================================ -->
 
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
 
-            <form asp-controller="Reportes"
-                  asp-action="Index"
-                  method="get">
+            <i class="bi bi-check-circle-fill me-2"></i>
 
-                <div class="row g-3 align-items-end">
+            @TempData["Success"]
 
-                    <!-- FECHA INICIAL -->
-                    <div class="col-md-4">
-                        <label for="fechaInicio"
-                               class="form-label fw-semibold">
-                            Fecha inicial
-                        </label>
-
-                        <input type="date"
-                               id="fechaInicio"
-                               name="fechaInicio"
-                               class="form-control"
-                               value="@Model.FechaInicio.ToString("yyyy-MM-dd")" />
-                    </div>
-
-
-                    <!-- FECHA FINAL -->
-                    <div class="col-md-4">
-                        <label for="fechaFin"
-                               class="form-label fw-semibold">
-                            Fecha final
-                        </label>
-
-                        <input type="date"
-                               id="fechaFin"
-                               name="fechaFin"
-                               class="form-control"
-                               value="@Model.FechaFin.ToString("yyyy-MM-dd")" />
-                    </div>
-
-
-                    <!-- BOTÓN -->
-                    <div class="col-md-4">
-                        <button type="submit"
-                                class="btn btn-primary w-100">
-
-                            <i class="bi bi-search me-1"></i>
-                            Consultar reporte
-
-                        </button>
-                    </div>
-
-                </div>
-            </form>
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
 
         </div>
-    </div>
+    }
 
 
-    <!-- =========================================================
-         INDICADORES PRINCIPALES
-    ========================================================== -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
 
-    <div class="row g-4 mb-4">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
-        <!-- TOTAL FACTURADO -->
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         ERRORES DEL MODELO
+         ============================================================ -->
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+
+            <div class="fw-bold mb-1">
+
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                Se encontraron errores
+
+            </div>
+
+            <div asp-validation-summary="All"></div>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         RESUMEN
+         ============================================================ -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL -->
+
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
 
-                    <div class="d-flex justify-content-between align-items-start">
+            <div class="card summary-card summary-primary h-100">
+
+                <div class="card-body py-3">
+
+                    <div class="d-flex justify-content-between
+                                align-items-center">
 
                         <div>
-                            <p class="text-muted mb-1">
-                                Total facturado
-                            </p>
 
-                            <h3 class="fw-bold mb-0">
-                                C$ @Model.TotalFacturado.ToString("N2")
-                            </h3>
+                            <div class="summary-label">
+                                Total reservaciones
+                            </div>
+
+                            <div class="summary-number">
+                                @totalReservaciones
+                            </div>
+
                         </div>
 
-                        <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                            <i class="bi bi-cash-stack text-primary fs-4"></i>
+                        <div class="summary-icon">
+
+                            <i class="bi bi-calendar3"></i>
+
                         </div>
 
                     </div>
 
-                    <hr />
-
-                    <small class="text-muted">
-                        @Model.CantidadFacturas factura(s)
-                    </small>
-
                 </div>
+
             </div>
+
         </div>
 
 
-        <!-- TOTAL PAGOS -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+        <!-- PENDIENTES -->
 
-                    <div class="d-flex justify-content-between align-items-start">
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card summary-card summary-warning h-100">
+
+                <div class="card-body py-3">
+
+                    <div class="d-flex justify-content-between
+                                align-items-center">
 
                         <div>
-                            <p class="text-muted mb-1">
-                                Total de pagos
-                            </p>
 
-                            <h3 class="fw-bold mb-0">
-                                C$ @Model.TotalPagos.ToString("N2")
-                            </h3>
+                            <div class="summary-label">
+                                Pendientes
+                            </div>
+
+                            <div class="summary-number text-warning">
+                                @pendientes
+                            </div>
+
                         </div>
 
-                        <div class="rounded-circle bg-success bg-opacity-10 p-3">
-                            <i class="bi bi-wallet2 text-success fs-4"></i>
+                        <div class="summary-icon">
+
+                            <i class="bi bi-clock-history"></i>
+
                         </div>
 
                     </div>
 
-                    <hr />
-
-                    <small class="text-muted">
-                        @Model.CantidadPagos pago(s)
-                    </small>
-
                 </div>
+
             </div>
+
         </div>
 
 
-        <!-- TOTAL COMPRAS -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+        <!-- CONFIRMADAS -->
 
-                    <div class="d-flex justify-content-between align-items-start">
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card summary-card summary-success h-100">
+
+                <div class="card-body py-3">
+
+                    <div class="d-flex justify-content-between
+                                align-items-center">
 
                         <div>
-                            <p class="text-muted mb-1">
-                                Total de compras
-                            </p>
 
-                            <h3 class="fw-bold mb-0">
-                                C$ @Model.TotalCompras.ToString("N2")
-                            </h3>
+                            <div class="summary-label">
+                                Confirmadas
+                            </div>
+
+                            <div class="summary-number text-success">
+                                @confirmadas
+                            </div>
+
                         </div>
 
-                        <div class="rounded-circle bg-warning bg-opacity-10 p-3">
-                            <i class="bi bi-cart-check text-warning fs-4"></i>
+                        <div class="summary-icon">
+
+                            <i class="bi bi-check-circle"></i>
+
                         </div>
 
                     </div>
 
-                    <hr />
-
-                    <small class="text-muted">
-                        @Model.CantidadCompras compra(s)
-                    </small>
-
                 </div>
+
             </div>
+
         </div>
 
 
-        <!-- SALDO PENDIENTE -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+        <!-- FINALIZADAS -->
 
-                    <div class="d-flex justify-content-between align-items-start">
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card summary-card summary-info h-100">
+
+                <div class="card-body py-3">
+
+                    <div class="d-flex justify-content-between
+                                align-items-center">
 
                         <div>
-                            <p class="text-muted mb-1">
-                                Saldo pendiente
-                            </p>
 
-                            <h3 class="fw-bold mb-0">
-                                C$ @Model.TotalSaldoPendiente.ToString("N2")
-                            </h3>
+                            <div class="summary-label">
+                                Finalizadas
+                            </div>
+
+                            <div class="summary-number text-info">
+                                @finalizadas
+                            </div>
+
                         </div>
 
-                        <div class="rounded-circle bg-danger bg-opacity-10 p-3">
-                            <i class="bi bi-exclamation-circle text-danger fs-4"></i>
+                        <div class="summary-icon">
+
+                            <i class="bi bi-flag-fill"></i>
+
                         </div>
 
                     </div>
 
-                    <hr />
-
-                    <small class="text-muted">
-                        Pendiente por cobrar
-                    </small>
-
                 </div>
+
             </div>
+
         </div>
 
     </div>
 
 
-    <!-- =========================================================
-         SEGUNDA FILA - CLIENTES / PROVEEDORES / PRODUCTOS
-    ========================================================== -->
+    <!-- ============================================================
+         INFORMACIÓN ADICIONAL
+         ============================================================ -->
 
-    <div class="row g-4 mb-4">
+    <div class="d-flex flex-wrap gap-2 mb-4">
 
-        <!-- CLIENTES -->
-        <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
+        @if (activas > 0)
+        {
+            <span class="badge bg-primary p-2">
 
-                    <div class="d-flex align-items-center">
+                <i class="bi bi-calendar-check me-1"></i>
 
-                        <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
-                            <i class="bi bi-people text-info fs-4"></i>
-                        </div>
+                @activas reservación(es) activa(s)
 
-                        <div>
-                            <p class="text-muted mb-1">
-                                Clientes activos
-                            </p>
+            </span>
+        }
 
-                            <h4 class="fw-bold mb-0">
-                                @Model.CantidadClientes
-                            </h4>
-                        </div>
+        @if (canceladas > 0)
+        {
+            <span class="badge bg-danger p-2">
 
-                    </div>
+                <i class="bi bi-x-circle me-1"></i>
 
-                </div>
-            </div>
-        </div>
+                @canceladas cancelada(s)
 
+            </span>
+        }
 
-        <!-- PROVEEDORES -->
-        <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
+        @if (noAsistieron > 0)
+        {
+            <span class="badge bg-secondary p-2">
 
-                    <div class="d-flex align-items-center">
+                <i class="bi bi-person-x me-1"></i>
 
-                        <div class="rounded-circle bg-secondary bg-opacity-10 p-3 me-3">
-                            <i class="bi bi-truck text-secondary fs-4"></i>
-                        </div>
+                @noAsistieron no asistió
 
-                        <div>
-                            <p class="text-muted mb-1">
-                                Proveedores activos
-                            </p>
-
-                            <h4 class="fw-bold mb-0">
-                                @Model.CantidadProveedores
-                            </h4>
-                        </div>
-
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-
-        <!-- PRODUCTOS -->
-        <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-
-                    <div class="d-flex align-items-center">
-
-                        <div class="rounded-circle bg-dark bg-opacity-10 p-3 me-3">
-                            <i class="bi bi-box-seam text-dark fs-4"></i>
-                        </div>
-
-                        <div>
-                            <p class="text-muted mb-1">
-                                Productos activos
-                            </p>
-
-                            <h4 class="fw-bold mb-0">
-                                @Model.CantidadProductos
-                            </h4>
-                        </div>
-
-                    </div>
-
-                </div>
-            </div>
-        </div>
+            </span>
+        }
 
     </div>
 
 
-    <!-- =========================================================
-         PERÍODO CONSULTADO
-    ========================================================== -->
+    <!-- ============================================================
+         TABLA
+         ============================================================ -->
 
-    <div class="alert alert-light border shadow-sm mb-4">
+    <div class="card reservation-card">
 
-        <i class="bi bi-calendar3 me-2"></i>
+        <div class="reservation-header">
 
-        <strong>Período consultado:</strong>
+            <div class="d-flex justify-content-between
+                        align-items-center">
 
-        @Model.FechaInicio.ToString("dd/MM/yyyy")
-        -
-        @Model.FechaFin.ToString("dd/MM/yyyy")
+                <div class="reservation-header-title">
 
-    </div>
+                    <i class="bi bi-list-ul me-2"></i>
 
-
-    <!-- =========================================================
-         GRÁFICAS
-    ========================================================== -->
-
-    <div class="row g-4">
-
-        <!-- =====================================================
-             VENTAS POR FECHA
-        ====================================================== -->
-
-        <div class="col-lg-8">
-
-            <div class="card border-0 shadow-sm h-100">
-
-                <div class="card-header bg-white border-0 py-3">
-
-                    <div class="d-flex justify-content-between align-items-center">
-
-                        <div>
-                            <h5 class="fw-bold mb-1">
-                                Ventas por fecha
-                            </h5>
-
-                            <small class="text-muted">
-                                Evolución de las ventas durante el período
-                            </small>
-                        </div>
-
-                        <i class="bi bi-graph-up-arrow text-primary fs-4"></i>
-
-                    </div>
+                    Listado de reservaciones
 
                 </div>
 
+                <span class="badge bg-light text-dark reservation-count">
 
-                <div class="card-body">
+                    @totalReservaciones registro(s)
 
-                    @if (Model.VentasPorFecha != null &&
-                         Model.VentasPorFecha.Any())
-                    {
-                        <div style="height: 350px;">
-                            <canvas id="ventasChart"></canvas>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-center text-muted py-5">
-
-                            <i class="bi bi-bar-chart fs-1"></i>
-
-                            <p class="mt-3 mb-0">
-                                No hay ventas registradas
-                                en este período.
-                            </p>
-
-                        </div>
-                    }
-
-                </div>
+                </span>
 
             </div>
 
         </div>
 
 
-        <!-- =====================================================
-             MÉTODOS DE PAGO
-        ====================================================== -->
+        <div class="card-body p-0">
 
-        <div class="col-lg-4">
+            @if (!reservaciones.Any())
+            {
+                <div class="empty-state">
 
-            <div class="card border-0 shadow-sm h-100">
+                    <div class="empty-icon">
 
-                <div class="card-header bg-white border-0 py-3">
-
-                    <div class="d-flex justify-content-between align-items-center">
-
-                        <div>
-                            <h5 class="fw-bold mb-1">
-                                Métodos de pago
-                            </h5>
-
-                            <small class="text-muted">
-                                Distribución de pagos recibidos
-                            </small>
-                        </div>
-
-                        <i class="bi bi-credit-card text-success fs-4"></i>
+                        <i class="bi bi-calendar-x"></i>
 
                     </div>
 
+                    <h5 class="mb-2">
+                        No hay reservaciones registradas
+                    </h5>
+
+                    <p class="text-muted mb-4">
+
+                        Todavía no existen reservaciones
+                        en el sistema.
+
+                    </p>
+
+                    <a asp-controller="Reservacion"
+                       asp-action="Create"
+                       class="btn btn-primary">
+
+                        <i class="bi bi-plus-lg me-1"></i>
+
+                        Crear primera reservación
+
+                    </a>
+
                 </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table reservation-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="col-id">
+                                    #
+                                </th>
+
+                                <th class="col-reserva">
+                                    Reservación
+                                </th>
+
+                                <th class="col-fecha">
+                                    Fecha
+                                </th>
+
+                                <th class="col-hora">
+                                    Horario
+                                </th>
+
+                                <th class="col-cliente">
+                                    Cliente
+                                </th>
+
+                                <th class="col-mesa">
+                                    Mesa
+                                </th>
+
+                                <th class="col-personas text-center">
+                                    Personas
+                                </th>
+
+                                <th class="col-observacion">
+                                    Observación
+                                </th>
+
+                                <th class="col-estado">
+                                    Estado
+                                </th>
+
+                                <th class="col-acciones text-center">
+                                    Acciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
 
 
-                <div class="card-body">
+                        <tbody>
 
-                    @if (Model.PagosPorMetodo != null &&
-                         Model.PagosPorMetodo.Any())
-                    {
-                        <!-- GRÁFICA -->
+                        @foreach (var reservacion in reservaciones)
+                        {
+                            <tr>
 
-                        <div style="height: 280px;">
-                            <canvas id="pagosChart"></canvas>
-                        </div>
+                                <!-- ====================================================
+                                     ID
+                                     ==================================================== -->
 
+                                <td class="text-center">
 
-                        <!-- DETALLE DE MÉTODOS -->
+                                    <span class="col-id">
 
-                        <div class="mt-4">
+                                        @reservacion.IdReservacion
 
-                            @foreach (var pago in Model.PagosPorMetodo)
-                            {
-                                var simbolo =
-                                    string.IsNullOrWhiteSpace(
-                                        pago.SimboloMoneda)
-                                    ? "C$"
-                                    : pago.SimboloMoneda;
+                                    </span>
 
-                                var metodo =
-                                    string.IsNullOrWhiteSpace(
-                                        pago.MetodoPago)
-                                    ? "Sin método"
-                                    : pago.MetodoPago;
-
-                                <div class="border rounded p-3 mb-2">
-
-                                    <div class="d-flex justify-content-between align-items-center">
-
-                                        <div>
-
-                                            <div class="fw-semibold">
-                                                <i class="bi bi-wallet2 me-1"></i>
-                                                @metodo
-                                            </div>
-
-                                            <small class="text-muted">
-
-                                                @pago.Cantidad pago(s)
-
-                                                @if (!string.IsNullOrWhiteSpace(
-                                                    pago.Moneda))
-                                                {
-                                                    <span>
-                                                        · @pago.Moneda
-                                                    </span>
-                                                }
-
-                                            </small>
-
-                                        </div>
+                                </td>
 
 
-                                        <div class="text-end">
+                                <!-- ====================================================
+                                     RESERVACIÓN
+                                     ==================================================== -->
 
-                                            <strong class="d-block">
-                                                @simbolo
-                                                @pago.Total.ToString("N2")
-                                            </strong>
+                                <td>
 
-                                            @if (!string.IsNullOrWhiteSpace(
-                                                pago.CodigoMoneda))
-                                            {
-                                                <small class="text-muted">
-                                                    @pago.CodigoMoneda
-                                                </small>
-                                            }
+                                    <div class="reservation-number">
 
-                                        </div>
+                                        Reserva #@reservacion.IdReservacion
 
                                     </div>
 
-                                </div>
-                            }
+                                    <span class="reservation-label">
 
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-center text-muted py-5">
+                                        Registrada:
+                                        @reservacion.FechaRegistro.ToString(
+                                            "dd/MM/yyyy HH:mm")
 
-                            <i class="bi bi-credit-card fs-1"></i>
+                                    </span>
 
-                            <p class="mt-3 mb-0">
-                                No hay pagos registrados
-                                en este período.
-                            </p>
+                                </td>
 
-                        </div>
-                    }
+
+                                <!-- ====================================================
+                                     FECHA
+                                     ==================================================== -->
+
+                                <td>
+
+                                    <span class="date-main">
+
+                                        @reservacion.FechaReserva.ToString(
+                                            "dd/MM/yyyy")
+
+                                    </span>
+
+                                    @{
+                                        var fechaReserva =
+                                            reservacion.FechaReserva
+                                                .ToDateTime(TimeOnly.MinValue);
+
+                                        var diaSemana =
+                                            fechaReserva.ToString(
+                                                "dddd",
+                                                new System.Globalization.CultureInfo("es-ES"));
+                                    }
+
+                                    <span class="date-weekday">
+
+                                        @diaSemana
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- ====================================================
+                                     HORARIO
+                                     ==================================================== -->
+
+                                <td>
+
+                                    <span class="time-main">
+
+                                        @reservacion.HoraInicio.ToString("HH:mm")
+
+                                    </span>
+
+                                    <span class="time-separator">
+                                        -
+                                    </span>
+
+                                    <span class="time-main">
+
+                                        @reservacion.HoraFin.ToString("HH:mm")
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- ====================================================
+                                     CLIENTE
+                                     ==================================================== -->
+
+                                <td>
+
+                                    @if (reservacion.IdClienteNavigation != null)
+                                    {
+                                        var cliente =
+                                            reservacion.IdClienteNavigation;
+
+                                        var nombre =
+                                            $"{cliente.Nombres} {cliente.Apellidos}"
+                                                .Trim();
+
+                                        if (string.IsNullOrWhiteSpace(nombre))
+                                        {
+                                            nombre =
+                                                $"Cliente #{cliente.IdCliente}";
+                                        }
+
+                                        <div class="client-name"
+                                             title="@nombre">
+
+                                            @nombre
+
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            cliente.Cedula))
+                                        {
+                                            <span class="client-document">
+
+                                                Cédula:
+                                                @cliente.Cedula
+
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">
+
+                                            Cliente no disponible
+
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <!-- ====================================================
+                                     MESA
+                                     ==================================================== -->
+
+                                <td>
+
+                                    @if (reservacion.IdMesaNavigation != null)
+                                    {
+                                        <div class="table-number">
+
+                                            Mesa
+                                            @reservacion.IdMesaNavigation.NumeroMesa
+
+                                        </div>
+
+                                        <span class="table-capacity">
+
+                                            Capacidad:
+                                            @reservacion.IdMesaNavigation.Capacidad
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">
+
+                                            Mesa #@reservacion.IdMesa
+
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <!-- ====================================================
+                                     PERSONAS
+                                     ==================================================== -->
+
+                                <td class="text-center">
+
+                                    <span class="people-count">
+
+                                        <i class="bi bi-people me-1"></i>
+
+                                        @reservacion.CantidadPersonas
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- ====================================================
+                                     OBSERVACIÓN
+                                     ==================================================== -->
+
+                                <td>
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        reservacion.Observacion))
+                                    {
+                                        <div class="observation"
+                                             title="@reservacion.Observacion">
+
+                                            @reservacion.Observacion
+
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">
+                                            —
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <!-- ====================================================
+                                     ESTADO
+                                     ==================================================== -->
+
+                                <td>
+
+                                    @switch (reservacion.IdEstadoReservacion)
+                                    {
+                                        case ESTADO_PENDIENTE:
+
+                                            <span class="status-badge bg-warning text-dark">
+
+                                                <i class="bi bi-clock"></i>
+
+                                                @(reservacion
+                                                    .IdEstadoReservacionNavigation
+                                                    ?.Nombre ?? "Pendiente")
+
+                                            </span>
+
+                                            break;
+
+
+                                        case ESTADO_CONFIRMADA:
+
+                                            <span class="status-badge bg-success text-white">
+
+                                                <i class="bi bi-check-circle"></i>
+
+                                                @(reservacion
+                                                    .IdEstadoReservacionNavigation
+                                                    ?.Nombre ?? "Confirmada")
+
+                                            </span>
+
+                                            break;
+
+
+                                        case ESTADO_LLEGO:
+
+                                            <span class="status-badge bg-primary text-white">
+
+                                                <i class="bi bi-person-check"></i>
+
+                                                @(reservacion
+                                                    .IdEstadoReservacionNavigation
+                                                    ?.Nombre ?? "Cliente llegó")
+
+                                            </span>
+
+                                            break;
+
+
+                                        case ESTADO_FINALIZADA:
+
+                                            <span class="status-badge bg-info text-dark">
+
+                                                <i class="bi bi-flag-fill"></i>
+
+                                                @(reservacion
+                                                    .IdEstadoReservacionNavigation
+                                                    ?.Nombre ?? "Finalizada")
+
+                                            </span>
+
+                                            break;
+
+
+                                        case ESTADO_CANCELADA:
+
+                                            <span class="status-badge bg-danger text-white">
+
+                                                <i class="bi bi-x-circle"></i>
+
+                                                @(reservacion
+                                                    .IdEstadoReservacionNavigation
+                                                    ?.Nombre ?? "Cancelada")
+
+                                            </span>
+
+                                            break;
+
+
+                                        case ESTADO_NO_ASISTIO:
+
+                                            <span class="status-badge bg-secondary text-white">
+
+                                                <i class="bi bi-person-x"></i>
+
+                                                @(reservacion
+                                                    .IdEstadoReservacionNavigation
+                                                    ?.Nombre ?? "No asistió")
+
+                                            </span>
+
+                                            break;
+
+
+                                        default:
+
+                                            <span class="status-badge bg-secondary text-white">
+
+                                                <i class="bi bi-question-circle"></i>
+
+                                                @(reservacion
+                                                    .IdEstadoReservacionNavigation
+                                                    ?.Nombre ?? "Desconocido")
+
+                                            </span>
+
+                                            break;
+                                    }
+
+                                </td>
+
+
+                                <!-- ====================================================
+                                     ACCIONES
+                                     ==================================================== -->
+
+                                <td>
+
+                                    <div class="actions">
+
+                                        <!-- VER -->
+
+                                        <a asp-controller="Reservacion"
+                                           asp-action="Details"
+                                           asp-route-id="@reservacion.IdReservacion"
+                                           class="btn btn-sm btn-outline-primary btn-action"
+                                           title="Ver detalle"
+                                           data-bs-toggle="tooltip">
+
+                                            <i class="bi bi-eye"></i>
+
+                                        </a>
+
+
+                                        <!-- EDITAR -->
+
+                                        <a asp-controller="Reservacion"
+                                           asp-action="Edit"
+                                           asp-route-id="@reservacion.IdReservacion"
+                                           class="btn btn-sm btn-outline-warning btn-action"
+                                           title="Editar"
+                                           data-bs-toggle="tooltip">
+
+                                            <i class="bi bi-pencil"></i>
+
+                                        </a>
+
+
+                                        <!-- ====================================================
+                                             CANCELAR / DESACTIVAR
+                                             ==================================================== -->
+
+                                        @if (reservacion.IdEstadoReservacion == ESTADO_PENDIENTE ||
+                                             reservacion.IdEstadoReservacion == ESTADO_CONFIRMADA)
+                                        {
+                                            <a asp-controller="Reservacion"
+                                               asp-action="Delete"
+                                               asp-route-id="@reservacion.IdReservacion"
+                                               class="btn btn-sm btn-outline-danger btn-action"
+                                               title="Cancelar reservación"
+                                               data-bs-toggle="tooltip">
+
+                                                <i class="bi bi-x-circle"></i>
+
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary btn-action"
+                                                    disabled
+                                                    title="No se puede cancelar"
+                                                    data-bs-toggle="tooltip">
+
+                                                <i class="bi bi-x-circle"></i>
+
+                                            </button>
+                                        }
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                        </tbody>
+
+                    </table>
 
                 </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- =========================================================
-         RESUMEN FINANCIERO
-    ========================================================== -->
-
-    <div class="card border-0 shadow-sm mt-4">
-
-        <div class="card-header bg-white border-0 py-3">
-
-            <h5 class="fw-bold mb-0">
-                <i class="bi bi-calculator me-2"></i>
-                Resumen financiero
-            </h5>
-
-        </div>
-
-
-        <div class="card-body">
-
-            <div class="row g-4">
-
-                <!-- FACTURACIÓN -->
-                <div class="col-md-4">
-
-                    <div class="border rounded p-3">
-
-                        <small class="text-muted d-block">
-                            Facturación
-                        </small>
-
-                        <h4 class="fw-bold text-primary mb-0">
-                            C$ @Model.TotalFacturado.ToString("N2")
-                        </h4>
-
-                    </div>
-
-                </div>
-
-
-                <!-- DESCUENTOS -->
-                <div class="col-md-4">
-
-                    <div class="border rounded p-3">
-
-                        <small class="text-muted d-block">
-                            Descuentos
-                        </small>
-
-                        <h4 class="fw-bold text-warning mb-0">
-                            C$ @Model.TotalDescuentos.ToString("N2")
-                        </h4>
-
-                    </div>
-
-                </div>
-
-
-                <!-- IMPUESTOS -->
-                <div class="col-md-4">
-
-                    <div class="border rounded p-3">
-
-                        <small class="text-muted d-block">
-                            Impuestos
-                        </small>
-
-                        <h4 class="fw-bold text-success mb-0">
-                            C$ @Model.TotalImpuestos.ToString("N2")
-                        </h4>
-
-                    </div>
-
-                </div>
-
-            </div>
+            }
 
         </div>
 
@@ -646,234 +1317,18 @@
 </div>
 
 
-<!-- =============================================================
-     CHART.JS
-============================================================== -->
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
 
-        // =========================================================
-        // GRÁFICA DE VENTAS
-        // =========================================================
+        const tooltipTriggerList =
+            document.querySelectorAll('[data-bs-toggle="tooltip"]');
 
-        const ventasCanvas =
-            document.getElementById("ventasChart");
+        tooltipTriggerList.forEach(function (element) {
 
-        if (ventasCanvas) {
+            new bootstrap.Tooltip(element);
 
-            new Chart(ventasCanvas, {
-
-                type: "line",
-
-                data: {
-
-                    labels: [
-                        @Html.Raw(ventasLabels)
-                    ],
-
-                    datasets: [{
-
-                        label: "Ventas",
-
-                        data: [
-                            @Html.Raw(ventasData)
-                        ],
-
-                        borderColor: "#0d6efd",
-
-                        backgroundColor:
-                            "rgba(13, 110, 253, 0.10)",
-
-                        borderWidth: 3,
-
-                        fill: true,
-
-                        tension: 0.35,
-
-                        pointRadius: 4,
-
-                        pointBackgroundColor: "#0d6efd"
-
-                    }]
-
-                },
-
-                options: {
-
-                    responsive: true,
-
-                    maintainAspectRatio: false,
-
-                    plugins: {
-
-                        legend: {
-                            display: false
-                        },
-
-                        tooltip: {
-
-                            callbacks: {
-
-                                label: function(context) {
-
-                                    return "C$ " +
-                                        Number(context.raw)
-                                            .toLocaleString(
-                                                "es-NI",
-                                                {
-                                                    minimumFractionDigits: 2,
-                                                    maximumFractionDigits: 2
-                                                }
-                                            );
-
-                                }
-
-                            }
-
-                        }
-
-                    },
-
-                    scales: {
-
-                        y: {
-
-                            beginAtZero: true,
-
-                            ticks: {
-
-                                callback: function(value) {
-
-                                    return "C$ " +
-                                        Number(value)
-                                            .toLocaleString(
-                                                "es-NI",
-                                                {
-                                                    minimumFractionDigits: 2
-                                                }
-                                            );
-
-                                }
-
-                            }
-
-                        }
-
-                    }
-
-                }
-
-            });
-
-        }
-
-
-        // =========================================================
-        // GRÁFICA DE MÉTODOS DE PAGO
-        // =========================================================
-
-        const pagosCanvas =
-            document.getElementById("pagosChart");
-
-        if (pagosCanvas) {
-
-            new Chart(pagosCanvas, {
-
-                type: "doughnut",
-
-                data: {
-
-                    labels: [
-                        @Html.Raw(pagosLabels)
-                    ],
-
-                    datasets: [{
-
-                        data: [
-                            @Html.Raw(pagosData)
-                        ],
-
-                        backgroundColor: [
-                            "#0d6efd",
-                            "#198754",
-                            "#ffc107",
-                            "#dc3545",
-                            "#6f42c1",
-                            "#20c997",
-                            "#fd7e14",
-                            "#0dcaf0"
-                        ],
-
-                        borderWidth: 2,
-
-                        borderColor: "#ffffff"
-
-                    }]
-
-                },
-
-                options: {
-
-                    responsive: true,
-
-                    maintainAspectRatio: false,
-
-                    cutout: "60%",
-
-                    plugins: {
-
-                        legend: {
-
-                            position: "bottom",
-
-                            labels: {
-
-                                padding: 15,
-
-                                usePointStyle: true
-
-                            }
-
-                        },
-
-                        tooltip: {
-
-                            callbacks: {
-
-                                label: function(context) {
-
-                                    const value =
-                                        Number(context.raw)
-                                            .toLocaleString(
-                                                "es-NI",
-                                                {
-                                                    minimumFractionDigits: 2,
-                                                    maximumFractionDigits: 2
-                                                }
-                                            );
-
-                                    return " " +
-                                        context.label +
-                                        ": C$ " +
-                                        value;
-
-                                }
-
-                            }
-
-                        }
-
-                    }
-
-                }
-
-            });
-
-        }
+        });
 
     });
 

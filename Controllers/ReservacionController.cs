@@ -91,16 +91,6 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Reservacion reservacion)
         {
-            // ========================================================
-            // IMPORTANTE
-            // ========================================================
-            // Las propiedades Navigation no vienen del formulario.
-            // Entity Framework las utilizará posteriormente.
-            //
-            // Por eso no debemos permitir que MVC las valide como
-            // campos obligatorios.
-            // ========================================================
-
             ModelState.Remove(nameof(Reservacion.IdClienteNavigation));
             ModelState.Remove(nameof(Reservacion.IdMesaNavigation));
             ModelState.Remove(nameof(Reservacion.IdEstadoReservacionNavigation));
@@ -259,12 +249,6 @@ namespace WebApplication1.Controllers
             // ========================================================
             // ESTADO INICIAL AUTOMÁTICO
             // ========================================================
-            //
-            // 1 = Pendiente
-            //
-            // La reservación siempre comienza como Pendiente.
-            // El usuario no necesita seleccionarlo manualmente.
-            // ========================================================
 
             const int estadoPendiente = 1;
 
@@ -391,10 +375,6 @@ namespace WebApplication1.Controllers
             int id,
             Reservacion reservacion)
         {
-            // ========================================================
-            // QUITAR VALIDACIÓN DE NAVIGATION PROPERTIES
-            // ========================================================
-
             ModelState.Remove(nameof(Reservacion.IdClienteNavigation));
             ModelState.Remove(nameof(Reservacion.IdMesaNavigation));
             ModelState.Remove(nameof(Reservacion.IdEstadoReservacionNavigation));
@@ -704,38 +684,101 @@ namespace WebApplication1.Controllers
 
         // ============================================================
         // POST: Reservacion/Delete/5
+        // CANCELACIÓN LÓGICA
         // ============================================================
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var reservacion =
-                await _context.Reservacions
-                    .FindAsync(id);
+            var reservacion = await _context.Reservacions
+                .FirstOrDefaultAsync(r => r.IdReservacion == id);
 
             if (reservacion == null)
             {
                 return NotFound();
             }
 
+            // ========================================================
+            // SOLO SE PUEDEN CANCELAR RESERVACIONES PENDIENTES O
+            // CONFIRMADAS.
+            //
+            // 1 = Pendiente
+            // 2 = Confirmada
+            // 3 = Cliente llegó
+            // 4 = Finalizada
+            // 5 = Cancelada
+            // 6 = No asistió
+            // ========================================================
+
+            if (reservacion.IdEstadoReservacion == 3 ||
+                reservacion.IdEstadoReservacion == 4)
+            {
+                TempData["Error"] =
+                    "Esta reservación no puede cancelarse porque el cliente ya llegó o la reservación ya fue finalizada.";
+
+                return RedirectToAction(nameof(Details), new
+                {
+                    id = reservacion.IdReservacion
+                });
+            }
+
+            if (reservacion.IdEstadoReservacion == 5)
+            {
+                TempData["Error"] =
+                    "Esta reservación ya se encuentra cancelada.";
+
+                return RedirectToAction(nameof(Details), new
+                {
+                    id = reservacion.IdReservacion
+                });
+            }
+
+            if (reservacion.IdEstadoReservacion == 6)
+            {
+                TempData["Error"] =
+                    "Esta reservación ya está marcada como no asistió.";
+
+                return RedirectToAction(nameof(Details), new
+                {
+                    id = reservacion.IdReservacion
+                });
+            }
+
             try
             {
-                _context.Reservacions.Remove(reservacion);
+                // ====================================================
+                // CANCELACIÓN LÓGICA
+                // ====================================================
+
+                reservacion.IdEstadoReservacion = 5;
 
                 await _context.SaveChangesAsync();
 
                 TempData["Success"] =
-                    "La reservación se eliminó correctamente.";
+                    "La reservación fue cancelada correctamente. El registro se conservó en el sistema.";
 
                 return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                TempData["Error"] =
+                    "La reservación fue modificada por otro usuario. Inténtelo nuevamente.";
+
+                return RedirectToAction(nameof(Details), new
+                {
+                    id = reservacion.IdReservacion
+                });
             }
             catch (DbUpdateException ex)
             {
                 TempData["Error"] =
                     ObtenerMensajeErrorBaseDatos(ex);
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new
+                {
+                    id = reservacion.IdReservacion
+                });
             }
         }
 
@@ -864,9 +907,6 @@ namespace WebApplication1.Controllers
                     idMesa = m.IdMesa,
                     numeroMesa = m.NumeroMesa,
                     capacidad = m.Capacidad,
-
-                    // La primera será la recomendada porque estamos
-                    // ordenando por capacidad ascendente.
                     recomendada = false
                 })
                 .ToList();

@@ -1,42 +1,73 @@
 ﻿@model WebApplication1.Models.Reservacion
 
 @{
-    ViewData["Title"] = "Eliminar reservación";
+    ViewData["Title"] = "Cancelar reservación";
 
     var nombreCliente =
         $"{Model.IdClienteNavigation?.Nombres} {Model.IdClienteNavigation?.Apellidos}".Trim();
 
+    if (string.IsNullOrWhiteSpace(nombreCliente))
+    {
+        nombreCliente = "Cliente no disponible";
+    }
+
     var nombreEstado =
         Model.IdEstadoReservacionNavigation?.Nombre ?? "Sin estado";
 
-    var puedeEliminar =
-        Model.IdEstadoReservacion != 3 &&
-        Model.IdEstadoReservacion != 4;
+
+    // ============================================================
+    // ESTADOS
+    // ============================================================
+
+    const int ESTADO_PENDIENTE = 1;
+    const int ESTADO_CONFIRMADA = 2;
+    const int ESTADO_LLEGO = 3;
+    const int ESTADO_FINALIZADA = 4;
+    const int ESTADO_CANCELADA = 5;
+    const int ESTADO_NO_ASISTIO = 6;
+
+
+    // ============================================================
+    // VALIDAR SI PUEDE CANCELARSE
+    // ============================================================
+
+    var puedeCancelar =
+        Model.IdEstadoReservacion == ESTADO_PENDIENTE ||
+        Model.IdEstadoReservacion == ESTADO_CONFIRMADA;
 
 }
 
+
 <div class="container-fluid">
+
     <!-- ========================================================= -->
     <!-- ENCABEZADO -->
     <!-- ========================================================= -->
 
     <div class="d-flex flex-column flex-md-row
-        justify-content-between
-        align-items-md-center
-        gap-3 mb-4">
+                justify-content-between
+                align-items-md-center
+                gap-3 mb-4">
 
         <div>
 
             <h2 class="mb-1">
-                <i class="bi bi-trash3 text-danger me-2"></i>
-                Eliminar reservación
+
+                <i class="bi bi-x-circle text-danger me-2"></i>
+
+                Cancelar reservación
+
             </h2>
 
             <p class="text-muted mb-0">
-                Verifique la información antes de eliminar la reservación.
+
+                Verifique la información antes de cancelar
+                la reservación.
+
             </p>
 
         </div>
+
 
         <div>
 
@@ -55,9 +86,10 @@
 
 
     <!-- ========================================================= -->
-    <!-- ALERTA -->
+    <!-- ALERTA CUANDO NO SE PUEDE CANCELAR -->
     <!-- ========================================================= -->
-    @if (!puedeEliminar)
+
+    @if (!puedeCancelar)
     {
         <div class="alert alert-warning d-flex align-items-start mb-4">
 
@@ -65,20 +97,41 @@
 
             <div>
 
-                <strong>No se puede eliminar esta reservación.</strong>
+                <strong>
+                    Esta reservación no puede cancelarse.
+                </strong>
 
                 <div class="mt-1">
 
-                    @if (Model.IdEstadoReservacion == 3)
+                    @if (Model.IdEstadoReservacion == ESTADO_LLEGO)
                     {
                         <span>
                             El cliente ya fue marcado como llegado.
                         </span>
                     }
-                    else if (Model.IdEstadoReservacion == 4)
+                    else if (Model.IdEstadoReservacion == ESTADO_FINALIZADA)
                     {
                         <span>
                             La reservación ya fue finalizada.
+                        </span>
+                    }
+                    else if (Model.IdEstadoReservacion == ESTADO_CANCELADA)
+                    {
+                        <span>
+                            La reservación ya se encuentra cancelada.
+                        </span>
+                    }
+                    else if (Model.IdEstadoReservacion == ESTADO_NO_ASISTIO)
+                    {
+                        <span>
+                            La reservación ya está marcada como no asistió.
+                        </span>
+                    }
+                    else
+                    {
+                        <span>
+                            El estado actual de la reservación no permite
+                            realizar esta operación.
                         </span>
                     }
 
@@ -98,32 +151,42 @@
 
         <div class="col-12 col-xl-9">
 
-            <div class="card border-0">
+            <div class="card border-0 shadow-sm">
+
+
+                <!-- ================================================= -->
+                <!-- HEADER -->
+                <!-- ================================================= -->
 
                 <div class="card-header py-3">
 
                     <div class="d-flex align-items-center">
 
                         <div class="rounded-circle
-                            bg-danger-subtle
-                            text-danger
-                            d-flex
-                            align-items-center
-                            justify-content-center"
+                                    bg-danger-subtle
+                                    text-danger
+                                    d-flex
+                                    align-items-center
+                                    justify-content-center"
                              style="width:45px;height:45px;">
 
                             <i class="bi bi-calendar-x fs-4"></i>
 
                         </div>
 
+
                         <div class="ms-3">
 
                             <h5 class="mb-0">
+
                                 Reservación #@Model.IdReservacion
+
                             </h5>
 
                             <small class="text-muted">
+
                                 Información de la reservación
+
                             </small>
 
                         </div>
@@ -133,7 +196,12 @@
                 </div>
 
 
+                <!-- ================================================= -->
+                <!-- BODY -->
+                <!-- ================================================= -->
+
                 <div class="card-body p-4">
+
 
                     <!-- ================================================= -->
                     <!-- INFORMACIÓN DEL CLIENTE -->
@@ -147,14 +215,20 @@
 
                     </h6>
 
+
                     <div class="row g-3 mb-4">
+
+
+                        <!-- NOMBRE -->
 
                         <div class="col-md-6">
 
-                            <div class="p-3 rounded border">
+                            <div class="p-3 rounded border h-100">
 
                                 <div class="text-muted small mb-1">
+
                                     Nombre completo
+
                                 </div>
 
                                 <div class="fw-semibold">
@@ -168,17 +242,22 @@
                         </div>
 
 
+                        <!-- TELÉFONO -->
+
                         <div class="col-md-6">
 
-                            <div class="p-3 rounded border">
+                            <div class="p-3 rounded border h-100">
 
                                 <div class="text-muted small mb-1">
+
                                     Teléfono
+
                                 </div>
 
                                 <div class="fw-semibold">
 
-                                    @(Model.IdClienteNavigation?.Telefono ?? "No registrado")
+                                    @(Model.IdClienteNavigation?.Telefono
+                                        ?? "No registrado")
 
                                 </div>
 
@@ -190,7 +269,7 @@
 
 
                     <!-- ================================================= -->
-                    <!-- INFORMACIÓN DE LA RESERVACIÓN -->
+                    <!-- INFORMACIÓN DE RESERVACIÓN -->
                     <!-- ================================================= -->
 
                     <h6 class="fw-bold mb-3">
@@ -203,6 +282,7 @@
 
 
                     <div class="row g-3 mb-4">
+
 
                         <!-- FECHA -->
 
@@ -227,7 +307,7 @@
                         </div>
 
 
-                        <!-- HORA -->
+                        <!-- HORARIO -->
 
                         <div class="col-md-6 col-lg-3">
 
@@ -242,7 +322,11 @@
                                 <div class="fw-semibold">
 
                                     @Model.HoraInicio.ToString("HH:mm")
-                                    -
+
+                                    <span class="text-muted mx-1">
+                                        -
+                                    </span>
+
                                     @Model.HoraFin.ToString("HH:mm")
 
                                 </div>
@@ -266,7 +350,14 @@
 
                                 <div class="fw-semibold">
 
-                                    Mesa @Model.IdMesaNavigation?.NumeroMesa.ToString("00")
+                                    @if (Model.IdMesaNavigation != null)
+                                    {
+                                        @:Mesa @Model.IdMesaNavigation.NumeroMesa
+                                    }
+                                    else
+                                    {
+                                        @:Mesa #@Model.IdMesa
+                                    }
 
                                 </div>
 
@@ -289,6 +380,8 @@
 
                                 <div class="fw-semibold">
 
+                                    <i class="bi bi-people me-1"></i>
+
                                     @Model.CantidadPersonas
 
                                 </div>
@@ -301,14 +394,14 @@
 
 
                     <!-- ================================================= -->
-                    <!-- ESTADO -->
+                    <!-- ESTADO ACTUAL -->
                     <!-- ================================================= -->
 
                     <h6 class="fw-bold mb-3">
 
                         <i class="bi bi-info-circle me-2"></i>
 
-                        Estado
+                        Estado actual
 
                     </h6>
 
@@ -317,7 +410,8 @@
 
                         @switch (Model.IdEstadoReservacion)
                         {
-                            case 1:
+
+                            case ESTADO_PENDIENTE:
 
                                 <span class="badge bg-warning text-dark fs-6 px-3 py-2">
 
@@ -329,9 +423,10 @@
 
                                 break;
 
-                            case 2:
 
-                                <span class="badge bg-primary fs-6 px-3 py-2">
+                            case ESTADO_CONFIRMADA:
+
+                                <span class="badge bg-success fs-6 px-3 py-2">
 
                                     <i class="bi bi-check-circle me-1"></i>
 
@@ -341,9 +436,10 @@
 
                                 break;
 
-                            case 3:
 
-                                <span class="badge bg-info text-dark fs-6 px-3 py-2">
+                            case ESTADO_LLEGO:
+
+                                <span class="badge bg-primary fs-6 px-3 py-2">
 
                                     <i class="bi bi-person-check me-1"></i>
 
@@ -353,9 +449,10 @@
 
                                 break;
 
-                            case 4:
 
-                                <span class="badge bg-success fs-6 px-3 py-2">
+                            case ESTADO_FINALIZADA:
+
+                                <span class="badge bg-info text-dark fs-6 px-3 py-2">
 
                                     <i class="bi bi-check2-all me-1"></i>
 
@@ -365,7 +462,8 @@
 
                                 break;
 
-                            case 5:
+
+                            case ESTADO_CANCELADA:
 
                                 <span class="badge bg-danger fs-6 px-3 py-2">
 
@@ -377,7 +475,8 @@
 
                                 break;
 
-                            case 6:
+
+                            case ESTADO_NO_ASISTIO:
 
                                 <span class="badge bg-secondary fs-6 px-3 py-2">
 
@@ -389,9 +488,12 @@
 
                                 break;
 
+
                             default:
 
                                 <span class="badge bg-secondary fs-6 px-3 py-2">
+
+                                    <i class="bi bi-question-circle me-1"></i>
 
                                     @nombreEstado
 
@@ -406,6 +508,7 @@
                     <!-- ================================================= -->
                     <!-- OBSERVACIÓN -->
                     <!-- ================================================= -->
+
                     @if (!string.IsNullOrWhiteSpace(Model.Observacion))
                     {
 
@@ -416,6 +519,7 @@
                             Observación
 
                         </h6>
+
 
                         <div class="alert alert-light border mb-4">
 
@@ -435,6 +539,7 @@
                         <i class="bi bi-calendar-plus me-1"></i>
 
                         Registrada el
+
                         @Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")
 
                     </div>
@@ -443,7 +548,8 @@
                     <!-- ================================================= -->
                     <!-- CONFIRMACIÓN -->
                     <!-- ================================================= -->
-                    @if (puedeEliminar)
+
+                    @if (puedeCancelar)
                     {
 
                         <div class="alert alert-danger">
@@ -452,17 +558,34 @@
 
                                 <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
 
+
                                 <div>
 
                                     <strong>
-                                        ¿Está seguro de eliminar esta reservación?
+
+                                        ¿Está seguro de cancelar esta reservación?
+
                                     </strong>
+
 
                                     <p class="mb-0 mt-1">
 
-                                        Esta acción eliminará permanentemente
-                                        la reservación del sistema y no podrá
-                                        deshacerse.
+                                        La reservación
+
+                                        <strong>
+                                            no será eliminada
+                                        </strong>
+
+                                        del sistema.
+
+                                        Se marcará como
+
+                                        <strong>
+                                            cancelada
+                                        </strong>
+
+                                        y permanecerá registrada
+                                        en el historial.
 
                                     </p>
 
@@ -478,19 +601,24 @@
                         <!-- ================================================= -->
 
                         <div class="d-flex flex-column
-                            flex-sm-row
-                            justify-content-end
-                            gap-2">
+                                    flex-sm-row
+                                    justify-content-end
+                                    gap-2">
+
+
+                            <!-- VOLVER -->
 
                             <a asp-action="Index"
                                class="btn btn-light">
 
-                                <i class="bi bi-x-lg me-1"></i>
+                                <i class="bi bi-arrow-left me-1"></i>
 
-                                Cancelar
+                                Volver
 
                             </a>
 
+
+                            <!-- VER DETALLES -->
 
                             <a asp-action="Details"
                                asp-route-id="@Model.IdReservacion"
@@ -503,30 +631,67 @@
                             </a>
 
 
+                            <!-- CANCELAR -->
+
                             <form asp-action="Delete"
                                   asp-route-id="@Model.IdReservacion"
                                   method="post"
                                   class="d-inline"
-                                  onsubmit="return confirmarEliminacion();">
+                                  onsubmit="return confirmarCancelacion();">
 
                                 @Html.AntiForgeryToken()
+
 
                                 <button type="submit"
                                         class="btn btn-danger">
 
-                                    <i class="bi bi-trash3 me-1"></i>
+                                    <i class="bi bi-x-circle me-1"></i>
 
-                                    Eliminar reservación
+                                    Cancelar reservación
 
                                 </button>
 
                             </form>
+
 
                         </div>
 
                     }
                     else
                     {
+
+                        <!-- ================================================= -->
+                        <!-- NO SE PUEDE CANCELAR -->
+                        <!-- ================================================= -->
+
+                        <div class="alert alert-light border">
+
+                            <div class="d-flex align-items-start">
+
+                                <i class="bi bi-info-circle fs-4 text-primary me-3"></i>
+
+                                <div>
+
+                                    <strong>
+                                        No se requiere ninguna acción.
+                                    </strong>
+
+                                    <p class="mb-0 mt-1">
+
+                                        La reservación conserva su estado
+                                        actual y no puede ser cancelada
+                                        desde esta pantalla.
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- BOTÓN VOLVER -->
 
                         <div class="d-flex justify-content-end">
 
@@ -552,15 +717,18 @@
     </div>
 
 </div>
+
+
 @section Scripts {
 
     <script>
 
-        function confirmarEliminacion() {
+        function confirmarCancelacion() {
 
             return confirm(
-                "¿Está seguro de eliminar esta reservación?\n\n" +
-                "Esta acción no se puede deshacer."
+                "¿Está seguro de cancelar esta reservación?\n\n" +
+                "La reservación NO será eliminada del sistema.\n" +
+                "Se marcará como CANCELADA y permanecerá registrada."
             );
 
         }

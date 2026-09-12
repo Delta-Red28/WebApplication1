@@ -24,6 +24,45 @@ namespace WebApplication1.Controllers
 
 
         // ============================================================
+        // GUARDAR CAMBIOS
+        // ============================================================
+
+        private async Task<bool> GuardarCambiosAsync()
+        {
+            try
+            {
+                await _context.SaveChangesAsync();
+
+                return true;
+            }
+            catch (DbUpdateException ex)
+            {
+                Exception error = ex;
+
+                while (error.InnerException != null)
+                {
+                    error = error.InnerException;
+                }
+
+                Console.WriteLine();
+                Console.WriteLine("==========================================");
+                Console.WriteLine("ERROR AL GUARDAR EN LA BASE DE DATOS");
+                Console.WriteLine("==========================================");
+                Console.WriteLine(error.Message);
+                Console.WriteLine("==========================================");
+                Console.WriteLine();
+
+                ModelState.AddModelError(
+                    "",
+                    "No fue posible guardar los cambios en la base de datos."
+                );
+
+                return false;
+            }
+        }
+
+
+        // ============================================================
         // LOGIN - GET
         // ============================================================
 
@@ -96,9 +135,8 @@ namespace WebApplication1.Controllers
             // DATOS VALIDADOS
             // ========================================================
 
-            string usuarioIngresado = usuario!.Trim();
-
-            string passwordIngresada = password!;
+            string usuarioIngresado = usuario?.Trim() ?? "";
+            string passwordIngresada = password ?? "";
 
 
             // ========================================================
@@ -150,11 +188,15 @@ namespace WebApplication1.Controllers
 
             try
             {
-                passwordCorrecta =
-                    BCrypt.Net.BCrypt.Verify(
-                        passwordIngresada,
-                        usuarioDb.PasswordHash
-                    );
+                if (!string.IsNullOrWhiteSpace(
+                    usuarioDb.PasswordHash))
+                {
+                    passwordCorrecta =
+                        BCrypt.Net.BCrypt.Verify(
+                            passwordIngresada,
+                            usuarioDb.PasswordHash
+                        );
+                }
             }
             catch
             {
@@ -170,7 +212,10 @@ namespace WebApplication1.Controllers
             {
                 usuarioDb.IntentosFallidos++;
 
-                await _context.SaveChangesAsync();
+                if (!await GuardarCambiosAsync())
+                {
+                    return View();
+                }
 
                 ModelState.AddModelError(
                     "",
@@ -189,7 +234,15 @@ namespace WebApplication1.Controllers
 
             usuarioDb.UltimoAcceso = DateTime.Now;
 
-            await _context.SaveChangesAsync();
+
+            // ========================================================
+            // GUARDAR ÚLTIMO ACCESO
+            // ========================================================
+
+            if (!await GuardarCambiosAsync())
+            {
+                return View();
+            }
 
 
             // ========================================================
@@ -242,55 +295,35 @@ namespace WebApplication1.Controllers
 
             var claims = new List<Claim>
             {
-                // ID DEL USUARIO
-
                 new Claim(
                     ClaimTypes.NameIdentifier,
                     usuarioDb.IdUsuario.ToString()
                 ),
-
-
-                // NOMBRE DE USUARIO
 
                 new Claim(
                     ClaimTypes.Name,
                     nombreUsuario
                 ),
 
-
-                // NOMBRES
-
                 new Claim(
                     ClaimTypes.GivenName,
                     nombres
                 ),
-
-
-                // APELLIDOS
 
                 new Claim(
                     ClaimTypes.Surname,
                     apellidos
                 ),
 
-
-                // NOMBRE COMPLETO
-
                 new Claim(
                     "NombreCompleto",
                     nombreCompleto
                 ),
 
-
-                // CORREO
-
                 new Claim(
                     ClaimTypes.Email,
                     correo
                 ),
-
-
-                // ROL
 
                 new Claim(
                     ClaimTypes.Role,
@@ -451,7 +484,7 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
-            // INDICAR A LA VISTA SI EL CAMBIO ES OBLIGATORIO
+            // INDICAR SI CAMBIO ES OBLIGATORIO
             // ========================================================
 
             ViewBag.DebeCambiarPassword =
@@ -533,7 +566,7 @@ namespace WebApplication1.Controllers
 
 
             // ========================================================
-            // VALIDAR LONGITUD MINIMA
+            // VALIDAR LONGITUD
             // ========================================================
 
             if (!string.IsNullOrWhiteSpace(nuevaPassword) &&
@@ -552,13 +585,10 @@ namespace WebApplication1.Controllers
 
             if (!ModelState.IsValid)
             {
-                // Volvemos a determinar si el cambio era obligatorio
-
                 var claimIdError =
                     User.FindFirstValue(
                         ClaimTypes.NameIdentifier
                     );
-
 
                 if (int.TryParse(
                     claimIdError,
@@ -570,14 +600,12 @@ namespace WebApplication1.Controllers
                                 u => u.IdUsuario == idUsuarioError
                             );
 
-
                     if (usuarioError != null)
                     {
                         ViewBag.DebeCambiarPassword =
                             usuarioError.DebeCambiarPassword;
                     }
                 }
-
 
                 return View();
             }
@@ -588,14 +616,14 @@ namespace WebApplication1.Controllers
             // ========================================================
 
             string passwordActualIngresada =
-                passwordActual!;
+                passwordActual ?? "";
 
             string nuevaPasswordIngresada =
-                nuevaPassword!;
+                nuevaPassword ?? "";
 
 
             // ========================================================
-            // OBTENER ID DEL USUARIO ACTUAL
+            // OBTENER ID DEL USUARIO
             // ========================================================
 
             var claimId =
@@ -643,11 +671,15 @@ namespace WebApplication1.Controllers
 
             try
             {
-                passwordCorrecta =
-                    BCrypt.Net.BCrypt.Verify(
-                        passwordActualIngresada,
-                        usuarioDb.PasswordHash
-                    );
+                if (!string.IsNullOrWhiteSpace(
+                    usuarioDb.PasswordHash))
+                {
+                    passwordCorrecta =
+                        BCrypt.Net.BCrypt.Verify(
+                            passwordActualIngresada,
+                            usuarioDb.PasswordHash
+                        );
+                }
             }
             catch
             {
@@ -666,12 +698,8 @@ namespace WebApplication1.Controllers
                     "La contraseña actual es incorrecta."
                 );
 
-
-                // Mantener información para la vista
-
                 ViewBag.DebeCambiarPassword =
                     usuarioDb.DebeCambiarPassword;
-
 
                 return View();
             }
@@ -685,17 +713,25 @@ namespace WebApplication1.Controllers
 
             try
             {
-                mismaPassword =
-                    BCrypt.Net.BCrypt.Verify(
-                        nuevaPasswordIngresada,
-                        usuarioDb.PasswordHash
-                    );
+                if (!string.IsNullOrWhiteSpace(
+                    usuarioDb.PasswordHash))
+                {
+                    mismaPassword =
+                        BCrypt.Net.BCrypt.Verify(
+                            nuevaPasswordIngresada,
+                            usuarioDb.PasswordHash
+                        );
+                }
             }
             catch
             {
                 mismaPassword = false;
             }
 
+
+            // ========================================================
+            // NUEVA PASSWORD IGUAL A LA ACTUAL
+            // ========================================================
 
             if (mismaPassword)
             {
@@ -704,19 +740,15 @@ namespace WebApplication1.Controllers
                     "La nueva contraseña debe ser diferente de la actual."
                 );
 
-
-                // Mantener información para la vista
-
                 ViewBag.DebeCambiarPassword =
                     usuarioDb.DebeCambiarPassword;
-
 
                 return View();
             }
 
 
             // ========================================================
-            // GUARDAR NUEVO HASH
+            // GENERAR NUEVO HASH
             // ========================================================
 
             usuarioDb.PasswordHash =
@@ -751,15 +783,13 @@ namespace WebApplication1.Controllers
             // GUARDAR CAMBIOS
             // ========================================================
 
-            await _context.SaveChangesAsync();
+            if (!await GuardarCambiosAsync())
+            {
+                ViewBag.DebeCambiarPassword =
+                    usuarioDb.DebeCambiarPassword;
 
-
-            // ========================================================
-            // ACTUALIZAR COOKIE / CLAIMS
-            // ========================================================
-
-            // El usuario ya no tiene pendiente el cambio obligatorio.
-            // La sesión actual continúa siendo válida.
+                return View();
+            }
 
 
             // ========================================================
