@@ -1,0 +1,450 @@
+﻿@model WebApplication1.ViewModels.InventarioViewModel
+
+@{
+    ViewData["Title"] = "Detalle del inventario";
+}
+
+<div class="container-fluid">
+    <div class="d-flex flex-column flex-md-row
+        justify-content-between
+        align-items-md-center
+        gap-3
+        mb-4">
+
+        <div>
+
+            <div class="mb-2">
+
+                <a asp-action="Index"
+                   class="btn btn-sm btn-light">
+
+                    <i class="bi bi-arrow-left"></i>
+                    Volver al inventario
+
+                </a>
+
+            </div>
+
+            <h1 class="h3 mb-1 fw-bold">
+                Detalle del inventario
+            </h1>
+
+            <p class="text-muted mb-0">
+                Información de la existencia del insumo.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- INFORMACIÓN DEL INSUMO -->
+    <!-- ========================================================= -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-center gap-3">
+
+                <div class="rounded-circle
+                    bg-primary-subtle
+                    text-primary
+                    d-flex
+                    align-items-center
+                    justify-content-center"
+                     style="width:64px;height:64px;">
+
+                    <i class="bi bi-box-seam fs-2"></i>
+
+                </div>
+
+                <div>
+
+                    <div class="text-muted small">
+                        INSUMO
+                    </div>
+
+                    <h2 class="h4 mb-1 fw-bold">
+                        @Model.NombreInsumo
+                    </h2>
+
+                    <div class="text-muted">
+                        Código:
+                        <strong>
+                            @Model.CodigoInsumo
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="row g-4">
+
+        <!-- ===================================================== -->
+        <!-- INFORMACIÓN GENERAL -->
+        <!-- ===================================================== -->
+
+        <div class="col-lg-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header py-3">
+
+                    <h5 class="mb-0">
+
+                        <i class="bi bi-info-circle me-2 text-primary"></i>
+
+                        Información del insumo
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+
+                        <div class="text-muted small">
+                            Código
+                        </div>
+
+                        <div class="fw-semibold">
+                            @Model.CodigoInsumo
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <div class="text-muted small">
+                            Nombre
+                        </div>
+
+                        <div class="fw-semibold">
+                            @Model.NombreInsumo
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <div class="text-muted small">
+                            Unidad de medida
+                        </div>
+
+                        <div class="fw-semibold">
+                            @Model.UnidadMedida
+                            (@Model.AbreviaturaUnidad)
+                        </div>
+
+                    </div>
+
+                    <div>
+
+                        <div class="text-muted small">
+                            Ubicación
+                        </div>
+
+                        <div class="fw-semibold">
+
+                            <i class="bi bi-geo-alt me-1 text-primary"></i>
+
+                            @Model.Ubicacion
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- STOCK -->
+        <!-- ===================================================== -->
+
+        <div class="col-lg-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header py-3">
+
+                    <h5 class="mb-0">
+
+                        <i class="bi bi-bar-chart me-2 text-primary"></i>
+
+                        Estado del stock
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+
+                            <div class="border rounded p-3">
+
+                                <div class="text-muted small">
+                                    Stock actual
+                                </div>
+
+                                <div class="fs-3 fw-bold">
+                                    @Model.StockActual.ToString("N2")
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <div class="border rounded p-3">
+
+                                <div class="text-muted small">
+                                    Stock mínimo
+                                </div>
+
+                                <div class="fs-3 fw-bold">
+                                    @Model.StockMinimo.ToString("N2")
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <div class="border rounded p-3">
+
+                                <div class="text-muted small">
+                                    Stock máximo
+                                </div>
+
+                                <div class="fs-3 fw-bold">
+
+                                    @(Model.StockMaximo?
+                                        .ToString("N2") ?? "-")
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <div class="border rounded p-3">
+
+                                <div class="text-muted small">
+                                    Estado
+                                </div>
+
+                                <div class="mt-1">
+
+                                    @if (Model.StockAgotado)
+                                    {
+                                        <span class="badge bg-danger">
+                                            Agotado
+                                        </span>
+                                    }
+                                    else if (Model.StockBajo)
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            Stock bajo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">
+                                            Normal
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- UBICACIÓN -->
+        <!-- ===================================================== -->
+
+        <div class="col-lg-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header py-3">
+
+                    <h5 class="mb-0">
+
+                        <i class="bi bi-geo-alt me-2 text-primary"></i>
+
+                        Ubicación
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Ubicación del inventario
+                    </div>
+
+                    <div class="fs-5 fw-semibold mt-1">
+                        @Model.Ubicacion
+                    </div>
+
+                    <div class="text-muted mt-2">
+                        ID ubicación: @Model.IdUbicacion
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- ACTUALIZACIÓN -->
+        <!-- ===================================================== -->
+
+        <div class="col-lg-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header py-3">
+
+                    <h5 class="mb-0">
+
+                        <i class="bi bi-clock-history me-2 text-primary"></i>
+
+                        Actualización
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Última actualización
+                    </div>
+
+                    <div class="fs-5 fw-semibold mt-1">
+                        @Model.UltimaActualizacion.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- IDENTIFICADORES -->
+        <!-- ===================================================== -->
+
+        <div class="col-12">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header py-3">
+
+                    <h5 class="mb-0">
+
+                        <i class="bi bi-fingerprint me-2 text-primary"></i>
+
+                        Identificadores
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                ID existencia
+                            </div>
+
+                            <div class="fw-semibold">
+                                #@Model.IdExistencia
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <div class="text-muted small">
+                                ID insumo
+                            </div>
+
+                            <div class="fw-semibold">
+                                #@Model.IdInsumo
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- VOLVER -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex
+        justify-content-between
+        align-items-center
+        mt-4
+        pb-4">
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Volver al inventario
+
+        </a>
+
+    </div>
+
+</div>

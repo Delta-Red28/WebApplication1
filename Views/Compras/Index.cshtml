@@ -1,0 +1,330 @@
+﻿@model IEnumerable<WebApplication1.Models.Compra>
+
+@{
+    ViewData["Title"] = "Compras";
+}
+
+<div class="container-fluid py-4">
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-cart3 me-2"></i>
+                Compras
+            </h2>
+
+            <p class="text-muted mb-0">
+                Gestión y control de compras realizadas a proveedores.
+            </p>
+        </div>
+
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>
+                Nueva compra
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- MENSAJES -->
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["Mensaje"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar"></button>
+        </div>
+    }
+
+
+    <!-- TARJETA PRINCIPAL -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <div class="row g-3 align-items-center">
+
+                <div class="col-md-6">
+                    <h5 class="mb-0 fw-semibold">
+                        Historial de compras
+                    </h5>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-search"></i>
+                        </span>
+
+                        <input type="text"
+                               id="buscarCompra"
+                               class="form-control"
+                               placeholder="Buscar compra, proveedor o factura..." />
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0"
+                           id="tablaCompras">
+
+                        <thead class="table-light">
+                            <tr>
+
+                                <th class="ps-4">
+                                    Compra
+                                </th>
+
+                                <th>
+                                    Fecha
+                                </th>
+
+                                <th>
+                                    Proveedor
+                                </th>
+
+                                <th>
+                                    Factura proveedor
+                                </th>
+
+                                <th>
+                                    Estado
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+
+                                <th class="text-center pe-4">
+                                    Acciones
+                                </th>
+
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var compra in Model)
+                            {
+                                var estadoNombre =
+                                    compra.IdEstadoCompraNavigation?.Nombre
+                                    ?? "Sin estado";
+
+                                var proveedorNombre =
+                                    compra.IdProveedorNavigation?.Nombre
+                                    ?? "Sin proveedor";
+
+                                var facturaProveedor =
+                                    string.IsNullOrWhiteSpace(
+                                        compra.NumeroFacturaProveedor)
+                                        ? "-"
+                                        : compra.NumeroFacturaProveedor;
+
+                                <tr>
+
+                                    <!-- COMPRA -->
+                                    <td class="ps-4">
+
+                                        <div class="fw-semibold">
+                                            @compra.NumeroCompra
+                                        </div>
+
+                                        <small class="text-muted">
+                                            ID: @compra.IdCompra
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- FECHA -->
+                                    <td>
+                                        <div>
+                                            @compra.FechaCompra.ToString("dd/MM/yyyy")
+                                        </div>
+
+                                        <small class="text-muted">
+                                            @compra.FechaCompra.ToString("HH:mm")
+                                        </small>
+                                    </td>
+
+
+                                    <!-- PROVEEDOR -->
+                                    <td>
+                                        @proveedorNombre
+                                    </td>
+
+
+                                    <!-- FACTURA -->
+                                    <td>
+                                        @facturaProveedor
+                                    </td>
+
+
+                                    <!-- ESTADO -->
+                                    <td>
+
+                                        <span class="badge bg-secondary">
+                                            @estadoNombre
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- TOTAL -->
+                                    <td class="text-end fw-semibold">
+
+                                        @compra.Total.ToString("N2")
+
+                                    </td>
+
+
+                                    <!-- ACCIONES -->
+                                    <td class="text-center pe-4">
+
+                                        <div class="btn-group" role="group">
+
+                                            <a asp-action="Details"
+                                               asp-route-id="@compra.IdCompra"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver detalles">
+
+                                                <i class="bi bi-eye"></i>
+
+                                            </a>
+
+                                            <a asp-action="Edit"
+                                               asp-route-id="@compra.IdCompra"
+                                               class="btn btn-sm btn-outline-warning"
+                                               title="Editar">
+
+                                                <i class="bi bi-pencil"></i>
+
+                                            </a>
+
+                                            <a asp-action="Delete"
+                                               asp-route-id="@compra.IdCompra"
+                                               class="btn btn-sm btn-outline-danger"
+                                               title="Eliminar">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <!-- SIN REGISTROS -->
+                <div class="text-center py-5">
+
+                    <div class="mb-3">
+                        <i class="bi bi-cart-x display-4 text-muted"></i>
+                    </div>
+
+                    <h5 class="fw-semibold">
+                        No hay compras registradas
+                    </h5>
+
+                    <p class="text-muted mb-4">
+                        Todavía no existen compras registradas en el sistema.
+                    </p>
+
+                    <a asp-action="Create"
+                       class="btn btn-primary">
+
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Registrar primera compra
+
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const input = document.getElementById("buscarCompra");
+            const tabla = document.getElementById("tablaCompras");
+
+            if (!input || !tabla) {
+                return;
+            }
+
+            input.addEventListener("input", function() {
+
+                const texto = this.value
+                    .toLowerCase()
+                    .trim();
+
+                const filas = tabla
+                    .querySelectorAll("tbody tr");
+
+                filas.forEach(function(fila) {
+
+                    const contenido = fila.textContent
+                        .toLowerCase();
+
+                    fila.style.display =
+                        contenido.includes(texto)
+                            ? ""
+                            : "none";
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+
+}

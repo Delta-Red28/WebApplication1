@@ -39,37 +39,71 @@ namespace WebApplication1.Controllers
             int idInsumo,
             int? idUbicacion)
         {
-            var insumo = await _context.Insumos
+            var query = _context.Existencia
                 .AsNoTracking()
-                .Include(x => x.IdCategoriaInsumoNavigation)
-                .Include(x => x.IdMarcaNavigation)
-                .Include(x => x.IdEstadoInsumoNavigation)
-                .Include(x => x.IdUnidadMedidaNavigation)
-                .FirstOrDefaultAsync(x =>
-                    x.IdInsumo == idInsumo);
-
-            if (insumo == null)
-                return NotFound();
-
-            var existencias = await _context.Existencia
-                .AsNoTracking()
+                .Include(x => x.IdInsumoNavigation)
+                    .ThenInclude(x => x.IdUnidadMedidaNavigation)
                 .Include(x => x.IdUbicacionNavigation)
-                .Where(x => x.IdInsumo == idInsumo)
-                .OrderBy(x => x.IdUbicacionNavigation.Nombre)
-                .ToListAsync();
+                .Where(x => x.IdInsumo == idInsumo);
 
+            // Si se especificó una ubicación,
+            // mostramos solamente esa existencia.
             if (idUbicacion.HasValue)
             {
-                existencias = existencias
-                    .Where(x =>
-                        x.IdUbicacion ==
-                        idUbicacion.Value)
-                    .ToList();
+                query = query.Where(x =>
+                    x.IdUbicacion == idUbicacion.Value);
             }
 
-            ViewBag.Insumo = insumo;
+            var existencia = await query
+                .FirstOrDefaultAsync();
 
-            return View(existencias);
+            if (existencia == null)
+                return NotFound();
+
+            // Convertimos la entidad Existencium
+            // al ViewModel utilizado por Inventario.
+            var model = new InventarioViewModel
+            {
+                IdExistencia =
+                    existencia.IdExistencia,
+
+                IdInsumo =
+                    existencia.IdInsumo,
+
+                CodigoInsumo =
+                    existencia.IdInsumoNavigation.CodigoInsumo,
+
+                NombreInsumo =
+                    existencia.IdInsumoNavigation.Nombre,
+
+                UnidadMedida =
+                    existencia.IdInsumoNavigation
+                        .IdUnidadMedidaNavigation.Nombre,
+
+                AbreviaturaUnidad =
+                    existencia.IdInsumoNavigation
+                        .IdUnidadMedidaNavigation.Abreviatura,
+
+                IdUbicacion =
+                    existencia.IdUbicacion,
+
+                Ubicacion =
+                    existencia.IdUbicacionNavigation.Nombre,
+
+                StockActual =
+                    existencia.StockActual,
+
+                StockMinimo =
+                    existencia.StockMinimo,
+
+                StockMaximo =
+                    existencia.StockMaximo,
+
+                UltimaActualizacion =
+                    existencia.UltimaActualizacion
+            };
+
+            return View(model);
         }
 
         // ============================================================
@@ -121,4 +155,6 @@ namespace WebApplication1.Controllers
             });
         }
     }
+
+
 }

@@ -49,28 +49,55 @@ public partial class LoteInsumo
     [Column(TypeName = "decimal(18, 2)")]
     public decimal CantidadReservada { get; set; }
 
-    [InverseProperty("IdLoteNavigation")]
-    public virtual ICollection<DetalleMerma> DetalleMermas { get; set; } = new List<DetalleMerma>();
+    // ============================================================
+    // RELACIONES
+    // ============================================================
 
-    [InverseProperty("IdLoteNavigation")]
-    public virtual ICollection<DetalleTransferencium> DetalleTransferencia { get; set; } = new List<DetalleTransferencium>();
+    [InverseProperty(nameof(DetalleMerma.IdLoteNavigation))]
+    public virtual ICollection<DetalleMerma> DetalleMermas { get; set; }
+        = new List<DetalleMerma>();
 
-    [ForeignKey("IdDetalleCompra")]
-    [InverseProperty("LoteInsumos")]
+    [InverseProperty(nameof(DetalleTransferencium.IdLoteNavigation))]
+    public virtual ICollection<DetalleTransferencium> DetalleTransferencia { get; set; }
+        = new List<DetalleTransferencium>();
+
+    // ============================================================
+    // DETALLE DE COMPRA
+    // ============================================================
+
+    [ForeignKey(nameof(IdDetalleCompra))]
+    [InverseProperty(nameof(DetalleCompra.LoteInsumos))]
     public virtual DetalleCompra IdDetalleCompraNavigation { get; set; } = null!;
 
-    [ForeignKey("IdEstadoLote")]
-    [InverseProperty("LoteInsumos")]
+    // ============================================================
+    // ESTADO DEL LOTE
+    // ============================================================
+
+    [ForeignKey(nameof(IdEstadoLote))]
+    [InverseProperty(nameof(EstadoLote.LoteInsumos))]
     public virtual EstadoLote IdEstadoLoteNavigation { get; set; } = null!;
 
-    [ForeignKey("IdInsumo")]
-    [InverseProperty("LoteInsumos")]
+    // ============================================================
+    // INSUMO
+    // ============================================================
+
+    [ForeignKey(nameof(IdInsumo))]
+    [InverseProperty(nameof(Insumo.LoteInsumos))]
     public virtual Insumo IdInsumoNavigation { get; set; } = null!;
 
-    [ForeignKey("IdUbicacion")]
-    [InverseProperty("LoteInsumos")]
+    // ============================================================
+    // UBICACIÓN
+    // ============================================================
+
+    [ForeignKey(nameof(IdUbicacion))]
+    [InverseProperty(nameof(UbicacionInventario.LoteInsumos))]
     public virtual UbicacionInventario IdUbicacionNavigation { get; set; } = null!;
 
-    [InverseProperty("IdLoteNavigation")]
-    public virtual ICollection<MovimientoInventario> MovimientoInventarios { get; set; } = new List<MovimientoInventario>();
+    // ============================================================
+    // MOVIMIENTOS DE INVENTARIO
+    // ============================================================
+
+    [InverseProperty(nameof(MovimientoInventario.IdLoteNavigation))]
+    public virtual ICollection<MovimientoInventario> MovimientoInventarios { get; set; }
+        = new List<MovimientoInventario>();
 }

@@ -1,0 +1,1441 @@
+﻿@model WebApplication1.Models.Compra
+
+@{
+    ViewData["Title"] = "Nueva compra";
+
+    var insumos =
+        ViewData["Insumos"] as SelectList;
+
+    var monedas =
+        ViewData["IdMoneda"] as SelectList;
+}
+
+<div class="container-fluid px-0">
+
+    <!-- =========================================================
+         ENCABEZADO
+         ========================================================= -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+
+        <div>
+
+            <div class="d-flex align-items-center gap-2 mb-2">
+
+                <a asp-action="Index"
+                   class="btn btn-light border btn-sm rounded-circle shadow-sm"
+                   title="Volver">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+
+                <span class="text-uppercase small fw-semibold text-primary">
+                    Compras
+                </span>
+
+            </div>
+
+            <h1 class="fw-bold mb-1">
+                Registrar nueva compra
+            </h1>
+
+            <p class="text-muted mb-0">
+                Registra los insumos adquiridos al proveedor.
+            </p>
+
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary px-4">
+                <i class="bi bi-x-lg me-1"></i>
+                Cancelar
+            </a>
+
+            <button type="submit"
+                    form="formCompra"
+                    class="btn btn-primary px-4 shadow-sm">
+                <i class="bi bi-check2-circle me-1"></i>
+                Registrar compra
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         ERRORES
+         ========================================================= -->
+    <div asp-validation-summary="ModelOnly"
+         class="alert alert-danger shadow-sm @(ViewData.ModelState.IsValid ? "d-none" : "")"
+         role="alert">
+
+        <div class="fw-semibold mb-1">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            No se pudo registrar la compra
+        </div>
+
+        <div>
+            Revisa los datos indicados.
+        </div>
+
+    </div>
+
+
+    <form asp-action="Create"
+          method="post"
+          id="formCompra"
+          autocomplete="off">
+
+        @Html.AntiForgeryToken()
+
+
+        <!-- =====================================================
+             INFORMACIÓN GENERAL
+             ===================================================== -->
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white border-bottom py-3">
+
+                <div class="d-flex align-items-center gap-3">
+
+                    <div class="section-icon bg-primary-subtle text-primary">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+
+                    <div>
+
+                        <h5 class="mb-0 fw-bold">
+                            Información de la compra
+                        </h5>
+
+                        <small class="text-muted">
+                            Datos generales del documento
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body p-4">
+
+                <div class="row g-4">
+
+
+                    <!-- Número automático -->
+                    <div class="col-lg-4">
+
+                        <label class="form-label fw-semibold">
+                            Número de compra
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-hash text-primary"></i>
+                            </span>
+
+                            <input type="text"
+                                   class="form-control bg-light"
+                                   value="Se generará automáticamente"
+                                   readonly />
+
+                        </div>
+
+                        <div class="form-text">
+                            El sistema asignará el número al guardar.
+                        </div>
+
+                    </div>
+
+
+                    <!-- Proveedor -->
+                    <div class="col-lg-4">
+
+                        <label asp-for="IdProveedor"
+                               class="form-label fw-semibold">
+
+                            Proveedor
+
+                            <span class="text-danger">
+                                *
+                            </span>
+
+                        </label>
+
+                        <select asp-for="IdProveedor"
+                                asp-items="ViewBag.IdProveedor"
+                                class="form-select"
+                                id="IdProveedor">
+
+                            <option value="0">
+                                Seleccione un proveedor...
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="IdProveedor"
+                              class="text-danger small">
+                        </span>
+
+                        <div class="form-text">
+                            Selecciona el proveedor que suministra los insumos.
+                        </div>
+
+                    </div>
+
+
+                    <!-- Moneda -->
+                    <div class="col-lg-4">
+
+                        <label asp-for="IdMoneda"
+                               class="form-label fw-semibold">
+
+                            Moneda
+
+                            <span class="text-danger">
+                                *
+                            </span>
+
+                        </label>
+
+                        <select asp-for="IdMoneda"
+                                asp-items="ViewBag.IdMoneda"
+                                class="form-select"
+                                id="IdMoneda">
+
+                            <option value="0">
+                                Seleccione la moneda...
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="IdMoneda"
+                              class="text-danger small">
+                        </span>
+
+                        <div class="form-text">
+                            Los precios se mostrarán en la moneda seleccionada.
+                        </div>
+
+                    </div>
+
+
+                    <!-- Factura proveedor -->
+                    <div class="col-lg-6">
+
+                        <label asp-for="NumeroFacturaProveedor"
+                               class="form-label fw-semibold">
+
+                            Factura del proveedor
+
+                            <span class="text-muted fw-normal">
+                                (opcional)
+                            </span>
+
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </span>
+
+                            <input asp-for="NumeroFacturaProveedor"
+                                   class="form-control"
+                                   maxlength="50"
+                                   placeholder="Ej. FAC-00125" />
+
+                        </div>
+
+                        <span asp-validation-for="NumeroFacturaProveedor"
+                              class="text-danger small">
+                        </span>
+
+                        <div class="form-text">
+                            Número que aparece en el documento del proveedor.
+                        </div>
+
+                    </div>
+
+
+                    <!-- Observación -->
+                    <div class="col-lg-6">
+
+                        <label asp-for="Observacion"
+                               class="form-label fw-semibold">
+
+                            Observación
+
+                            <span class="text-muted fw-normal">
+                                (opcional)
+                            </span>
+
+                        </label>
+
+                        <textarea asp-for="Observacion"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="300"
+                                  placeholder="Ej. Compra semanal para abastecimiento de cocina..."></textarea>
+
+                        <span asp-validation-for="Observacion"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             DETALLES
+             ===================================================== -->
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-white border-bottom py-3">
+
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <div class="section-icon bg-success-subtle text-success">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+
+                        <div>
+
+                            <h5 class="mb-0 fw-bold">
+                                Insumos adquiridos
+                            </h5>
+
+                            <small class="text-muted">
+                                Agrega cada producto recibido.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <button type="button"
+                            class="btn btn-success"
+                            id="btnAgregarDetalle">
+
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Agregar insumo
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- Estado vacío -->
+            <div id="sinDetalles"
+                 class="empty-state text-center py-5">
+
+                <div class="empty-icon">
+                    <i class="bi bi-box2"></i>
+                </div>
+
+                <h5 class="fw-semibold mt-3">
+                    Aún no hay insumos
+                </h5>
+
+                <p class="text-muted mb-3">
+                    Agrega los productos que estás comprando.
+                </p>
+
+                <button type="button"
+                        class="btn btn-outline-success"
+                        id="btnAgregarDetalleVacio">
+
+                    <i class="bi bi-plus-lg me-1"></i>
+                    Agregar primer insumo
+
+                </button>
+
+            </div>
+
+
+            <!-- Tabla -->
+            <div id="contenedorDetalles"
+                 class="table-responsive d-none">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th style="min-width:260px;">
+                                Insumo
+                            </th>
+
+                            <th style="width:130px;">
+                                Cantidad
+                            </th>
+
+                            <th style="width:180px;">
+                                Precio unitario
+                            </th>
+
+                            <th style="width:160px;">
+                                Descuento
+                            </th>
+
+                            <th style="width:160px;">
+                                Impuesto
+                            </th>
+
+                            <th style="width:170px;">
+                                Total
+                            </th>
+
+                            <th style="width:60px;">
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="detalleBody">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- =================================================
+                 RESUMEN
+                 ================================================= -->
+            <div class="card-footer bg-white border-top p-4">
+
+                <div class="row justify-content-end">
+
+                    <div class="col-md-6 col-lg-5 col-xl-4">
+
+                        <div class="summary-box">
+
+                            <div class="d-flex justify-content-between mb-2">
+
+                                <span class="text-muted">
+                                    Subtotal
+                                </span>
+
+                                <strong id="lblSubtotal">
+                                    0.00
+                                </strong>
+
+                            </div>
+
+
+                            <div class="d-flex justify-content-between mb-2">
+
+                                <span class="text-muted">
+                                    Descuentos
+                                </span>
+
+                                <strong class="text-danger"
+                                        id="lblDescuento">
+                                    - 0.00
+                                </strong>
+
+                            </div>
+
+
+                            <div class="d-flex justify-content-between mb-3">
+
+                                <span class="text-muted">
+                                    Impuestos
+                                </span>
+
+                                <strong id="lblImpuesto">
+                                    0.00
+                                </strong>
+
+                            </div>
+
+
+                            <div class="border-top pt-3 d-flex justify-content-between align-items-center">
+
+                                <span class="fw-bold fs-5">
+                                    Total
+                                </span>
+
+                                <span class="fw-bold fs-3 text-primary"
+                                      id="lblTotal">
+                                    0.00
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             PIE
+             ===================================================== -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-5">
+
+            <div class="text-muted small">
+
+                <i class="bi bi-shield-check text-success me-1"></i>
+
+                Los totales definitivos serán calculados y validados
+                por el servidor.
+
+            </div>
+
+            <div class="d-flex gap-2">
+
+                <a asp-action="Index"
+                   class="btn btn-light border px-4">
+
+                    Cancelar
+
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary px-5">
+
+                    <i class="bi bi-check2-circle me-1"></i>
+
+                    Registrar compra
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- =============================================================
+     PLANTILLA DE DETALLE
+     ============================================================= -->
+<template id="detalleTemplate">
+
+    <tr class="detalle-row">
+
+        <!-- INSUMO -->
+        <td>
+
+            <select class="form-select detalle-insumo"
+                    name="detalles[INDEX].IdInsumo"
+                    required>
+
+                <option value="0">
+                    Seleccione el insumo...
+                </option>
+
+                @if (insumos != null)
+                {
+                    foreach (var insumo in insumos)
+                    {
+                        <option value="@insumo.Value">
+                            @insumo.Text
+                        </option>
+                    }
+                }
+
+            </select>
+
+            <div class="small text-muted mt-1">
+                Producto recibido.
+            </div>
+
+        </td>
+
+
+        <!-- CANTIDAD -->
+        <td>
+
+            <input type="number"
+                   class="form-control text-end detalle-cantidad"
+                   name="detalles[INDEX].Cantidad"
+                   min="0.01"
+                   step="0.01"
+                   value="1"
+                   required />
+
+            <div class="small text-muted mt-1">
+                Cantidad
+            </div>
+
+        </td>
+
+
+        <!-- PRECIO -->
+        <td>
+
+            <div class="input-group">
+
+                <span class="input-group-text simbolo-moneda">
+                    C$
+                </span>
+
+                <input type="number"
+                       class="form-control text-end detalle-precio"
+                       name="detalles[INDEX].PrecioUnitario"
+                       min="0"
+                       step="0.01"
+                       value="0"
+                       required />
+
+            </div>
+
+            <div class="small text-muted mt-1">
+                Precio por unidad
+            </div>
+
+        </td>
+
+
+        <!-- DESCUENTO -->
+        <td>
+
+            <div class="input-group">
+
+                <span class="input-group-text simbolo-moneda">
+                    C$
+                </span>
+
+                <input type="number"
+                       class="form-control text-end detalle-descuento"
+                       name="detalles[INDEX].Descuento"
+                       min="0"
+                       step="0.01"
+                       value="0" />
+
+            </div>
+
+        </td>
+
+
+        <!-- IMPUESTO -->
+        <td>
+
+            <div class="input-group">
+
+                <span class="input-group-text simbolo-moneda">
+                    C$
+                </span>
+
+                <input type="number"
+                       class="form-control text-end detalle-impuesto"
+                       name="detalles[INDEX].Impuesto"
+                       min="0"
+                       step="0.01"
+                       value="0" />
+
+            </div>
+
+        </td>
+
+
+        <!-- TOTAL -->
+        <td>
+
+            <div class="text-end">
+
+                <div class="fw-bold fs-5">
+
+                    <span class="simbolo-total">
+                        C$
+                    </span>
+
+                    <span class="detalle-total">
+                        0.00
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <input type="hidden"
+                   class="detalle-subtotal"
+                   name="detalles[INDEX].Subtotal"
+                   value="0" />
+
+
+            <input type="hidden"
+                   class="detalle-total-input"
+                   name="detalles[INDEX].TotalLinea"
+                   value="0" />
+
+        </td>
+
+
+        <!-- ELIMINAR -->
+        <td class="text-center">
+
+            <button type="button"
+                    class="btn btn-outline-danger btn-sm btn-eliminar"
+                    title="Eliminar insumo">
+
+                <i class="bi bi-trash3"></i>
+
+            </button>
+
+        </td>
+
+    </tr>
+
+</template>
+
+
+<style>
+
+    .section-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+    }
+
+    .empty-state {
+        color: #6c757d;
+    }
+
+    .empty-icon {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto;
+        border-radius: 50%;
+        background: #f1f3f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: #6c757d;
+    }
+
+    .summary-box {
+        background: #f8f9fa;
+        border-radius: 14px;
+        padding: 22px;
+        border: 1px solid #e9ecef;
+    }
+
+    .detalle-row td {
+        padding: 16px 12px;
+        vertical-align: top;
+    }
+
+    .detalle-row .form-control,
+    .detalle-row .form-select {
+        min-height: 42px;
+    }
+
+    .detalle-row:hover {
+        background-color: #fafbfc;
+    }
+
+    .table thead th {
+        font-size: .78rem;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+        color: #6c757d;
+        white-space: nowrap;
+    }
+
+    .form-label {
+        margin-bottom: .5rem;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .1);
+    }
+
+    .detalle-total {
+        letter-spacing: .02em;
+    }
+
+    @@media (max-width: 991.98px) {
+
+        .detalle-row td {
+            min-width: 150px;
+        }
+
+    }
+
+</style>
+
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            let detalleIndex = 0;
+
+            const btnAgregar =
+                document.getElementById("btnAgregarDetalle");
+
+            const btnAgregarVacio =
+                document.getElementById("btnAgregarDetalleVacio");
+
+            const detalleBody =
+                document.getElementById("detalleBody");
+
+            const template =
+                document.getElementById("detalleTemplate");
+
+            const sinDetalles =
+                document.getElementById("sinDetalles");
+
+            const contenedorDetalles =
+                document.getElementById("contenedorDetalles");
+
+            const monedaSelect =
+                document.getElementById("IdMoneda");
+
+            const lblSubtotal =
+                document.getElementById("lblSubtotal");
+
+            const lblDescuento =
+                document.getElementById("lblDescuento");
+
+            const lblImpuesto =
+                document.getElementById("lblImpuesto");
+
+            const lblTotal =
+                document.getElementById("lblTotal");
+
+
+            // =====================================================
+            // MONEDA
+            // =====================================================
+
+            function obtenerSimboloMoneda() {
+
+                if (!monedaSelect) {
+                    return "C$";
+                }
+
+                const option =
+                    monedaSelect.options[
+                        monedaSelect.selectedIndex
+                    ];
+
+                if (!option) {
+                    return "C$";
+                }
+
+                const texto =
+                    option.textContent.toLowerCase();
+
+                if (
+                    texto.includes("dólar") ||
+                    texto.includes("dolar") ||
+                    texto.includes("usd")
+                ) {
+                    return "$";
+                }
+
+                if (
+                    texto.includes("córdoba") ||
+                    texto.includes("cordoba") ||
+                    texto.includes("nio")
+                ) {
+                    return "C$";
+                }
+
+                // Si el texto del option tiene formato:
+                // "Córdobas (C$)"
+                const match =
+                    option.textContent.match(
+                        /\(([^)]+)\)/
+                    );
+
+                if (match && match[1]) {
+                    return match[1];
+                }
+
+                return "C$";
+            }
+
+
+            function actualizarSimbolosMoneda() {
+
+                const simbolo =
+                    obtenerSimboloMoneda();
+
+                document
+                    .querySelectorAll(".simbolo-moneda")
+                    .forEach(function (elemento) {
+
+                        elemento.textContent =
+                            simbolo;
+
+                    });
+
+
+                document
+                    .querySelectorAll(".simbolo-total")
+                    .forEach(function (elemento) {
+
+                        elemento.textContent =
+                            simbolo;
+
+                    });
+
+                actualizarTotales();
+
+            }
+
+
+            // =====================================================
+            // AGREGAR DETALLE
+            // =====================================================
+
+            function agregarDetalle() {
+
+                const html =
+                    template.innerHTML
+                        .replaceAll(
+                            "INDEX",
+                            detalleIndex
+                        );
+
+                detalleBody.insertAdjacentHTML(
+                    "beforeend",
+                    html
+                );
+
+                detalleIndex++;
+
+                actualizarVisibilidad();
+
+                const filas =
+                    detalleBody.querySelectorAll(
+                        ".detalle-row"
+                    );
+
+                const ultimaFila =
+                    filas[filas.length - 1];
+
+                if (ultimaFila) {
+
+                    const select =
+                        ultimaFila.querySelector(
+                            ".detalle-insumo"
+                        );
+
+                    if (select) {
+                        select.focus();
+                    }
+
+                }
+
+                actualizarSimbolosMoneda();
+                actualizarTotales();
+
+            }
+
+
+            // =====================================================
+            // ELIMINAR DETALLE
+            // =====================================================
+
+            detalleBody.addEventListener(
+                "click",
+                function (event) {
+
+                    const boton =
+                        event.target.closest(
+                            ".btn-eliminar"
+                        );
+
+                    if (!boton) {
+                        return;
+                    }
+
+                    const fila =
+                        boton.closest(
+                            ".detalle-row"
+                        );
+
+                    if (fila) {
+                        fila.remove();
+                    }
+
+                    actualizarVisibilidad();
+                    actualizarTotales();
+
+                }
+            );
+
+
+            // =====================================================
+            // CALCULAR FILA
+            // =====================================================
+
+            function calcularFila(fila) {
+
+                const cantidad =
+                    parseFloat(
+                        fila.querySelector(
+                            ".detalle-cantidad"
+                        )?.value
+                    ) || 0;
+
+
+                const precio =
+                    parseFloat(
+                        fila.querySelector(
+                            ".detalle-precio"
+                        )?.value
+                    ) || 0;
+
+
+                const descuento =
+                    parseFloat(
+                        fila.querySelector(
+                            ".detalle-descuento"
+                        )?.value
+                    ) || 0;
+
+
+                const impuesto =
+                    parseFloat(
+                        fila.querySelector(
+                            ".detalle-impuesto"
+                        )?.value
+                    ) || 0;
+
+
+                const subtotal =
+                    cantidad * precio;
+
+
+                const descuentoReal =
+                    Math.min(
+                        Math.max(
+                            descuento,
+                            0
+                        ),
+                        subtotal
+                    );
+
+
+                const baseImponible =
+                    subtotal -
+                    descuentoReal;
+
+
+                const impuestoReal =
+                    Math.max(
+                        impuesto,
+                        0
+                    );
+
+
+                const total =
+                    baseImponible +
+                    impuestoReal;
+
+
+                const totalLabel =
+                    fila.querySelector(
+                        ".detalle-total"
+                    );
+
+
+                const subtotalInput =
+                    fila.querySelector(
+                        ".detalle-subtotal"
+                    );
+
+
+                const totalInput =
+                    fila.querySelector(
+                        ".detalle-total-input"
+                    );
+
+
+                if (totalLabel) {
+
+                    totalLabel.textContent =
+                        formatear(total);
+
+                }
+
+
+                if (subtotalInput) {
+
+                    subtotalInput.value =
+                        subtotal.toFixed(2);
+
+                }
+
+
+                if (totalInput) {
+
+                    totalInput.value =
+                        total.toFixed(2);
+
+                }
+
+
+                return {
+
+                    subtotal:
+                        subtotal,
+
+                    descuento:
+                        descuentoReal,
+
+                    impuesto:
+                        impuestoReal,
+
+                    total:
+                        total
+
+                };
+
+            }
+
+
+            // =====================================================
+            // TOTALES
+            // =====================================================
+
+            function actualizarTotales() {
+
+                let subtotal = 0;
+                let descuento = 0;
+                let impuesto = 0;
+                let total = 0;
+
+
+                const filas =
+                    detalleBody.querySelectorAll(
+                        ".detalle-row"
+                    );
+
+
+                filas.forEach(
+                    function (fila) {
+
+                        const valores =
+                            calcularFila(fila);
+
+                        subtotal +=
+                            valores.subtotal;
+
+                        descuento +=
+                            valores.descuento;
+
+                        impuesto +=
+                            valores.impuesto;
+
+                        total +=
+                            valores.total;
+
+                    }
+                );
+
+
+                const simbolo =
+                    obtenerSimboloMoneda();
+
+
+                lblSubtotal.textContent =
+                    simbolo + " " +
+                    formatear(subtotal);
+
+
+                lblDescuento.textContent =
+                    "- " +
+                    simbolo + " " +
+                    formatear(descuento);
+
+
+                lblImpuesto.textContent =
+                    simbolo + " " +
+                    formatear(impuesto);
+
+
+                lblTotal.textContent =
+                    simbolo + " " +
+                    formatear(total);
+
+            }
+
+
+            // =====================================================
+            // FORMATO
+            // =====================================================
+
+            function formatear(valor) {
+
+                return new Intl.NumberFormat(
+                    "es-NI",
+                    {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }
+                ).format(valor);
+
+            }
+
+
+            // =====================================================
+            // INPUTS
+            // =====================================================
+
+            detalleBody.addEventListener(
+                "input",
+                function (event) {
+
+                    if (
+
+                        event.target.classList.contains(
+                            "detalle-cantidad"
+                        )
+
+                        ||
+
+                        event.target.classList.contains(
+                            "detalle-precio"
+                        )
+
+                        ||
+
+                        event.target.classList.contains(
+                            "detalle-descuento"
+                        )
+
+                        ||
+
+                        event.target.classList.contains(
+                            "detalle-impuesto"
+                        )
+
+                    ) {
+
+                        const fila =
+                            event.target.closest(
+                                ".detalle-row"
+                            );
+
+                        if (fila) {
+
+                            calcularFila(fila);
+                            actualizarTotales();
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+            // =====================================================
+            // CAMBIO DE MONEDA
+            // =====================================================
+
+            monedaSelect.addEventListener(
+                "change",
+                function () {
+
+                    actualizarSimbolosMoneda();
+
+                }
+            );
+
+
+            // =====================================================
+            // BOTONES
+            // =====================================================
+
+            btnAgregar.addEventListener(
+                "click",
+                agregarDetalle
+            );
+
+
+            btnAgregarVacio.addEventListener(
+                "click",
+                agregarDetalle
+            );
+
+
+            // =====================================================
+            // VISIBILIDAD
+            // =====================================================
+
+            function actualizarVisibilidad() {
+
+                const cantidad =
+                    detalleBody.querySelectorAll(
+                        ".detalle-row"
+                    ).length;
+
+
+                if (cantidad === 0) {
+
+                    sinDetalles.classList.remove(
+                        "d-none"
+                    );
+
+                    contenedorDetalles.classList.add(
+                        "d-none"
+                    );
+
+                }
+                else {
+
+                    sinDetalles.classList.add(
+                        "d-none"
+                    );
+
+                    contenedorDetalles.classList.remove(
+                        "d-none"
+                    );
+
+                }
+
+            }
+
+
+            // =====================================================
+            // VALIDACIÓN ANTES DE ENVIAR
+            // =====================================================
+
+            document
+                .getElementById("formCompra")
+                .addEventListener(
+                    "submit",
+                    function (event) {
+
+                        const filas =
+                            detalleBody.querySelectorAll(
+                                ".detalle-row"
+                            );
+
+
+                        if (filas.length === 0) {
+
+                            event.preventDefault();
+
+                            alert(
+                                "Debe agregar al menos un insumo."
+                            );
+
+                            return;
+
+                        }
+
+
+                        let detalleValido =
+                            false;
+
+
+                        filas.forEach(
+                            function (fila) {
+
+                                const insumo =
+                                    fila.querySelector(
+                                        ".detalle-insumo"
+                                    )?.value;
+
+
+                                const cantidad =
+                                    parseFloat(
+                                        fila.querySelector(
+                                            ".detalle-cantidad"
+                                        )?.value
+                                    ) || 0;
+
+
+                                const precio =
+                                    parseFloat(
+                                        fila.querySelector(
+                                            ".detalle-precio"
+                                        )?.value
+                                    ) || 0;
+
+
+                                if (
+
+                                    insumo &&
+                                    insumo !== "0" &&
+                                    cantidad > 0 &&
+                                    precio >= 0
+
+                                ) {
+
+                                    detalleValido =
+                                        true;
+
+                                }
+
+                            }
+                        );
+
+
+                        if (!detalleValido) {
+
+                            event.preventDefault();
+
+                            alert(
+                                "Agrega al menos un insumo válido con cantidad y precio."
+                            );
+
+                            return;
+
+                        }
+
+
+                        // Recalcular justo antes de enviar
+                        actualizarTotales();
+
+                    }
+                );
+
+
+            // =====================================================
+            // INICIO
+            // =====================================================
+
+            actualizarVisibilidad();
+            actualizarSimbolosMoneda();
+            actualizarTotales();
+
+        });
+
+    </script>
+}

@@ -26,7 +26,7 @@ public partial class Compra
 
     [StringLength(20)]
     [Unicode(false)]
-    public string NumeroCompra { get; set; } = null!;
+    public string NumeroCompra { get; set; } = string.Empty;
 
     [StringLength(50)]
     [Unicode(false)]
@@ -50,7 +50,8 @@ public partial class Compra
     public DateTime FechaCompra { get; set; }
 
     [InverseProperty("IdCompraNavigation")]
-    public virtual ICollection<DetalleCompra> DetalleCompras { get; set; } = new List<DetalleCompra>();
+    public virtual ICollection<DetalleCompra> DetalleCompras { get; set; }
+        = new List<DetalleCompra>();
 
     [ForeignKey("IdEstadoCompra")]
     [InverseProperty("Compras")]
@@ -69,5 +70,6 @@ public partial class Compra
     public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
 
     [InverseProperty("IdCompraNavigation")]
-    public virtual ICollection<SeguimientoCompra> SeguimientoCompras { get; set; } = new List<SeguimientoCompra>();
+    public virtual ICollection<SeguimientoCompra> SeguimientoCompras { get; set; }
+        = new List<SeguimientoCompra>();
 }
